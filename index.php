@@ -317,7 +317,7 @@ $posts = [
                         </a>
                     </div>
                     <?php elseif ($post['type'] == 'post-text'): ?>
-                    <p><?= $post['content'] ?></p>
+                    <?= get_text_content($post['content']) ?>
                     <?php endif; ?>
                 </div>
                 <footer class="post__footer">
