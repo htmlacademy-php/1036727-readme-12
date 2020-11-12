@@ -1,5 +1,7 @@
 <?php
 
+require_once('helpers.php');
+
 function get_text_content(string $text, int $num_letters = 300) : string {
     $text_length = mb_strlen($text);
 
