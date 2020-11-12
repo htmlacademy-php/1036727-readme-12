@@ -87,12 +87,12 @@
         <?php foreach ($posts as $post): ?>
         <article class="popular__post post <?= $post['type'] ?>">
             <header class="post__header">
-                <h2><?= $post['heading'] ?></h2>
+                <h2><?= esc($post['heading']) ?></h2>
             </header>
             <div class="post__main">
                 <?php if ($post['type'] == 'post-quote'): ?>
                 <blockquote>
-                    <p><?= $post['content'] ?></p>
+                    <p><?= esc($post['content']) ?></p>
                     <cite>Неизвестный Автор</cite>
                 </blockquote>
                 <?php elseif ($post['type'] == 'post-link'): ?>
@@ -103,10 +103,10 @@
                                 <img src="https://www.google.com/s2/favicons?domain=vitadental.ru" alt="Иконка">
                             </div>
                             <div class="post-link__info">
-                                <h3><?= $post['heading'] ?></h3>
+                                <h3><?= esc($post['heading']) ?></h3>
                             </div>
                         </div>
-                        <span><?= $post['content'] ?></span>
+                        <span><?= esc($post['content']) ?></span>
                     </a>
                 </div>
                 <?php elseif ($post['type'] == 'post-photo'): ?>
@@ -127,7 +127,7 @@
                     </a>
                 </div>
                 <?php elseif ($post['type'] == 'post-text'): ?>
-                <?= get_text_content($post['content']) ?>
+                <?= get_text_content(esc($post['content'])) ?>
                 <?php endif; ?>
             </div>
             <footer class="post__footer">
@@ -137,7 +137,7 @@
                             <img class="post__author-avatar" src="img/<?= $post['avatar'] ?>" alt="Аватар пользователя">
                         </div>
                         <div class="post__info">
-                            <b class="post__author-name"><?= $post['username'] ?></b>
+                            <b class="post__author-name"><?= esc($post['username']) ?></b>
                             <time class="post__time" datetime="">дата</time>
                         </div>
                     </a>
