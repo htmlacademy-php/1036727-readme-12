@@ -84,3 +84,14 @@ $posts = [
     'avatar' => 'userpic.jpg'
     ]
 ];
+
+$page_content = include_template('main.php', [
+    'posts' => $posts
+]);
+
+$layout_content = include_template('layout.php', [
+    'title' => 'readme: популярное',
+    'page_content' => $page_content,
+    'is_auth' => $is_auth,
+    'username' => $user_name
+]);
