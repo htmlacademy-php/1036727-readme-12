@@ -95,3 +95,5 @@ $layout_content = include_template('layout.php', [
     'is_auth' => $is_auth,
     'username' => $user_name
 ]);
+
+print($layout_content);
