@@ -31,6 +31,16 @@ function get_text_content(string $text, int $num_letters = 300) : string {
     return $result;
 }
 
+function esc(string $str, bool $remove_tags = false) : string {
+    if ($remove_tags) {
+        $text = strip_tags($str);
+    } else {
+        $text = htmlspecialchars($str);
+    }
+
+    return $text;
+}
+
 $is_auth = rand(0, 1);
 
 $user_name = 'Максим'; // укажите здесь ваше имя
