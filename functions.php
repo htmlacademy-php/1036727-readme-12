@@ -52,12 +52,13 @@ function get_post_time(string $date) : string {
         $days = floor($ts_diff / 86400);
         $result = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней') . ' назад';
 
-    } elseif ($ts_diff >= 604800 && $ts_diff < 2419200) {
+    } elseif ($ts_diff >= 604800 && $ts_diff < 3024000) {
         $weeks = floor($ts_diff / 604800);
         $result = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель') . ' назад';
 
-    } elseif ($ts_diff >= 2419200) {
-        $months = floor($ts_diff / 2419200);
+    } elseif ($ts_diff >= 3024000) {
+        $dt_diff = date_diff(date_create($date), date_create('now'));
+        $months = date_interval_format($dt_diff, '%m');
         $result = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев') . ' назад';
     }
 
