@@ -139,7 +139,7 @@
                         </div>
                         <div class="post__info">
                             <b class="post__author-name"><?= esc($post['username']) ?></b>
-                            <time class="post__time" datetime="" title="<?= get_post_title_attr($date) ?>"><?= get_post_time($date) ?></time>
+                            <time class="post__time" datetime="<?= $date ?>" title="<?= get_post_title_attr($date) ?>"><?= get_post_time($date) ?></time>
                         </div>
                     </a>
                 </div>
