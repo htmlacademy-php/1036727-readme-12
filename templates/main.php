@@ -85,7 +85,7 @@
     </div>
     <div class="popular__posts">
         <?php foreach ($posts as $post): ?>
-        <article class="popular__post post <?= $post['type'] ?>">
+        <article class="popular__post post <?= esc($post['type']) ?>">
             <header class="post__header">
                 <h2><?= esc($post['heading']) ?></h2>
             </header>
@@ -111,12 +111,12 @@
                 </div>
                 <?php elseif ($post['type'] == 'post-photo'): ?>
                 <div class="post-photo__image-wrapper">
-                    <img src="img/<?= $post['content'] ?>" alt="Фото от пользователя" width="360" height="240">
+                    <img src="img/<?= esc($post['content']) ?>" alt="Фото от пользователя" width="360" height="240">
                 </div>
                 <?php elseif ($post['type'] == 'post-video'): ?>
                 <div class="post-video__block">
                     <div class="post-video__preview">
-                        <?=embed_youtube_cover($post['content']); ?>
+                        <?=embed_youtube_cover(esc($post['content'])); ?>
                         <img src="img/coast-medium.jpg" alt="Превью к видео" width="360" height="188">
                     </div>
                     <a href="post-details.html" class="post-video__play-big button">
@@ -134,7 +134,7 @@
                 <div class="post__author">
                     <a class="post__author-link" href="#" title="Автор">
                         <div class="post__avatar-wrapper">
-                            <img class="post__author-avatar" src="img/<?= $post['avatar'] ?>" alt="Аватар пользователя">
+                            <img class="post__author-avatar" src="img/<?= esc($post['avatar']) ?>" alt="Аватар пользователя">
                         </div>
                         <div class="post__info">
                             <b class="post__author-name"><?= esc($post['username']) ?></b>
