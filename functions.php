@@ -63,3 +63,10 @@ function get_post_time(string $date) : string {
 
     return $result;
 }
+
+function get_post_title_attr(string $date) : string {
+    $ts = strtotime($date);
+    $result = date('d.m.Y H:i', $ts);
+
+    return $result;
+}
