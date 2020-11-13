@@ -33,12 +33,8 @@ function get_text_content(string $text, int $num_letters = 300) : string {
     return $result;
 }
 
-function esc(string $str, bool $remove_tags = false) : string {
-    if ($remove_tags) {
-        $text = strip_tags($str);
-    } else {
-        $text = htmlspecialchars($str);
-    }
+function esc(string $str) : string {
+    $text = htmlspecialchars($str);
 
     return $text;
 }
