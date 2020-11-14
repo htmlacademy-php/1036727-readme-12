@@ -41,31 +41,31 @@ function get_post_time(string $date) : string {
     $ts_diff = time() - strtotime($date);
 
     if ($ts_diff < 60) {
-        $result = 'Меньше минуты назад';
+        $relative_time = "$ts_diff " . get_noun_plural_form($minutes, 'секунда', 'секунды', 'секунд') . ' назад';
 
     } elseif ($ts_diff < 3600) {
         $minutes = floor($ts_diff / 60);
-        $result = "$minutes " . get_noun_plural_form($minutes, 'минута', 'минуты', 'минут') . ' назад';
+        $relative_time = "$minutes " . get_noun_plural_form($minutes, 'минута', 'минуты', 'минут') . ' назад';
 
     } elseif ($ts_diff < 86400) {
         $hours = floor($ts_diff / 3600);
-        $result = "$hours " . get_noun_plural_form($hours, 'час', 'часа', 'часов') . ' назад';
+        $relative_time = "$hours " . get_noun_plural_form($hours, 'час', 'часа', 'часов') . ' назад';
 
     } elseif ($ts_diff < 604800) {
         $days = floor($ts_diff / 86400);
-        $result = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней') . ' назад';
+        $relative_time = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней') . ' назад';
 
     } elseif ($ts_diff < 3024000) {
         $weeks = floor($ts_diff / 604800);
-        $result = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель') . ' назад';
+        $relative_time = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель') . ' назад';
 
     } elseif ($ts_diff >= 3024000) {
         $dt_diff = date_diff(date_create($date), date_create('now'));
         $months = date_interval_format($dt_diff, '%m');
-        $result = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев') . ' назад';
+        $relative_time = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев') . ' назад';
     }
 
-    return $result;
+    return $relative_time;
 }
 
 function get_time_title(string $date) : string {
