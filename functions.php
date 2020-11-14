@@ -40,19 +40,22 @@ function esc(string $str) : string {
 function get_post_time(string $date) : string {
     $ts_diff = time() - strtotime($date);
 
-    if ($ts_diff < 3600) {
+    if ($ts_diff < 60) {
+        $result = 'Меньше минуты назад';
+
+    } elseif ($ts_diff < 3600) {
         $minutes = floor($ts_diff / 60);
         $result = "$minutes " . get_noun_plural_form($minutes, 'минута', 'минуты', 'минут') . ' назад';
 
-    } elseif ($ts_diff >= 3600 && $ts_diff < 86400) {
+    } elseif ($ts_diff < 86400) {
         $hours = floor($ts_diff / 3600);
         $result = "$hours " . get_noun_plural_form($hours, 'час', 'часа', 'часов') . ' назад';
 
-    } elseif ($ts_diff >= 86400 && $ts_diff < 604800) {
+    } elseif ($ts_diff < 604800) {
         $days = floor($ts_diff / 86400);
         $result = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней') . ' назад';
 
-    } elseif ($ts_diff >= 604800 && $ts_diff < 3024000) {
+    } elseif ($ts_diff < 3024000) {
         $weeks = floor($ts_diff / 604800);
         $result = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель') . ' назад';
 
