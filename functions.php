@@ -41,7 +41,7 @@ function get_post_time(string $date) : string {
     $ts_diff = time() - strtotime($date);
 
     if ($ts_diff < 60) {
-        $relative_time = "$ts_diff " . get_noun_plural_form($minutes, 'секунда', 'секунды', 'секунд') . ' назад';
+        $relative_time = "$ts_diff " . get_noun_plural_form($ts_diff, 'секунда', 'секунды', 'секунд') . ' назад';
 
     } elseif ($ts_diff < 3600) {
         $minutes = floor($ts_diff / 60);
