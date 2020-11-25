@@ -1,6 +1,12 @@
 <?php
 
-require_once('init.php');
+require_once 'init.php';
+
+if (!$link) {
+    $error = mysqli_connect_error($link);
+    print("Ошибка подключения: $error");
+    exit;
+}
 
 $is_auth = rand(0, 1);
 
