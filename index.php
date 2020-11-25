@@ -8,6 +8,18 @@ if (!$link) {
     exit;
 }
 
+$mysqli_errors = [];
+$content_types = [];
+
+$sql = 'SELECT * FROM content_type';
+$result = mysqli_query($link, $sql);
+
+if ($result) {
+    $content_types = mysqli_fetch_all($result, MYSQLI_ASSOC);
+} else {
+    $mysqli_errors[] = mysqli_error($link);
+}
+
 $is_auth = rand(0, 1);
 
 $user_name = 'Максим'; // укажите здесь ваше имя
