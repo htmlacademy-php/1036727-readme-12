@@ -10,6 +10,7 @@ if (!$link) {
 
 $mysqli_errors = [];
 $content_types = [];
+$posts = [];
 
 $sql = 'SELECT * FROM content_type';
 $result = mysqli_query($link, $sql);
@@ -20,47 +21,21 @@ if ($result) {
     $mysqli_errors[] = mysqli_error($link);
 }
 
+$sql = 'SELECT p.*, u.login AS author, c.type_name AS content_type FROM post p '
+     . 'INNER JOIN user u ON p.author_id = u.id '
+     . 'INNER JOIN content_type c ON p.content_type_id = c.id '
+     . 'ORDER BY show_count DESC';
+$result = mysqli_query($link, $sql);
+
+if ($result) {
+    $posts = mysqli_fetch_all($result, MYSQLI_ASSOC);
+} else {
+    $mysqli_errors[] = mysqli_error($link);
+}
+
 $is_auth = rand(0, 1);
 
 $user_name = 'Максим'; // укажите здесь ваше имя
-
-$posts = [
-    [
-    'heading' => 'Цитата',
-    'type' => 'post-quote',
-    'content' => 'Мы в жизни любим только раз, а после ищем лишь похожих',
-    'username' => 'Лариса',
-    'avatar' => 'userpic-larisa-small.jpg'
-    ],
-    [
-    'heading' => 'Игра престолов',
-    'type' => 'post-text',
-    'content' => 'Не могу дождаться начала финального сезона своего любимого сериала!',
-    'username' => 'Владик',
-    'avatar' => 'userpic.jpg'
-    ],
-    [
-    'heading' => 'Наконец, обработал фотки!',
-    'type' => 'post-photo',
-    'content' => 'rock-medium.jpg',
-    'username' => 'Виктор',
-    'avatar' => 'userpic-mark.jpg'
-    ],
-    [
-    'heading' => 'Моя мечта',
-    'type' => 'post-photo',
-    'content' => 'coast-medium.jpg',
-    'username' => 'Лариса',
-    'avatar' => 'userpic-larisa-small.jpg'
-    ],
-    [
-    'heading' => 'Лучшие курсы',
-    'type' => 'post-link',
-    'content' => 'www.htmlacademy.ru',
-    'username' => 'Владик',
-    'avatar' => 'userpic.jpg'
-    ]
-];
 
 $page_content = include_template('main.php', [
     'posts' => $posts
