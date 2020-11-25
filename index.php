@@ -1,6 +1,6 @@
 <?php
 
-require_once 'init.php';
+require_once('init.php');
 
 if (!$link) {
     $error = mysqli_connect_error($link);
