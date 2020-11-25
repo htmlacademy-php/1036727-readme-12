@@ -4,7 +4,7 @@
 
 INSERT INTO content_type (type_name, class_name) VALUES ('Текст', 'text');
 INSERT INTO content_type (type_name, class_name) VALUES ('Цитата', 'quote');
-INSERT INTO content_type (type_name, class_name) VALUES ('Картинка', 'photo');
+INSERT INTO content_type (type_name, class_name) VALUES ('Фото', 'photo');
 INSERT INTO content_type (type_name, class_name) VALUES ('Видео', 'video');
 INSERT INTO content_type (type_name, class_name) VALUES ('Ссылка', 'link');
 
