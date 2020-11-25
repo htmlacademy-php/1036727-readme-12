@@ -2,11 +2,11 @@
 -- Добавляет список типов контента для поста
 --
 
-INSERT INTO content_type (type_name, class_name) VALUES ('Текст', 'text');
-INSERT INTO content_type (type_name, class_name) VALUES ('Цитата', 'quote');
-INSERT INTO content_type (type_name, class_name) VALUES ('Фото', 'photo');
-INSERT INTO content_type (type_name, class_name) VALUES ('Видео', 'video');
-INSERT INTO content_type (type_name, class_name) VALUES ('Ссылка', 'link');
+INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Фото', 'photo', 22, 18);
+INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Видео', 'video', 24, 16);
+INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Текст', 'text', 20, 21);
+INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Цитата', 'quote', 21, 20);
+INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Ссылка', 'link', 21, 18);
 
 -- --------------------------------------------------------
 
@@ -25,10 +25,10 @@ INSERT INTO user (email, login, password, avatar_path) VALUES ('example4@gmail.c
 -- Добавляет существующий список постов
 --
 
-INSERT INTO post (title, content, quote_author, author_id, content_type_id) VALUES ('Цитата', 'Мы в жизни любим только раз, а после ищем лишь похожих', 'quote_author', 1, 2);
-INSERT INTO post (title, content, author_id, content_type_id) VALUES ('Игра престолов', 'Не могу дождаться начала финального сезона своего любимого сериала!', 2, 1);
-INSERT INTO post (title, content, image_path, author_id, content_type_id) VALUES ('Наконец, обработал фотки!', 'example', 'rock-medium.jpg', 3, 3);
-INSERT INTO post (title, content, image_path, author_id, content_type_id) VALUES ('Моя мечта', 'example', 'coast-medium.jpg', 1, 3);
+INSERT INTO post (title, content, quote_author, author_id, content_type_id) VALUES ('Цитата', 'Мы в жизни любим только раз, а после ищем лишь похожих', 'quote_author', 1, 4);
+INSERT INTO post (title, content, author_id, content_type_id) VALUES ('Игра престолов', 'Не могу дождаться начала финального сезона своего любимого сериала!', 2, 3);
+INSERT INTO post (title, content, image_path, author_id, content_type_id) VALUES ('Наконец, обработал фотки!', 'example', 'rock-medium.jpg', 3, 1);
+INSERT INTO post (title, content, image_path, author_id, content_type_id) VALUES ('Моя мечта', 'example', 'coast-medium.jpg', 1, 1);
 INSERT INTO post (title, content, link, author_id, content_type_id) VALUES ('Лучшие курсы', 'example', 'www.htmlacademy.ru', 2, 5);
 
 -- --------------------------------------------------------

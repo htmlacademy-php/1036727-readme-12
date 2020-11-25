@@ -85,5 +85,7 @@ CREATE TABLE post_hashtag (
 CREATE TABLE content_type (
 	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 	type_name VARCHAR(128) NOT NULL,
-	class_name VARCHAR(128) NOT NULL
+	class_name VARCHAR(128) NOT NULL,
+	icon_width INT UNSIGNED NOT NULL,
+	icon_height INT UNSIGNED NOT NULL
 );
