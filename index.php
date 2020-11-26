@@ -24,7 +24,7 @@ if ($result) {
 $sql = 'SELECT p.*, u.login AS author, u.avatar_path AS avatar, c.class_name AS class_name FROM post p '
      . 'INNER JOIN user u ON p.author_id = u.id '
      . 'INNER JOIN content_type c ON p.content_type_id = c.id '
-     . 'ORDER BY show_count DESC';
+     . 'ORDER BY show_count DESC LIMIT 6';
 $result = mysqli_query($link, $sql);
 
 if ($result) {
