@@ -74,3 +74,21 @@ function get_time_title(string $date) : string {
 
     return $result;
 }
+
+function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : array {
+    $result = mysqli_query($link, $sql);
+    $mysqli_result = [];
+
+    if (!$result && ini_get('display_errors')) {
+        $error = mysqli_error($link);
+        print("Ошибка MySQL: $error");
+
+    } elseif ($result && $type == 'all') {
+        $mysqli_result = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    } elseif ($result && $type == 'assoc') {
+        $mysqli_result = mysqli_fetch_assoc($result);
+    }
+
+    return $mysqli_result;
+}
