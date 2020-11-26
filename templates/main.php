@@ -42,10 +42,10 @@
                 </li>
                 <?php foreach ($content_types as $type): ?>
                 <li class="popular__filters-item filters__item">
-                    <a class="filters__button filters__button--<?= $type['class_name'] ?> button" href="#">
-                        <span class="visually-hidden"><?= $type['type_name'] ?></span>
-                        <svg class="filters__icon" width="<?= $type['icon_width'] ?>" height="<?= $type['icon_height'] ?>">
-                            <use xlink:href="#icon-filter-<?= $type['class_name'] ?>"></use>
+                    <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button" href="#">
+                        <span class="visually-hidden"><?= esc($type['type_name']) ?></span>
+                        <svg class="filters__icon" width="<?= esc($type['icon_width']) ?>" height="<?= esc($type['icon_height']) ?>">
+                            <use xlink:href="#icon-filter-<?= esc($type['class_name']) ?>"></use>
                         </svg>
                     </a>
                 </li>
