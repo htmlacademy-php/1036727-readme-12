@@ -36,13 +36,13 @@
             <b class="popular__filters-caption filters__caption">Тип контента:</b>
             <ul class="popular__filters-list filters__list">
                 <li class="popular__filters-item popular__filters-item--all filters__item filters__item--all">
-                    <a class="filters__button filters__button--ellipse filters__button--all filters__button--active" href="#">
+                    <a class="filters__button filters__button--ellipse filters__button--all<?php if (!isset($_GET['type'])): ?> filters__button--active<?php endif; ?>" href="/">
                         <span>Все</span>
                     </a>
                 </li>
                 <?php foreach ($content_types as $type): ?>
                 <li class="popular__filters-item filters__item">
-                    <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button" href="#">
+                    <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button<?php if (isset($_GET['type']) && $_GET['type'] == $type['id']): ?> filters__button--active<?php endif; ?>" href="/index.php?type=<?= esc($type['id']) ?>">
                         <span class="visually-hidden"><?= esc($type['type_name']) ?></span>
                         <svg class="filters__icon" width="<?= esc($type['icon_width']) ?>" height="<?= esc($type['icon_height']) ?>">
                             <use xlink:href="#icon-filter-<?= esc($type['class_name']) ?>"></use>
@@ -57,7 +57,9 @@
         <?php foreach ($posts as $post): ?>
         <article class="popular__post post post-<?= esc($post['class_name']) ?>">
             <header class="post__header">
-                <h2><?= esc($post['title']) ?></h2>
+                <h2>
+                    <a href="/post.php?id=<?= $post['id'] ?>"><?= esc($post['title']) ?></a>
+                </h2>
             </header>
             <div class="post__main">
                 <?php if ($post['class_name'] == 'quote'): ?>

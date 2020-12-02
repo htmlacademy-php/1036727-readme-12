@@ -5,9 +5,18 @@ require_once('init.php');
 $sql = 'SELECT * FROM content_type';
 $content_types = get_mysqli_result($link, $sql);
 
+$content_type = filter_input(INPUT_GET, 'type');
+settype($content_type, 'integer');
+
+$filter = '';
+
+if ($content_type > 0) {
+    $filter = "WHERE content_type_id = $content_type ";
+}
+
 $sql = 'SELECT p.*, u.login AS author, u.avatar_path AS avatar, c.class_name AS class_name FROM post p '
      . 'INNER JOIN user u ON p.author_id = u.id '
-     . 'INNER JOIN content_type c ON p.content_type_id = c.id '
+     . 'INNER JOIN content_type c ON p.content_type_id = c.id ' . $filter
      . 'ORDER BY show_count DESC LIMIT 6';
 $posts = get_mysqli_result($link, $sql);
 
