@@ -5,13 +5,14 @@ require_once('init.php');
 $sql = 'SELECT * FROM content_type';
 $content_types = get_mysqli_result($link, $sql);
 
-$content_type = filter_input(INPUT_GET, 'type');
-settype($content_type, 'integer');
-
 $filter = '';
 
-if ($content_type > 0) {
-    $filter = "WHERE content_type_id = $content_type ";
+if ($content_type = filter_input(INPUT_GET, 'filter')) {
+    $content_type = mysqli_real_escape_string($link, $content_type);
+
+    if (is_content_type_valid($link, $content_type)) {
+        $filter = "WHERE c.class_name = '$content_type' ";
+    }
 }
 
 $sql = 'SELECT p.*, u.login AS author, u.avatar_path AS avatar, c.class_name AS class_name FROM post p '
@@ -29,6 +30,7 @@ $page_content = include_template('main.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
+    'page_main_class' => 'popular',
     'title' => 'readme: популярное',
     'page_content' => $page_content,
     'is_auth' => $is_auth,

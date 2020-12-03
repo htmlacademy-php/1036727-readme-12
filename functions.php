@@ -92,3 +92,60 @@ function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : ar
 
     return $mysqli_result;
 }
+
+function is_content_type_valid(mysqli $link, string $type) : bool {
+    $sql = 'SELECT * FROM content_type';
+    $content_types = get_mysqli_result($link, $sql);
+    $class_names = array_column($content_types, 'class_name');
+
+    if (in_array($type, $class_names)) {
+        return true;
+    }
+
+    return false;
+}
+
+function is_post_valid(mysqli $link, int $post) : bool {
+    if ($post > 0) {
+        $sql = "SELECT COUNT(*) FROM post WHERE id = $post";
+        $result = get_mysqli_result($link, $sql, 'assoc');
+
+        return $result['COUNT(*)'] == 1;
+    }
+
+    return false;
+}
+
+function get_likes_count(mysqli $link, int $post) : int {
+
+}
+
+function get_comment_count(mysqli $link, int $post) : int {
+
+}
+
+function get_repost_count(mysqli $link, int $post) : int {
+
+}
+
+function get_subscriber_count(mysqli $link, int $user, $numeric_value = false) : string {
+    $sql = "SELECT COUNT(*) FROM subscription WHERE user_id = $user";
+    $result = get_mysqli_result($link, $sql, 'assoc');
+
+    if ($numeric_value) {
+        return $result['COUNT(*)'];
+    }
+
+    return get_noun_plural_form($result['COUNT(*)'], ' подписчик', ' подписчика', ' подписчиков');
+}
+
+function get_publication_count(mysqli $link, int $user, $numeric_value = false) : string {
+    $sql = "SELECT COUNT(*) FROM post WHERE author_id = $user";
+    $result = get_mysqli_result($link, $sql, 'assoc');
+
+    if ($numeric_value) {
+        return $result['COUNT(*)'];
+    }
+
+    return get_noun_plural_form($result['COUNT(*)'], ' публикация', ' публикации', ' публикаций');
+}

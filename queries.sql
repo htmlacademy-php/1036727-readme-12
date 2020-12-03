@@ -30,8 +30,8 @@ INSERT INTO user (email, login, password, avatar_path) VALUES
 INSERT INTO post (title, text_content, quote_author, image_path, link, author_id, content_type_id) VALUES
 ('Цитата', 'Мы в жизни любим только раз, а после ищем лишь похожих', 'Сергей Есенин', null, null, 1, 4),
 ('Игра престолов', 'Не могу дождаться начала финального сезона своего любимого сериала!', null, null, null, 2, 3),
-('Наконец, обработал фотки!', null, null, 'rock-medium.jpg', null, 3, 1),
-('Моя мечта', null, null, 'coast-medium.jpg', null, 1, 1),
+('Наконец, обработал фотки!', null, null, 'rock-default.jpg', null, 3, 1),
+('Моя мечта', null, null, 'rock-default.jpg', null, 1, 1),
 ('Лучшие курсы', null, null, null, 'www.htmlacademy.ru', 2, 5);
 
 -- --------------------------------------------------------

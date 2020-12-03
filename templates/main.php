@@ -7,7 +7,7 @@
             <b class="popular__sorting-caption sorting__caption">Сортировка:</b>
             <ul class="popular__sorting-list sorting__list">
                 <li class="sorting__item sorting__item--popular">
-                    <a class="sorting__link sorting__link--active" href="#">
+                    <a class="sorting__link sorting__link--active" href="/index.php?sort=popular">
                         <span>Популярность</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -15,7 +15,7 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-                    <a class="sorting__link" href="#">
+                    <a class="sorting__link" href="/index.php?sort=likes">
                         <span>Лайки</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -23,7 +23,7 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-                    <a class="sorting__link" href="#">
+                    <a class="sorting__link" href="/index.php?sort=date">
                         <span>Дата</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -36,13 +36,13 @@
             <b class="popular__filters-caption filters__caption">Тип контента:</b>
             <ul class="popular__filters-list filters__list">
                 <li class="popular__filters-item popular__filters-item--all filters__item filters__item--all">
-                    <a class="filters__button filters__button--ellipse filters__button--all<?php if (!isset($_GET['type'])): ?> filters__button--active<?php endif; ?>" href="/">
+                    <a class="filters__button filters__button--ellipse filters__button--all<?php if (!isset($_GET['filter'])): ?> filters__button--active<?php endif; ?>" href="/">
                         <span>Все</span>
                     </a>
                 </li>
                 <?php foreach ($content_types as $type): ?>
                 <li class="popular__filters-item filters__item">
-                    <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button<?php if (isset($_GET['type']) && $_GET['type'] == $type['id']): ?> filters__button--active<?php endif; ?>" href="/index.php?type=<?= esc($type['id']) ?>">
+                    <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button<?php if (isset($_GET['filter']) && $_GET['filter'] == $type['class_name']): ?> filters__button--active<?php endif; ?>" href="/index.php?filter=<?= esc($type['class_name']) ?>">
                         <span class="visually-hidden"><?= esc($type['type_name']) ?></span>
                         <svg class="filters__icon" width="<?= esc($type['icon_width']) ?>" height="<?= esc($type['icon_height']) ?>">
                             <use xlink:href="#icon-filter-<?= esc($type['class_name']) ?>"></use>
@@ -63,43 +63,19 @@
             </header>
             <div class="post__main">
                 <?php if ($post['class_name'] == 'quote'): ?>
-                <blockquote>
-                    <p><?= esc($post['text_content']) ?></p>
-                    <cite><?= esc($post['quote_author']) ?></cite>
-                </blockquote>
+                <?= include_template('post-quote.php', ['post' => $post]) ?>
+
                 <?php elseif ($post['class_name'] == 'link'): ?>
-                <div class="post-link__wrapper">
-                    <a class="post-link__external" href="http://<?= esc($post['link']) ?>" title="Перейти по ссылке">
-                        <div class="post-link__info-wrapper">
-                            <div class="post-link__icon-wrapper">
-                                <img src="https://www.google.com/s2/favicons?domain=vitadental.ru" alt="Иконка">
-                            </div>
-                            <div class="post-link__info">
-                                <h3><?= esc($post['title']) ?></h3>
-                            </div>
-                        </div>
-                        <span><?= esc($post['link']) ?></span>
-                    </a>
-                </div>
+                <?= include_template('post-link.php', ['post' => $post, 'full_version' => false]) ?>
+
                 <?php elseif ($post['class_name'] == 'photo'): ?>
-                <div class="post-photo__image-wrapper">
-                    <img src="img/<?= esc($post['image_path']) ?>" alt="Фото от пользователя" width="360" height="240">
-                </div>
+                <?= include_template('post-photo.php', ['post' => $post, 'full_version' => false]) ?>
+
                 <?php elseif ($post['class_name'] == 'video'): ?>
-                <div class="post-video__block">
-                    <div class="post-video__preview">
-                        <?=embed_youtube_cover(esc($post['video_path'])); ?>
-                        <img src="img/coast-medium.jpg" alt="Превью к видео" width="360" height="188">
-                    </div>
-                    <a href="post-details.html" class="post-video__play-big button">
-                        <svg class="post-video__play-big-icon" width="14" height="14">
-                            <use xlink:href="#icon-video-play-big"></use>
-                        </svg>
-                        <span class="visually-hidden">Запустить проигрыватель</span>
-                    </a>
-                </div>
+                <?= include_template('post-video.php', ['post' => $post, 'full_version' => false]) ?>
+
                 <?php elseif ($post['class_name'] == 'text'): ?>
-                <?= get_text_content(esc($post['text_content'])) ?>
+                <?= include_template('post-text.php', ['post' => $post]) ?>
                 <?php endif; ?>
             </div>
             <footer class="post__footer">
