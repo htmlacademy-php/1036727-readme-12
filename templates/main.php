@@ -7,7 +7,7 @@
             <b class="popular__sorting-caption sorting__caption">Сортировка:</b>
             <ul class="popular__sorting-list sorting__list">
                 <li class="sorting__item sorting__item--popular">
-                    <a class="sorting__link sorting__link--active" href="/index.php?sort=popular">
+                    <a class="sorting__link<?= get_sorting_link_class('popular') ?>" href="<?= get_sorting_link_url('popular', $dir['popular']) ?>">
                         <span>Популярность</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -15,7 +15,7 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-                    <a class="sorting__link" href="/index.php?sort=likes">
+                    <a class="sorting__link<?= get_sorting_link_class('likes') ?>" href="<?= get_sorting_link_url('likes', $dir['likes']) ?>">
                         <span>Лайки</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -23,7 +23,7 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-                    <a class="sorting__link" href="/index.php?sort=date">
+                    <a class="sorting__link<?= get_sorting_link_class('date') ?>" href="<?= get_sorting_link_url('date', $dir['date']) ?>">
                         <span>Дата</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -82,7 +82,7 @@
                 <div class="post__author">
                     <a class="post__author-link" href="#" title="Автор">
                         <div class="post__avatar-wrapper">
-                            <img class="post__author-avatar" src="img/<?= esc($post['avatar']) ?>" width="40" height="40" alt="Аватар пользователя">
+                            <img class="post__author-avatar" src="img/<?= esc($post['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
                         </div>
                         <div class="post__info">
                             <b class="post__author-name"><?= esc($post['author']) ?></b>

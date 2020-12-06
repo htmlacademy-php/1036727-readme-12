@@ -93,6 +93,35 @@ function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : ar
     return $mysqli_result;
 }
 
+function get_sorting_link_class(string $sort_type) : string {
+    $result = '';
+
+    if (isset($_GET['sort']) && $_GET['sort'] == $sort_type) {
+        $result = ' sorting__link--active';
+
+        if (isset($_GET['dir']) && $_GET['dir'] == 'asc') {
+            $result .= ' sorting__link--reverse';
+        }
+    }
+
+    return $result;
+}
+
+function get_sorting_link_url(string $sort_type, string $sort_dir) : string {
+    if ($filter = filter_input(INPUT_GET, 'filter')) {
+        $parameters['filter'] = $filter;
+    }
+
+    $parameters['sort'] = $sort_type;
+    $parameters['dir'] = $sort_dir;
+
+    $scriptname = 'index.php';
+    $query = http_build_query($parameters);
+    $url = '/' . $scriptname . '?' . $query;
+
+    return $url;
+}
+
 function is_content_type_valid(mysqli $link, string $type) : bool {
     $sql = 'SELECT * FROM content_type';
     $content_types = get_mysqli_result($link, $sql);

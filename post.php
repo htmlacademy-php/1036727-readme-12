@@ -10,9 +10,9 @@ if (!is_post_valid($link, $post_id)) {
     exit;
 }
 
-$sql = 'SELECT p.*, u.login AS author, u.avatar_path AS avatar, c.class_name AS class_name FROM post p '
+$sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
      . 'INNER JOIN user u ON p.author_id = u.id '
-     . 'INNER JOIN content_type c ON p.content_type_id = c.id '
+     . 'INNER JOIN content_type ct ON p.content_type_id = ct.id '
      . "WHERE p.id = $post_id";
 $post = get_mysqli_result($link, $sql, 'assoc');
 
