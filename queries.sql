@@ -2,11 +2,12 @@
 -- Добавляет список типов контента для поста
 --
 
-INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Фото', 'photo', 22, 18);
-INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Видео', 'video', 24, 16);
-INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Текст', 'text', 20, 21);
-INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Цитата', 'quote', 21, 20);
-INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES ('Ссылка', 'link', 21, 18);
+INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES
+('Фото', 'photo', 22, 18),
+('Видео', 'video', 24, 16),
+('Текст', 'text', 20, 21),
+('Цитата', 'quote', 21, 20),
+('Ссылка', 'link', 21, 18);
 
 -- --------------------------------------------------------
 
@@ -14,10 +15,11 @@ INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES
 -- Добавляет пользователей
 --
 
-INSERT INTO user (email, login, password, avatar_path) VALUES ('example1@gmail.com', 'Лариса Роговая', 'password1', 'userpic-larisa.jpg');
-INSERT INTO user (email, login, password, avatar_path) VALUES ('example2@gmail.com', 'Пётр Дёмин', 'password2', 'userpic-petro.jpg');
-INSERT INTO user (email, login, password, avatar_path) VALUES ('example3@gmail.com', 'Марк Смолов', 'password3', 'userpic-mark.jpg');
-INSERT INTO user (email, login, password, avatar_path) VALUES ('example4@gmail.com', 'Таня Фирсова', 'password4', 'userpic-tanya.jpg');
+INSERT INTO user (email, login, password, avatar_path) VALUES
+('example1@gmail.com', 'Лариса Роговая', 'password1', 'userpic-larisa.jpg'),
+('example2@gmail.com', 'Пётр Дёмин', 'password2', 'userpic-petro.jpg'),
+('example3@gmail.com', 'Марк Смолов', 'password3', 'userpic-mark.jpg'),
+('example4@gmail.com', 'Таня Фирсова', 'password4', 'userpic-tanya.jpg');
 
 -- --------------------------------------------------------
 
@@ -25,11 +27,12 @@ INSERT INTO user (email, login, password, avatar_path) VALUES ('example4@gmail.c
 -- Добавляет существующий список постов
 --
 
-INSERT INTO post (title, content, quote_author, author_id, content_type_id) VALUES ('Цитата', 'Мы в жизни любим только раз, а после ищем лишь похожих', 'quote_author', 1, 4);
-INSERT INTO post (title, content, author_id, content_type_id) VALUES ('Игра престолов', 'Не могу дождаться начала финального сезона своего любимого сериала!', 2, 3);
-INSERT INTO post (title, content, image_path, author_id, content_type_id) VALUES ('Наконец, обработал фотки!', 'example', 'rock-medium.jpg', 3, 1);
-INSERT INTO post (title, content, image_path, author_id, content_type_id) VALUES ('Моя мечта', 'example', 'coast-medium.jpg', 1, 1);
-INSERT INTO post (title, content, link, author_id, content_type_id) VALUES ('Лучшие курсы', 'example', 'www.htmlacademy.ru', 2, 5);
+INSERT INTO post (title, text_content, quote_author, image_path, link, author_id, content_type_id) VALUES
+('Цитата', 'Мы в жизни любим только раз, а после ищем лишь похожих', 'Сергей Есенин', null, null, 1, 4),
+('Игра престолов', 'Не могу дождаться начала финального сезона своего любимого сериала!', null, null, null, 2, 3),
+('Наконец, обработал фотки!', null, null, 'rock-default.jpg', null, 3, 1),
+('Моя мечта', null, null, 'rock-default.jpg', null, 1, 1),
+('Лучшие курсы', null, null, null, 'www.htmlacademy.ru', 2, 5);
 
 -- --------------------------------------------------------
 
@@ -37,8 +40,9 @@ INSERT INTO post (title, content, link, author_id, content_type_id) VALUES ('Л�
 -- Добавляет комментарии
 --
 
-INSERT INTO comment (content, author_id, post_id) VALUES ('Красота!!!1!', 1, 3);
-INSERT INTO comment (content, author_id, post_id) VALUES ('Красота!!!1!', 1, 4);
+INSERT INTO comment (text_content, author_id, post_id) VALUES
+('Красота!!!1!', 1, 3),
+('Красота!!!1!', 1, 4);
 
 -- --------------------------------------------------------
 

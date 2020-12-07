@@ -74,3 +74,107 @@ function get_time_title(string $date) : string {
 
     return $result;
 }
+
+function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : array {
+    $result = mysqli_query($link, $sql);
+    $mysqli_result = [];
+
+    if (!$result && ini_get('display_errors')) {
+        $error = mysqli_error($link);
+        print("Ошибка MySQL: $error");
+
+    } elseif ($result && $type == 'all') {
+        $mysqli_result = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    } elseif ($result && $type == 'assoc') {
+        $mysqli_result = mysqli_fetch_assoc($result);
+    }
+
+    return $mysqli_result;
+}
+
+function get_sorting_link_class(string $sort_type) : string {
+    $result = '';
+
+    if (isset($_GET['sort']) && $_GET['sort'] == $sort_type) {
+        $result = ' sorting__link--active';
+
+        if (isset($_GET['dir']) && $_GET['dir'] == 'asc') {
+            $result .= ' sorting__link--reverse';
+        }
+    }
+
+    return $result;
+}
+
+function get_sorting_link_url(string $sort_type, string $sort_dir) : string {
+    if ($filter = filter_input(INPUT_GET, 'filter')) {
+        $parameters['filter'] = $filter;
+    }
+
+    $parameters['sort'] = $sort_type;
+    $parameters['dir'] = $sort_dir;
+
+    $scriptname = 'index.php';
+    $query = http_build_query($parameters);
+    $url = '/' . $scriptname . '?' . $query;
+
+    return $url;
+}
+
+function is_content_type_valid(mysqli $link, string $type) : bool {
+    $sql = 'SELECT * FROM content_type';
+    $content_types = get_mysqli_result($link, $sql);
+    $class_names = array_column($content_types, 'class_name');
+
+    if (in_array($type, $class_names)) {
+        return true;
+    }
+
+    return false;
+}
+
+function is_post_valid(mysqli $link, int $post) : bool {
+    if ($post > 0) {
+        $sql = "SELECT COUNT(*) FROM post WHERE id = $post";
+        $result = get_mysqli_result($link, $sql, 'assoc');
+
+        return $result['COUNT(*)'] == 1;
+    }
+
+    return false;
+}
+
+function get_likes_count(mysqli $link, int $post) : int {
+
+}
+
+function get_comment_count(mysqli $link, int $post) : int {
+
+}
+
+function get_repost_count(mysqli $link, int $post) : int {
+
+}
+
+function get_subscriber_count(mysqli $link, int $user, $numeric_value = false) : string {
+    $sql = "SELECT COUNT(*) FROM subscription WHERE user_id = $user";
+    $result = get_mysqli_result($link, $sql, 'assoc');
+
+    if ($numeric_value) {
+        return $result['COUNT(*)'];
+    }
+
+    return get_noun_plural_form($result['COUNT(*)'], ' подписчик', ' подписчика', ' подписчиков');
+}
+
+function get_publication_count(mysqli $link, int $user, $numeric_value = false) : string {
+    $sql = "SELECT COUNT(*) FROM post WHERE author_id = $user";
+    $result = get_mysqli_result($link, $sql, 'assoc');
+
+    if ($numeric_value) {
+        return $result['COUNT(*)'];
+    }
+
+    return get_noun_plural_form($result['COUNT(*)'], ' публикация', ' публикации', ' публикаций');
+}
