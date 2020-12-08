@@ -1,4 +1,4 @@
-<?php if ($full_version): ?>
+<?php if (isset($post['details']) && $post['details'] == true): ?>
 <div class="post-video__block">
     <div class="post-video__preview">
         <?=embed_youtube_cover(esc($post['video_path'])); ?>

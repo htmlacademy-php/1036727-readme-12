@@ -93,10 +93,10 @@ function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : ar
     return $mysqli_result;
 }
 
-function get_sorting_link_class(string $sort_type) : string {
+function get_sorting_link_class(string $field) : string {
     $result = '';
 
-    if (isset($_GET['sort']) && $_GET['sort'] == $sort_type) {
+    if (isset($_GET['sort']) && $_GET['sort'] == $field) {
         $result = ' sorting__link--active';
 
         if (isset($_GET['dir']) && $_GET['dir'] == 'asc') {
@@ -107,13 +107,13 @@ function get_sorting_link_class(string $sort_type) : string {
     return $result;
 }
 
-function get_sorting_link_url(string $sort_type, string $sort_dir) : string {
+function get_sorting_link_url(string $field, array $types) : string {
     if ($filter = filter_input(INPUT_GET, 'filter')) {
         $parameters['filter'] = $filter;
     }
 
-    $parameters['sort'] = $sort_type;
-    $parameters['dir'] = $sort_dir;
+    $parameters['sort'] = $field;
+    $parameters['dir'] = $types[$field];
 
     $scriptname = 'index.php';
     $query = http_build_query($parameters);

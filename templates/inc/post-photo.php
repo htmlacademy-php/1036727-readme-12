@@ -1,4 +1,4 @@
-<?php if ($full_version): ?>
+<?php if (isset($post['details']) && $post['details'] == true): ?>
 <div class="post-photo__image-wrapper">
     <img src="img/<?= esc($post['image_path']) ?>" alt="Фото от пользователя" width="760" height="507">
 </div>
