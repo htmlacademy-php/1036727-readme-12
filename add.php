@@ -146,18 +146,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 foreach ($tags as $tag_name) {
                     $tag_name = mysqli_real_escape_string($link, $tag_name);
                     $sql = "SELECT COUNT(*), id FROM hashtag WHERE name = '$tag_name'";
-                    $hashtag = get_mysqli_result($link, $sql, FETCH_ASSOC);
+                    $hashtag = get_mysqli_result($link, $sql, 'assoc');
 
                     if ($hashtag['COUNT(*)'] == 0) {
                         $sql = "INSERT INTO hashtag SET name = '$tag_name'";
-                        get_mysqli_result($link, $sql, MODIFICATION_QUERY);
+                        get_mysqli_result($link, $sql, 'modify');
                         $hashtag_id = mysqli_insert_id($link);
                     } else {
                         $hashtag_id = $hashtag['id'];
                     }
 
                     $sql = "INSERT INTO post_hashtag (hashtag_id, post_id) VALUES ($hashtag_id, $post_id)";
-                    get_mysqli_result($link, $sql, MODIFICATION_QUERY);
+                    get_mysqli_result($link, $sql, 'modify');
                 }
             }
 

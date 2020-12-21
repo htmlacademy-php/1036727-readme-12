@@ -4,7 +4,7 @@ function exceptions_error_handler($severity, $message, $filename, $lineno) {
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
 }
 
-function get_mysqli_result(mysqli $link, string $sql, int $type = FETCH_ALL) : array {
+function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : array {
     $result = mysqli_query($link, $sql);
     $mysqli_result = [];
 
@@ -12,28 +12,18 @@ function get_mysqli_result(mysqli $link, string $sql, int $type = FETCH_ALL) : a
         $error = mysqli_error($link);
         print("Ошибка MySQL: $error");
 
-    } elseif (!$result && $type === 0) {
+    } elseif (!$result && $type == 'modify') {
         http_response_code(500);
         exit;
 
-    } elseif ($result && $type === 1) {
+    } elseif ($result && $type == 'all') {
         $mysqli_result = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-    } elseif ($result && $type === 2) {
+    } elseif ($result && $type == 'assoc') {
         $mysqli_result = mysqli_fetch_assoc($result);
     }
 
     return $mysqli_result;
-}
-
-function modification_query(mysqli $link, string $sql) : bool {
-
-    if (!mysqli_query($link, $sql)) {
-        http_response_code(500);
-        exit;
-    }
-
-    return true;
 }
 
 function get_text_content(string $text, int $num_letters = 300) : string {
@@ -186,7 +176,7 @@ function get_content_type_id(mysqli $link, string $type) : int {
 
     if (is_content_type_valid($link, $type)) {
         $sql = "SELECT * FROM content_type WHERE class_name = '$type'";
-        $result = get_mysqli_result($link, $sql, FETCH_ASSOC);
+        $result = get_mysqli_result($link, $sql, 'assoc');
 
         return $result['id'];
     }
@@ -227,7 +217,7 @@ function get_post_value(string $name) : string {
 
 function post_validate(mysqli $link, int $post) : void {
     $sql = "SELECT COUNT(*) FROM post WHERE id = $post";
-    $result = get_mysqli_result($link, $sql, FETCH_ASSOC);
+    $result = get_mysqli_result($link, $sql, 'assoc');
 
     if ($result['COUNT(*)'] == 0) {
         http_response_code(404);
@@ -249,7 +239,7 @@ function get_repost_count(mysqli $link, int $post) : int {
 
 function get_subscriber_count(mysqli $link, int $user, $numeric_value = false) : string {
     $sql = "SELECT COUNT(*) FROM subscription WHERE user_id = $user";
-    $result = get_mysqli_result($link, $sql, FETCH_ASSOC);
+    $result = get_mysqli_result($link, $sql, 'assoc');
 
     if ($numeric_value) {
         return $result['COUNT(*)'];
@@ -260,7 +250,7 @@ function get_subscriber_count(mysqli $link, int $user, $numeric_value = false) :
 
 function get_publication_count(mysqli $link, int $user, $numeric_value = false) : string {
     $sql = "SELECT COUNT(*) FROM post WHERE author_id = $user";
-    $result = get_mysqli_result($link, $sql, FETCH_ASSOC);
+    $result = get_mysqli_result($link, $sql, 'assoc');
 
     if ($numeric_value) {
         return $result['COUNT(*)'];

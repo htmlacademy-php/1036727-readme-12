@@ -10,7 +10,7 @@ $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p 
      . 'INNER JOIN user u ON p.author_id = u.id '
      . 'INNER JOIN content_type ct ON p.content_type_id = ct.id '
      . "WHERE p.id = $post_id";
-$post = get_mysqli_result($link, $sql, FETCH_ASSOC);
+$post = get_mysqli_result($link, $sql, 'assoc');
 $post['details'] = true;
 
 $is_auth = rand(0, 1);
