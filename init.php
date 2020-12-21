@@ -5,6 +5,7 @@ ini_set('error_reporting', E_ALL);
 
 require_once('helpers.php');
 require_once('functions.php');
+require_once('constants.php');
 $db = require_once('config/db.php');
 
 $link = mysqli_connect($db['host'], $db['user'], $db['password'], $db['database']);

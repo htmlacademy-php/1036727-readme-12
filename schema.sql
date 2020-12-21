@@ -41,9 +41,12 @@ CREATE TABLE post (
 	video_path VARCHAR(128),
 	link VARCHAR(128),
 	show_count INT UNSIGNED NOT NULL DEFAULT 0,
+	is_repost BOOLEAN NOT NULL DEFAULT 0,
+	original_author_id INT UNSIGNED,
 	author_id INT UNSIGNED NOT NULL,
 	content_type_id INT UNSIGNED NOT NULL,
 	FOREIGN KEY (author_id) REFERENCES user(id),
+	FOREIGN KEY (original_author_id) REFERENCES user(id),
 	FOREIGN KEY (content_type_id) REFERENCES content_type(id)
 );
 
@@ -116,8 +119,8 @@ CREATE TABLE message (
 
 CREATE TABLE hashtag (
 	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	hashtag_name VARCHAR(128) NOT NULL,
-	INDEX hashtag_name(hashtag_name)
+	name VARCHAR(128) NOT NULL,
+	UNIQUE INDEX hashtag_name(name)
 );
 
 -- --------------------------------------------------------
@@ -137,6 +140,20 @@ CREATE TABLE post_hashtag (
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы repost
+--
+
+CREATE TABLE repost (
+	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	post_id INT UNSIGNED NOT NULL,
+	author_id INT UNSIGNED NOT NULL,
+	FOREIGN KEY (post_id) REFERENCES post(id),
+	FOREIGN KEY (author_id) REFERENCES user(id)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы content_type
 --
 
@@ -146,6 +163,45 @@ CREATE TABLE content_type (
 	class_name VARCHAR(128) NOT NULL,
 	icon_width INT UNSIGNED NOT NULL,
 	icon_height INT UNSIGNED NOT NULL
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы form
+--
+
+CREATE TABLE form (
+	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR(128) NOT NULL
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы form_input
+--
+
+CREATE TABLE form_input (
+	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	form_id INT UNSIGNED NOT NULL,
+	input_id INT UNSIGNED NOT NULL,
+	FOREIGN KEY (form_id) REFERENCES form(id),
+	FOREIGN KEY (input_id) REFERENCES input(id)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы input
+--
+
+CREATE TABLE input (
+	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	label VARCHAR(128) NOT NULL,
+	name VARCHAR(128) NOT NULL,
+	placeholder VARCHAR(128) NOT NULL,
+	required BOOLEAN NOT NULL
 );
 
 -- --------------------------------------------------------

@@ -6,6 +6,7 @@
         </div>
         <div class="post-link__info">
             <h3><?= esc($post['title']) ?></h3>
+            <!-- где брать содержимое следующего тега? -->
             <p>Семейная стоматология в Адлере</p>
             <span><?= esc($post['link']) ?></span>
         </div>
