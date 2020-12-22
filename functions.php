@@ -64,6 +64,11 @@ function esc(string $str) : string {
 }
 
 function get_post_time(string $date) : string {
+
+    if (!strtotime($date)) {
+        return '';
+    }
+
     $ts_diff = time() - strtotime($date);
 
     if ($ts_diff < 60) {
@@ -95,10 +100,14 @@ function get_post_time(string $date) : string {
 }
 
 function get_time_title(string $date) : string {
-    $ts = strtotime($date);
-    $time_title = date('d.m.Y H:i', $ts);
 
-    return $time_title;
+    if (!$ts = strtotime($date)) {
+        $title = '';
+    } else {
+        $title = date('d.m.Y H:i', $ts);
+    }
+
+    return $title;
 }
 
 function get_sorting_link_class(string $field) : string {
@@ -151,7 +160,7 @@ function get_post_input(mysqli $link, string $form) : array {
     $input_names = array_column($form_inputs, 'name');
 
     if ($form == 'adding-post') {
-        list($input['text-content'], $input['image-path']) = null;
+        list($input['text-content'], $input['image-path']) = [null, null];
     }
 
     foreach ($input_names as $name) {
@@ -226,10 +235,17 @@ function post_validate(mysqli $link, int $post) : void {
 }
 
 function get_likes_count(mysqli $link, int $post) : int {
+    $sql = "SELECT COUNT(*) FROM post_like WHERE post_id = $post";
+    $result = get_mysqli_result($link, $sql, 'assoc');
 
+    return $result['COUNT(*)'];
 }
 
 function get_comment_count(mysqli $link, int $post) : int {
+    $sql = "SELECT COUNT(*) FROM comment WHERE post_id = $post";
+    $result = get_mysqli_result($link, $sql, 'assoc');
+
+    return $result['COUNT(*)'];
 
 }
 

@@ -20,7 +20,8 @@ INSERT INTO form (name) VALUES
 ('adding-post__video'),
 ('adding-post__text'),
 ('adding-post__quote'),
-('adding-post__link');
+('adding-post__link'),
+('comments__form');
 
 -- --------------------------------------------------------
 

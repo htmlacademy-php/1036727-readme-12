@@ -1,7 +1,6 @@
 <?php
 
 require_once('init.php');
-set_error_handler('exceptions_error_handler');
 
 $sql = 'SELECT * FROM content_type';
 $content_types = get_mysqli_result($link, $sql);
@@ -55,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $file_name = uniqid();
                 $file_path = "uploads/{$file_name}.jpeg";
 
+                set_error_handler('exceptions_error_handler');
                 try {
                     $content = file_get_contents($input['image-url']);
                     file_put_contents($file_path, $content);
@@ -64,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $errors['file-photo'][1] = 'Изображение';
                     break;
                 }
+                restore_error_handler();
 
                 if (!in_array($file_type, $mime_types)) {
                     unlink($file_path);
@@ -95,18 +96,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $errors['video-url'][1] = 'Ссылка youtube';
                 }
 
-                // функция ckeck_youtube_url работает некорректно
-
-                // } elseif (is_string(check_youtube_url($input['video-url']))) {
-                //     $errors['video-url'][0] = 'Видео по такой ссылке не найдено';
-                //     $errors['video-url'][1] = 'Ссылка youtube';
-                // }
-
             } else {
                 $errors['video-url'][0] = 'Некорректный url-адрес';
                 $errors['video-url'][1] = 'Ссылка youtube';
             }
 
+            break;
+
+        case 'text':
+            $input['text-content'] = $input['post-text'];
+            break;
+
+        case 'quote':
+            $input['text-content'] = $input['cite-text'];
             break;
 
         case 'link':
@@ -116,12 +118,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             break;
-    }
-
-    if ($content_type == 'text') {
-        $input['text-content'] = $input['post-text'];
-    } elseif ($content_type == 'quote') {
-        $input['text-content'] = $input['cite-text'];
     }
 
     $required_fields = get_required_fields($link, $content_type);

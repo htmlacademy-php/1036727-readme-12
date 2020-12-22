@@ -58,10 +58,9 @@ if (isset($_GET['sort']) && isset($_GET['dir'])) {
     $sort_filter .= $_GET['dir'] == 'asc' ? 'ASC' : 'DESC';
 }
 
-$sql = 'SELECT p.*, COUNT(pl.id) AS like_count, u.login AS author, u.avatar_path, ct.class_name FROM post p '
-     . 'LEFT JOIN user u ON p.author_id = u.id '
-     . 'LEFT JOIN content_type ct ON p.content_type_id = ct.id '
-     . 'LEFT JOIN post_like pl ON p.id = pl.post_id '
+$sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+     . 'INNER JOIN user u ON p.author_id = u.id '
+     . 'INNER JOIN content_type ct ON p.content_type_id = ct.id '
 
      . $content_type_filter
 
@@ -76,7 +75,8 @@ $page_content = include_template('main.php', [
     'sort_fields' => $sort_fields,
     'sort_types' => $sort_types,
     'content_types' => $content_types,
-    'posts' => $posts
+    'posts' => $posts,
+    'link' => $link
 ]);
 
 $layout_content = include_template('layout.php', [

@@ -42,11 +42,9 @@ CREATE TABLE post (
 	link VARCHAR(128),
 	show_count INT UNSIGNED NOT NULL DEFAULT 0,
 	is_repost BOOLEAN NOT NULL DEFAULT 0,
-	original_author_id INT UNSIGNED,
 	author_id INT UNSIGNED NOT NULL,
 	content_type_id INT UNSIGNED NOT NULL,
 	FOREIGN KEY (author_id) REFERENCES user(id),
-	FOREIGN KEY (original_author_id) REFERENCES user(id),
 	FOREIGN KEY (content_type_id) REFERENCES content_type(id)
 );
 
