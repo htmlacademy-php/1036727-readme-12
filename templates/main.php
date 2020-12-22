@@ -7,7 +7,9 @@
             <b class="popular__sorting-caption sorting__caption">Сортировка:</b>
             <ul class="popular__sorting-list sorting__list">
                 <li class="sorting__item sorting__item--popular">
-                    <a class="sorting__link<?= get_sorting_link_class('popular') ?>" href="<?= get_sorting_link_url('popular', $dir['popular']) ?>">
+                    <?php $classname = get_sorting_link_class($sort_fields[0]) ?>
+                    <?php $url = get_sorting_link_url($sort_fields[0], $sort_types) ?>
+                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
                         <span>Популярность</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -15,7 +17,9 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-                    <a class="sorting__link<?= get_sorting_link_class('likes') ?>" href="<?= get_sorting_link_url('likes', $dir['likes']) ?>">
+                    <?php $classname = get_sorting_link_class($sort_fields[1]) ?>
+                    <?php $url = get_sorting_link_url($sort_fields[1], $sort_types) ?>
+                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
                         <span>Лайки</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -23,7 +27,9 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-                    <a class="sorting__link<?= get_sorting_link_class('date') ?>" href="<?= get_sorting_link_url('date', $dir['date']) ?>">
+                    <?php $classname = get_sorting_link_class($sort_fields[2]) ?>
+                    <?php $url = get_sorting_link_url($sort_fields[2], $sort_types) ?>
+                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
                         <span>Дата</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -62,20 +68,21 @@
                 </h2>
             </header>
             <div class="post__main">
+                <?php $post['details'] = false; ?>
                 <?php if ($post['class_name'] == 'quote'): ?>
-                <?= include_template('post-quote.php', ['post' => $post]) ?>
+                <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'link'): ?>
-                <?= include_template('post-link.php', ['post' => $post, 'full_version' => false]) ?>
+                <?= include_template('inc/post-link.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'photo'): ?>
-                <?= include_template('post-photo.php', ['post' => $post, 'full_version' => false]) ?>
+                <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'video'): ?>
-                <?= include_template('post-video.php', ['post' => $post, 'full_version' => false]) ?>
+                <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'text'): ?>
-                <?= include_template('post-text.php', ['post' => $post]) ?>
+                <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                 <?php endif; ?>
             </div>
             <footer class="post__footer">

@@ -6,21 +6,21 @@
             <div class="post-details__main-block post post--details" style="border-top-right-radius: 0;">
                 <?php if ($post['class_name'] == 'quote'): ?>
                 <div class="post__main">
-                    <?= include_template('post-quote.php', ['post' => $post]) ?>
+                    <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
                 </div>
 
                 <?php elseif ($post['class_name'] == 'link'): ?>
-                <?= include_template('post-link.php', ['post' => $post, 'full_version' => true]) ?>
+                <?= include_template('inc/post-link.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'photo'): ?>
-                <?= include_template('post-photo.php', ['post' => $post, 'full_version' => true]) ?>
+                <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'video'): ?>
-                <?= include_template('post-video.php', ['post' => $post, 'full_version' => true]) ?>
+                <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'text'): ?>
                 <div class="post__main" style="padding: 32px 0; border-bottom: 1px solid #dee5fc;">
-                    <?= include_template('post-text.php', ['post' => $post]) ?>
+                    <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                 </div>
                 <?php endif; ?>
                 <div class="post__indicators">

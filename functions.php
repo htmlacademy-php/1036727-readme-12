@@ -1,5 +1,31 @@
 <?php
 
+function exceptions_error_handler($severity, $message, $filename, $lineno) {
+    throw new ErrorException($message, 0, $severity, $filename, $lineno);
+}
+
+function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : array {
+    $result = mysqli_query($link, $sql);
+    $mysqli_result = [];
+
+    if (!$result && ini_get('display_errors')) {
+        $error = mysqli_error($link);
+        print("Ошибка MySQL: $error");
+
+    } elseif (!$result && $type == 'modify') {
+        http_response_code(500);
+        exit;
+
+    } elseif ($result && $type == 'all') {
+        $mysqli_result = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+    } elseif ($result && $type == 'assoc') {
+        $mysqli_result = mysqli_fetch_assoc($result);
+    }
+
+    return $mysqli_result;
+}
+
 function get_text_content(string $text, int $num_letters = 300) : string {
     $text_length = mb_strlen($text);
 
@@ -70,33 +96,15 @@ function get_post_time(string $date) : string {
 
 function get_time_title(string $date) : string {
     $ts = strtotime($date);
-    $result = date('d.m.Y H:i', $ts);
+    $time_title = date('d.m.Y H:i', $ts);
 
-    return $result;
+    return $time_title;
 }
 
-function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : array {
-    $result = mysqli_query($link, $sql);
-    $mysqli_result = [];
-
-    if (!$result && ini_get('display_errors')) {
-        $error = mysqli_error($link);
-        print("Ошибка MySQL: $error");
-
-    } elseif ($result && $type == 'all') {
-        $mysqli_result = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-    } elseif ($result && $type == 'assoc') {
-        $mysqli_result = mysqli_fetch_assoc($result);
-    }
-
-    return $mysqli_result;
-}
-
-function get_sorting_link_class(string $sort_type) : string {
+function get_sorting_link_class(string $field) : string {
     $result = '';
 
-    if (isset($_GET['sort']) && $_GET['sort'] == $sort_type) {
+    if (isset($_GET['sort']) && $_GET['sort'] == $field) {
         $result = ' sorting__link--active';
 
         if (isset($_GET['dir']) && $_GET['dir'] == 'asc') {
@@ -107,13 +115,13 @@ function get_sorting_link_class(string $sort_type) : string {
     return $result;
 }
 
-function get_sorting_link_url(string $sort_type, string $sort_dir) : string {
+function get_sorting_link_url(string $field, array $types) : string {
     if ($filter = filter_input(INPUT_GET, 'filter')) {
         $parameters['filter'] = $filter;
     }
 
-    $parameters['sort'] = $sort_type;
-    $parameters['dir'] = $sort_dir;
+    $parameters['sort'] = $field;
+    $parameters['dir'] = $types[$field];
 
     $scriptname = 'index.php';
     $query = http_build_query($parameters);
@@ -134,15 +142,87 @@ function is_content_type_valid(mysqli $link, string $type) : bool {
     return false;
 }
 
-function is_post_valid(mysqli $link, int $post) : bool {
-    if ($post > 0) {
-        $sql = "SELECT COUNT(*) FROM post WHERE id = $post";
-        $result = get_mysqli_result($link, $sql, 'assoc');
+function get_post_input(mysqli $link, string $form) : array {
+    $sql = 'SELECT i.* FROM input i '
+         . 'INNER JOIN form_input fi ON fi.input_id = i.id '
+         . 'INNER JOIN form f ON f.id = fi.form_id '
+         . "WHERE f.name LIKE '%{$form}%'";
+    $form_inputs = get_mysqli_result($link, $sql);
+    $input_names = array_column($form_inputs, 'name');
 
-        return $result['COUNT(*)'] == 1;
+    if ($form == 'adding-post') {
+        list($input['text-content'], $input['image-path']) = null;
+    }
+
+    foreach ($input_names as $name) {
+        $input[$name] = filter_input(INPUT_POST, $name);
+        $input[$name] = is_null($input[$name]) ? null : trim($input[$name]);
+    }
+
+    return $input;
+}
+
+function get_content_type(mysqli $link) : string {
+    $content_type = filter_input(INPUT_POST, 'content-type') ?? 'photo';
+
+    if (is_content_type_valid($link, $content_type)) {
+        return $content_type;
     }
 
     return false;
+}
+
+function get_content_type_id(mysqli $link, string $type) : int {
+
+    if (is_content_type_valid($link, $type)) {
+        $sql = "SELECT * FROM content_type WHERE class_name = '$type'";
+        $result = get_mysqli_result($link, $sql, 'assoc');
+
+        return $result['id'];
+    }
+
+    return false;
+}
+
+function get_required_fields(mysqli $link, string $tab) : array {
+    $sql = 'SELECT i.* FROM input i '
+         . 'INNER JOIN form_input fi ON fi.input_id = i.id '
+         . 'INNER JOIN form f ON f.id = fi.form_id '
+         . "WHERE f.name = 'adding-post__{$tab}' AND i.required = 1";
+    $required_fields = get_mysqli_result($link, $sql);
+
+    return array_column($required_fields, 'name');
+}
+
+function get_stmt_data(array $input, int $content_type_id) : array {
+    $values = ['heading', 'text-content', 'quote-author', 'image-path', 'video-url', 'post-link'];
+    foreach ($values as $value) {
+        if (array_key_exists($value, $input)) {
+            $stmt_data[] = $input[$value];
+        } else {
+            return false;
+        }
+    }
+
+    $stmt_data[] = $content_type_id;
+
+    return $stmt_data;
+}
+
+function get_post_value(string $name) : string {
+    $value = $_POST[$name] ?? '';
+
+    return $value;
+}
+
+function post_validate(mysqli $link, int $post) : void {
+    $sql = "SELECT COUNT(*) FROM post WHERE id = $post";
+    $result = get_mysqli_result($link, $sql, 'assoc');
+
+    if ($result['COUNT(*)'] == 0) {
+        http_response_code(404);
+        exit;
+    }
 }
 
 function get_likes_count(mysqli $link, int $post) : int {

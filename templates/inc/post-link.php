@@ -1,4 +1,4 @@
-<?php if ($full_version): ?>
+<?php if (isset($post['details']) && $post['details'] == true): ?>
 <div class="post-link__wrapper" style="border-top: none;">
     <a class="post-link__external" href="http://<?= esc($post['link']) ?>" title="Перейти по ссылке">
         <div class="post-link__icon-wrapper">
@@ -6,6 +6,7 @@
         </div>
         <div class="post-link__info">
             <h3><?= esc($post['title']) ?></h3>
+            <!-- где брать содержимое следующего тега? -->
             <p>Семейная стоматология в Адлере</p>
             <span><?= esc($post['link']) ?></span>
         </div>
