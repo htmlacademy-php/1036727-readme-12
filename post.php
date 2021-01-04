@@ -9,27 +9,27 @@ post_validate($link, $post_id);
 $sql = 'SELECT i.* FROM input i '
      . 'INNER JOIN form_input fi ON fi.input_id = i.id '
      . 'INNER JOIN form f ON f.id = fi.form_id '
-     . "WHERE f.name LIKE '%comments__form%'";
+     . "WHERE f.name = 'comments'";
 
-$inputs = get_mysqli_result($link, $sql);
-$input_names = array_column($inputs, 'name');
-$inputs = array_combine($input_names, $inputs);
+$form_inputs = get_mysqli_result($link, $sql);
+$input_names = array_column($form_inputs, 'name');
+$form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $input = get_post_input($link, 'comments__form');
+    $input = get_post_input($link, 'comments');
 
     if (strlen($input['comment']) == 0) {
         $errors['comment'][0] = 'Заполните это поле';
-        $errors['comment'][1] = $inputs['comment']['label'];
+        $errors['comment'][1] = $form_inputs['comment']['label'];
     }
 
     if (empty($errors)) {
         $comment = mysqli_real_escape_string($link, $input['comment']);
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
              . "('$comment', 1, $post_id)";
-        get_mysqli_result($link, $sql, 'modify');
+        get_mysqli_result($link, $sql, 'insert');
     }
 }
 
@@ -56,8 +56,8 @@ $is_auth = rand(0, 1);
 $user_name = 'Максим'; // укажите здесь ваше имя
 
 $page_content = include_template('post-details.php', [
+    'inputs' => $form_inputs,
     'errors' => $errors,
-    'inputs' => $inputs,
     'link' => $link,
     'post' => $post,
     'hashtags' => $hashtags,

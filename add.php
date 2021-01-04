@@ -9,10 +9,10 @@ $class_names = array_column($content_types, 'class_name');
 $tab = filter_input(INPUT_GET, 'tab') ?? 'photo';
 $tab = in_array($tab, $class_names) ? $tab : 'photo';
 
-$sql = 'SELECT i.* FROM input i '
+$sql = 'SELECT i.*, f.name AS form FROM input i '
      . 'INNER JOIN form_input fi ON fi.input_id = i.id '
      . 'INNER JOIN form f ON f.id = fi.form_id '
-     . "WHERE f.name LIKE '%adding-post__%'";
+     . "WHERE f.name = 'adding-post'";
 
 $form_inputs = get_mysqli_result($link, $sql);
 $input_names = array_column($form_inputs, 'name');
@@ -23,7 +23,7 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = get_post_input($link, 'adding-post');
     $content_type = get_content_type($link);
-    $content_type_id = get_content_type_id($link, $content_type);
+    $content_type_id = get_content_type($link, true);
 
     switch ($content_type) {
         case 'photo':
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $input['image-path'] = $file_name;
                 }
 
-            } elseif (!empty($input['image-url']) && filter_var($input['image-url'], FILTER_VALIDATE_URL)) {
+            } elseif (filter_var($input['image-url'], FILTER_VALIDATE_URL)) {
                 $finfo = finfo_open(FILEINFO_MIME_TYPE);
                 $file_name = uniqid();
                 $file_path = "uploads/{$file_name}.jpeg";
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'video':
-            if (!empty($input['video-url']) && filter_var($input['video-url'], FILTER_VALIDATE_URL)) {
+            if (filter_var($input['video-url'], FILTER_VALIDATE_URL)) {
 
                 if (strpos($input['video-url'], 'youtube.com/watch?v=') === false) {
                     $errors['video-url'][0] = 'Некорректный url-адрес';
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
 
         case 'link':
-            if (!empty($input['post-link']) && !filter_var($input['post-link'], FILTER_VALIDATE_URL)) {
+            if (!filter_var($input['post-link'], FILTER_VALIDATE_URL)) {
                 $errors['post-link'][0] = 'Некорректный url-адрес';
                 $errors['post-link'][1] = 'Ссылка';
             }
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             break;
     }
 
-    $required_fields = get_required_fields($link, $content_type);
+    $required_fields = get_required_fields($link, 'adding-post', $tab);
     foreach ($required_fields as $field) {
         if (strlen($input[$field]) == 0) {
             $errors[$field][0] = 'Заполните это поле';
@@ -146,14 +146,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     if ($hashtag['COUNT(*)'] == 0) {
                         $sql = "INSERT INTO hashtag SET name = '$tag_name'";
-                        get_mysqli_result($link, $sql, 'modify');
+                        get_mysqli_result($link, $sql, 'insert');
                         $hashtag_id = mysqli_insert_id($link);
                     } else {
                         $hashtag_id = $hashtag['id'];
                     }
 
                     $sql = "INSERT INTO post_hashtag (hashtag_id, post_id) VALUES ($hashtag_id, $post_id)";
-                    get_mysqli_result($link, $sql, 'modify');
+                    get_mysqli_result($link, $sql, 'insert');
                 }
             }
 

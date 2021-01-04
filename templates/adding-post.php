@@ -48,7 +48,7 @@
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__input-file-container form__input-container form__input-container--file">
-                            <?= include_template('inc/input-file.php') ?>
+                            <?= include_template('inc/input-file.php', ['input' => $inputs['file-photo']]) ?>
                             <div class="adding-post__file adding-post__file--photo form__file dropzone-previews"></div>
                         </div>
                         <div class="adding-post__buttons">

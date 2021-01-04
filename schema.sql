@@ -21,8 +21,7 @@ CREATE TABLE user (
 	login VARCHAR(128) NOT NULL,
 	password CHAR(64) NOT NULL,
 	avatar_path VARCHAR(128),
-	UNIQUE INDEX email(email),
-	UNIQUE INDEX login(login)
+	UNIQUE INDEX email(email)
 );
 
 -- --------------------------------------------------------
@@ -171,7 +170,8 @@ CREATE TABLE content_type (
 
 CREATE TABLE form (
 	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	name VARCHAR(128) NOT NULL
+	name VARCHAR(128) NOT NULL,
+	modifier VARCHAR(128)
 );
 
 -- --------------------------------------------------------
@@ -196,10 +196,11 @@ CREATE TABLE form_input (
 
 CREATE TABLE input (
 	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	label VARCHAR(128) NOT NULL,
+	label VARCHAR(128),
+	type VARCHAR(128),
 	name VARCHAR(128) NOT NULL,
-	placeholder VARCHAR(128) NOT NULL,
-	required BOOLEAN NOT NULL
+	placeholder VARCHAR(128),
+	required BOOLEAN
 );
 
 -- --------------------------------------------------------
