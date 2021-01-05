@@ -63,7 +63,7 @@
         <?php foreach ($posts as $post): ?>
         <article class="popular__post post post-<?= esc($post['class_name']) ?>">
             <header class="post__header">
-                <h2>
+                <h2 style="padding-bottom: 24px;">
                     <a href="/post.php?id=<?= $post['id'] ?>"><?= esc($post['title']) ?></a>
                 </h2>
             </header>

@@ -48,10 +48,10 @@ function get_text_content(string $text, int $num_letters = 300) : string {
         $result = implode(' ', $result_words);
 
         $result .= '...';
-        $result = '<p>' . $result . '</p>';
+        $result = '<p style="margin-top: 0;">' . $result . '</p>';
         $result .= '<a class="post-text__more-link" href="#">Читать далее</a>';
     } else {
-        $result = '<p>' . $text . '</p>';
+        $result = '<p style="margin-top: 0;">' . $text . '</p>';
     }
 
     return $result;
@@ -224,7 +224,7 @@ function get_post_value(string $name) : string {
     return $value;
 }
 
-function post_validate(mysqli $link, int $post) : void {
+function validate_post(mysqli $link, int $post) : void {
     $sql = "SELECT COUNT(*) FROM post WHERE id = $post";
     $result = get_mysqli_result($link, $sql, 'assoc');
 

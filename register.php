@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $login = mysqli_real_escape_string($link, $input['login']);
 
         $sql = 'INSERT INTO user (email, login, password, avatar_path) VALUES '
-             . "('$email', '$login', '$password', {$input['avatar']})";
+             . "('$email', '$login', '$password', '{$input['avatar']}')";
         get_mysqli_result($link, $sql, 'insert');
 
         if ($input['avatar']) {

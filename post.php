@@ -4,7 +4,7 @@ require_once('init.php');
 
 $post_id = filter_input(INPUT_GET, 'id');
 settype($post_id, 'integer');
-post_validate($link, $post_id);
+validate_post($link, $post_id);
 
 $sql = 'SELECT i.* FROM input i '
      . 'INNER JOIN form_input fi ON fi.input_id = i.id '
@@ -30,6 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
              . "('$comment', 1, $post_id)";
         get_mysqli_result($link, $sql, 'insert');
+
+        header("Location: /post.php?id=$post_id");
+        exit;
     }
 }
 
