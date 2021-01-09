@@ -12,7 +12,7 @@ function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : ar
         $error = mysqli_error($link);
         print("Ошибка MySQL: $error");
 
-    } elseif (!$result && $type == 'modify') {
+    } elseif (!$result && $type == 'insert') {
         http_response_code(500);
         exit;
 
@@ -48,10 +48,10 @@ function get_text_content(string $text, int $num_letters = 300) : string {
         $result = implode(' ', $result_words);
 
         $result .= '...';
-        $result = '<p>' . $result . '</p>';
+        $result = '<p style="margin-top: 0;">' . $result . '</p>';
         $result .= '<a class="post-text__more-link" href="#">Читать далее</a>';
     } else {
-        $result = '<p>' . $text . '</p>';
+        $result = '<p style="margin-top: 0;">' . $text . '</p>';
     }
 
     return $result;
@@ -64,6 +64,11 @@ function esc(string $str) : string {
 }
 
 function get_post_time(string $date) : string {
+
+    if (!strtotime($date)) {
+        return '';
+    }
+
     $ts_diff = time() - strtotime($date);
 
     if ($ts_diff < 60) {
@@ -95,10 +100,14 @@ function get_post_time(string $date) : string {
 }
 
 function get_time_title(string $date) : string {
-    $ts = strtotime($date);
-    $time_title = date('d.m.Y H:i', $ts);
 
-    return $time_title;
+    if (!$ts = strtotime($date)) {
+        $title = '';
+    } else {
+        $title = date('d.m.Y H:i', $ts);
+    }
+
+    return $title;
 }
 
 function get_sorting_link_class(string $field) : string {
@@ -146,12 +155,17 @@ function get_post_input(mysqli $link, string $form) : array {
     $sql = 'SELECT i.* FROM input i '
          . 'INNER JOIN form_input fi ON fi.input_id = i.id '
          . 'INNER JOIN form f ON f.id = fi.form_id '
-         . "WHERE f.name LIKE '%{$form}%'";
+         . "WHERE f.name = '$form'";
     $form_inputs = get_mysqli_result($link, $sql);
     $input_names = array_column($form_inputs, 'name');
 
-    if ($form == 'adding-post') {
-        list($input['text-content'], $input['image-path']) = null;
+    switch ($form) {
+        case 'adding-post':
+            list($input['text-content'], $input['image-path']) = [null, null];
+            break;
+        case 'registration':
+            $input['avatar'] = null;
+            break;
     }
 
     foreach ($input_names as $name) {
@@ -162,33 +176,28 @@ function get_post_input(mysqli $link, string $form) : array {
     return $input;
 }
 
-function get_content_type(mysqli $link) : string {
+function get_content_type(mysqli $link, bool $id_value = false) : string {
     $content_type = filter_input(INPUT_POST, 'content-type') ?? 'photo';
 
-    if (is_content_type_valid($link, $content_type)) {
-        return $content_type;
+    if (!is_content_type_valid($link, $content_type)) {
+        return false;
     }
 
-    return false;
-}
-
-function get_content_type_id(mysqli $link, string $type) : int {
-
-    if (is_content_type_valid($link, $type)) {
-        $sql = "SELECT * FROM content_type WHERE class_name = '$type'";
+    if ($id_value) {
+        $sql = "SELECT * FROM content_type WHERE class_name = '$content_type'";
         $result = get_mysqli_result($link, $sql, 'assoc');
-
-        return $result['id'];
+        $content_type = $result['id'];
     }
 
-    return false;
+    return $content_type;
 }
 
-function get_required_fields(mysqli $link, string $tab) : array {
+function get_required_fields(mysqli $link, string $form, string $tab = '') : array {
     $sql = 'SELECT i.* FROM input i '
          . 'INNER JOIN form_input fi ON fi.input_id = i.id '
          . 'INNER JOIN form f ON f.id = fi.form_id '
-         . "WHERE f.name = 'adding-post__{$tab}' AND i.required = 1";
+         . "WHERE f.name = '$form' AND i.required = 1";
+    $sql .= $form == 'adding-post' ? " AND f.modifier = '$tab'" : '';
     $required_fields = get_mysqli_result($link, $sql);
 
     return array_column($required_fields, 'name');
@@ -215,7 +224,7 @@ function get_post_value(string $name) : string {
     return $value;
 }
 
-function post_validate(mysqli $link, int $post) : void {
+function validate_post(mysqli $link, int $post) : void {
     $sql = "SELECT COUNT(*) FROM post WHERE id = $post";
     $result = get_mysqli_result($link, $sql, 'assoc');
 
@@ -226,10 +235,17 @@ function post_validate(mysqli $link, int $post) : void {
 }
 
 function get_likes_count(mysqli $link, int $post) : int {
+    $sql = "SELECT COUNT(*) FROM post_like WHERE post_id = $post";
+    $result = get_mysqli_result($link, $sql, 'assoc');
 
+    return $result['COUNT(*)'];
 }
 
 function get_comment_count(mysqli $link, int $post) : int {
+    $sql = "SELECT COUNT(*) FROM comment WHERE post_id = $post";
+    $result = get_mysqli_result($link, $sql, 'assoc');
+
+    return $result['COUNT(*)'];
 
 }
 

@@ -1,1 +1,1 @@
-<?= get_text_content(nl2br(esc($post['text_content']), false)) ?>
+<?= nl2br(get_text_content(esc($post['text_content'])), false) ?>

@@ -1,8 +1,8 @@
 <div class="container">
-    <h1 class="page__title page__title--publication"><?= $post['title'] ?></h1>
+    <h1 class="page__title page__title--publication"><?= esc($post['title']) ?></h1>
     <section class="post-details">
         <h2 class="visually-hidden">Публикация</h2>
-        <div class="post-details__wrapper post-<?= $post['class_name'] ?>">
+        <div class="post-details__wrapper post-<?= esc($post['class_name']) ?>">
             <div class="post-details__main-block post post--details" style="border-top-right-radius: 0;">
                 <?php if ($post['class_name'] == 'quote'): ?>
                 <div class="post__main">
@@ -32,14 +32,14 @@
                             <svg class="post__indicator-icon post__indicator-icon--like-active" width="20" height="17">
                                 <use xlink:href="#icon-heart-active"></use>
                             </svg>
-                            <span>250</span>
+                            <span><?= get_likes_count($link, $post['id']) ?></span>
                             <span class="visually-hidden">количество лайков</span>
                         </a>
                         <a class="post__indicator post__indicator--comments button" href="#" title="Комментарии">
                             <svg class="post__indicator-icon" width="19" height="17">
                                 <use xlink:href="#icon-comment"></use>
                             </svg>
-                            <span>25</span>
+                            <span><?= get_comment_count($link, $post['id']) ?></span>
                             <span class="visually-hidden">количество комментариев</span>
                         </a>
                         <a class="post__indicator post__indicator--repost button" href="#" title="Репост">
@@ -50,71 +50,58 @@
                             <span class="visually-hidden">количество репостов</span>
                         </a>
                     </div>
-                    <span class="post__view"><?= $post['show_count'] ?></span>
+                    <span class="post__view"><?= esc($post['show_count']) ?></span>
                 </div>
                 <ul class="post__tags">
-                    <li><a href="#">#nature</a></li>
-                    <li><a href="#">#globe</a></li>
-                    <li><a href="#">#photooftheday</a></li>
-                    <li><a href="#">#canon</a></li>
-                    <li><a href="#">#landscape</a></li>
-                    <li><a href="#">#щикарныйвид</a></li>
+                    <?php foreach ($hashtags as $hashtag): ?>
+                    <li><a href="#">#<?= esc($hashtag['name']) ?></a></li>
+                    <?php endforeach; ?>
                 </ul>
                 <div class="comments">
-                    <form class="comments__form form" action="#" method="post">
+                    <form class="comments__form form" id="input" action="/post.php?id=<?= esc($post['id']) ?>#input" method="post">
                         <div class="comments__my-avatar">
-                            <img class="comments__picture" src="img/<?= $post['avatar_path'] ?>" width="40" height="40" alt="Аватар пользователя">
+                            <img class="comments__picture" src="img/<?= esc($post['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
                         </div>
-                        <div class="form__input-section form__input-section--error">
-                            <textarea class="comments__textarea form__textarea form__input" placeholder="Ваш комментарий"></textarea>
-                            <label class="visually-hidden">Ваш комментарий</label>
+                        <?php $input = $inputs['comment'] ?>
+                        <?php $classname = isset($errors[$input['name']][0]) ? ' form__input-section--error' : ''; ?>
+                        <div class="form__input-section<?= $classname ?>">
+                            <textarea class="comments__textarea form__textarea form__input" name="<?= esc($input['name']) ?>" placeholder="<?= esc($input['placeholder']) ?>"></textarea>
+                            <label class="visually-hidden"><?= esc($input['label']) ?></label>
                             <button class="form__error-button button" type="button">!</button>
                             <div class="form__error-text">
-                                <h3 class="form__error-title">Ошибка валидации</h3>
-                                <p class="form__error-desc">Это поле обязательно к заполнению</p>
+                                <h3 class="form__error-title"><?= esc($input['label']) ?></h3>
+                                <p class="form__error-desc"><?= isset($errors[$input['name']][0]) ? $errors[$input['name']][0] : '' ?></p>
                             </div>
                         </div>
                         <button class="comments__submit button button--green" type="submit">Отправить</button>
                     </form>
                     <div class="comments__list-wrapper">
                         <ul class="comments__list">
+                            <?php foreach ($comments as $comment): ?>
                             <li class="comments__item user">
                                 <div class="comments__avatar">
                                     <a class="user__avatar-link" href="#">
-                                        <img class="comments__picture" src="img/userpic-larisa.jpg" width="40" height="40" alt="Аватар пользователя">
+                                        <img class="comments__picture" src="img/<?= esc($comment['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
                                     </a>
                                 </div>
                                 <div class="comments__info">
                                     <div class="comments__name-wrapper">
                                         <a class="comments__user-name" href="#">
-                                            <span>Лариса Роговая</span>
+                                            <span><?= esc($comment['login']) ?></span>
                                         </a>
-                                        <time class="comments__time" datetime="2019-03-20">1 ч назад</time>
+                                        <time class="comments__time" datetime="<?= esc($comment['dt_add']) ?>"><?= get_post_time($comment['dt_add']) ?></time>
                                     </div>
-                                    <p class="comments__text">Красота!!!1!</p>
+                                    <p class="comments__text"><?= esc($comment['content']) ?></p>
                                 </div>
                             </li>
-                            <li class="comments__item user">
-                                <div class="comments__avatar">
-                                    <a class="user__avatar-link" href="#">
-                                        <img class="comments__picture" src="img/userpic-larisa.jpg" width="40" height="40" alt="Аватар пользователя">
-                                    </a>
-                                </div>
-                                <div class="comments__info">
-                                    <div class="comments__name-wrapper">
-                                        <a class="comments__user-name" href="#">
-                                            <span>Лариса Роговая</span>
-                                        </a>
-                                        <time class="comments__time" datetime="2019-03-18">2 дня назад</time>
-                                    </div>
-                                    <p class="comments__text">Озеро Байкал – огромное древнее озеро в горах Сибири к северу от монгольской границы. Байкал считается самым глубоким озером в мире. Он окружен сетью пешеходных маршрутов, называемых Большой байкальской тропой. Деревня Листвянка, расположенная на западном берегу озера, – популярная отправная точка для летних экскурсий. Зимой здесь можно кататься на коньках и собачьих упряжках.</p>
-                                </div>
-                            </li>
+                            <?php endforeach; ?>
                         </ul>
+                        <?php if (!empty($comments)): ?>
                         <a class="comments__more-link" href="#">
                             <span>Показать все комментарии</span>
-                            <sup class="comments__amount">45</sup>
+                            <sup class="comments__amount"><?= get_comment_count($link, $post['id']) ?></sup>
                         </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -122,12 +109,12 @@
                 <div class="post-details__user-info user__info">
                     <div class="post-details__avatar user__avatar">
                         <a class="post-details__avatar-link user__avatar-link" href="#">
-                            <img class="post-details__picture user__picture" src="img/<?= $post['avatar_path'] ?>" alt="Аватар пользователя">
+                            <img class="post-details__picture user__picture" src="img/<?= esc($post['avatar_path']) ?>" alt="Аватар пользователя">
                         </a>
                     </div>
                     <div class="post-details__name-wrapper user__name-wrapper">
                         <a class="post-details__name user__name" href="#">
-                            <span><?= $post['author'] ?></span>
+                            <span><?= esc($post['author']) ?></span>
                         </a>
                         <time class="post-details__time user__time" datetime="2014-03-20">5 лет на сайте</time>
                     </div>

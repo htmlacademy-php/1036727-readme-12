@@ -15,12 +15,14 @@ INSERT INTO content_type (type_name, class_name, icon_width, icon_height) VALUES
 -- Добавляет список форм
 --
 
-INSERT INTO form (name) VALUES
-('adding-post__photo'),
-('adding-post__video'),
-('adding-post__text'),
-('adding-post__quote'),
-('adding-post__link');
+INSERT INTO form (name, modifier) VALUES
+('adding-post', 'photo'),
+('adding-post', 'video'),
+('adding-post', 'text'),
+('adding-post', 'quote'),
+('adding-post', 'link'),
+('comments', null),
+('registration', null);
 
 -- --------------------------------------------------------
 
@@ -31,24 +33,33 @@ INSERT INTO form (name) VALUES
 INSERT INTO form_input (form_id, input_id) VALUES
 (1, 1),
 (1, 2),
-(1, 8),
+(1, 3),
+(1, 9),
 
 (2, 1),
-(2, 3),
-(2, 8),
+(2, 4),
+(2, 9),
 
 (3, 1),
-(3, 4),
-(3, 8),
+(3, 5),
+(3, 9),
 
 (4, 1),
-(4, 5),
 (4, 6),
-(4, 8),
+(4, 7),
+(4, 9),
 
 (5, 1),
-(5, 7),
-(5, 8);
+(5, 8),
+(5, 9),
+
+(6, 10),
+
+(7, 11),
+(7, 12),
+(7, 13),
+(7, 14),
+(7, 15);
 
 -- --------------------------------------------------------
 
@@ -56,15 +67,22 @@ INSERT INTO form_input (form_id, input_id) VALUES
 -- Добавляет список инпутов
 --
 
-INSERT INTO input (label, name, placeholder, required) VALUES
-('Заголовок', 'heading', 'Введите заголовок', 1),
-('Ссылка из интернета', 'image-url', 'Введите ссылку', 0),
-('Ссылка youtube', 'video-url', 'Введите ссылку', 1),
-('Текст поста', 'post-text', 'Введите текст публикации', 1),
-('Текст цитаты', 'cite-text', 'Текст цитаты', 1),
-('Автор', 'quote-author', 'Автор цитаты', 1),
-('Ссылка', 'post-link', 'Введите ссылку', 1),
-('Теги', 'tags', 'Введите теги', 0);
+INSERT INTO input (label, type, name, placeholder, required) VALUES
+('Заголовок', 'text', 'heading', 'Введите заголовок', 1),
+('Ссылка из интернета', 'text', 'image-url', 'Введите ссылку', 0),
+(null, 'file', 'file-photo', null, null),
+('Ссылка youtube', 'text', 'video-url', 'Введите ссылку', 1),
+('Текст поста', null, 'post-text', 'Введите текст публикации', 1),
+('Текст цитаты', null, 'cite-text', 'Текст цитаты', 1),
+('Автор', 'text', 'quote-author', 'Автор цитаты', 1),
+('Ссылка', 'text', 'post-link', 'Введите ссылку', 1),
+('Теги', 'text', 'tags', 'Введите теги', 0),
+('Ваш комментарий', null, 'comment', 'Ваш комментарий', 1),
+('Электронная почта', 'email', 'email', 'Укажите эл.почту', 1),
+('Логин', 'text', 'login', 'Укажите логин', 1),
+('Пароль', 'password', 'password', 'Придумайте пароль', 1),
+('Повтор пароля', 'password', 'password-repeat', 'Повторите пароль', 1),
+(null, 'file', 'avatar', null, null);
 
 -- --------------------------------------------------------
 

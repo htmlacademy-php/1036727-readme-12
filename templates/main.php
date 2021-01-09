@@ -63,7 +63,7 @@
         <?php foreach ($posts as $post): ?>
         <article class="popular__post post post-<?= esc($post['class_name']) ?>">
             <header class="post__header">
-                <h2>
+                <h2 style="padding-bottom: 24px;">
                     <a href="/post.php?id=<?= $post['id'] ?>"><?= esc($post['title']) ?></a>
                 </h2>
             </header>
@@ -93,7 +93,7 @@
                         </div>
                         <div class="post__info">
                             <b class="post__author-name"><?= esc($post['author']) ?></b>
-                            <time class="post__time" datetime="<?= esc($post['dt_add']) ?>" title="<?= get_time_title(esc($post['dt_add'])) ?>"><?= get_post_time(esc($post['dt_add'])) ?></time>
+                            <time class="post__time" datetime="<?= esc($post['dt_add']) ?>" title="<?= get_time_title($post['dt_add']) ?>"><?= get_post_time($post['dt_add']) ?></time>
                         </div>
                     </a>
                 </div>
@@ -106,14 +106,14 @@
                             <svg class="post__indicator-icon post__indicator-icon--like-active" width="20" height="17">
                                 <use xlink:href="#icon-heart-active"></use>
                             </svg>
-                            <span>0</span>
+                            <span><?= get_likes_count($link, $post['id']) ?></span>
                             <span class="visually-hidden">количество лайков</span>
                         </a>
                         <a class="post__indicator post__indicator--comments button" href="#" title="Комментарии">
                             <svg class="post__indicator-icon" width="19" height="17">
                                 <use xlink:href="#icon-comment"></use>
                             </svg>
-                            <span>0</span>
+                            <span><?= get_comment_count($link, $post['id']) ?></span>
                             <span class="visually-hidden">количество комментариев</span>
                         </a>
                     </div>
