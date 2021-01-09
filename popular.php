@@ -2,6 +2,11 @@
 
 require_once('init.php');
 
+if (!isset($_SESSION['user'])) {
+    header('Location: /index.php');
+    exit;
+}
+
 $sql = 'SELECT * FROM content_type';
 $content_types = get_mysqli_result($link, $sql);
 
@@ -58,18 +63,16 @@ if (isset($_GET['sort']) && isset($_GET['dir'])) {
     $sort_filter .= $_GET['dir'] == 'asc' ? 'ASC' : 'DESC';
 }
 
-$sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
-     . 'INNER JOIN user u ON p.author_id = u.id '
-     . 'INNER JOIN content_type ct ON p.content_type_id = ct.id '
+$sql = 'SELECT p.*, COUNT(pl.id) AS like_count, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+     . 'LEFT JOIN user u ON u.id = p.author_id '
+     . 'LEFT JOIN content_type ct ON ct.id = p.content_type_id '
+     . 'LEFT JOIN post_like pl ON pl.post_id = p.id '
 
      . $content_type_filter
 
      . 'GROUP BY p.id '
      . "ORDER BY $sort_filter LIMIT 6";
 $posts = get_mysqli_result($link, $sql);
-
-$is_auth = rand(0, 1);
-$user_name = 'Максим'; // укажите здесь ваше имя
 
 $page_content = include_template('main.php', [
     'sort_fields' => $sort_fields,
@@ -82,9 +85,7 @@ $page_content = include_template('main.php', [
 $layout_content = include_template('layout.php', [
     'page_main_class' => 'popular',
     'title' => 'readme: популярное',
-    'page_content' => $page_content,
-    'is_auth' => $is_auth,
-    'username' => $user_name
+    'page_content' => $page_content
 ]);
 
 print($layout_content);

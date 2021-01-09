@@ -2,6 +2,11 @@
 
 require_once('init.php');
 
+if (isset($_SESSION['user'])) {
+    header('Location: /feed.php');
+    exit;
+}
+
 $sql = 'SELECT i.*, f.name AS form FROM input i '
      . 'INNER JOIN form_input fi ON fi.input_id = i.id '
      . 'INNER JOIN form f ON f.id = fi.form_id '

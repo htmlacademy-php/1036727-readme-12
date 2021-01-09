@@ -42,13 +42,13 @@
             <b class="popular__filters-caption filters__caption">Тип контента:</b>
             <ul class="popular__filters-list filters__list">
                 <li class="popular__filters-item popular__filters-item--all filters__item filters__item--all">
-                    <a class="filters__button filters__button--ellipse filters__button--all<?php if (!isset($_GET['filter'])): ?> filters__button--active<?php endif; ?>" href="/">
+                    <a class="filters__button filters__button--ellipse filters__button--all<?php if (!isset($_GET['filter'])): ?> filters__button--active<?php endif; ?>" href="/popular.php">
                         <span>Все</span>
                     </a>
                 </li>
                 <?php foreach ($content_types as $type): ?>
                 <li class="popular__filters-item filters__item">
-                    <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button<?php if (isset($_GET['filter']) && $_GET['filter'] == $type['class_name']): ?> filters__button--active<?php endif; ?>" href="/index.php?filter=<?= esc($type['class_name']) ?>">
+                    <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button<?php if (isset($_GET['filter']) && $_GET['filter'] == $type['class_name']): ?> filters__button--active<?php endif; ?>" href="/popular.php?filter=<?= esc($type['class_name']) ?>">
                         <span class="visually-hidden"><?= esc($type['type_name']) ?></span>
                         <svg class="filters__icon" width="<?= esc($type['icon_width']) ?>" height="<?= esc($type['icon_height']) ?>">
                             <use xlink:href="#icon-filter-<?= esc($type['class_name']) ?>"></use>
@@ -89,7 +89,10 @@
                 <div class="post__author">
                     <a class="post__author-link" href="#" title="Автор">
                         <div class="post__avatar-wrapper">
-                            <img class="post__author-avatar" src="img/<?= esc($post['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
+                            <?php if (!empty($post['avatar_path'])): ?>
+                            <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
+                            <img style="<?= $style ?>" class="post__author-avatar" src="uploads/<?= esc($post['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
+                            <?php endif; ?>
                         </div>
                         <div class="post__info">
                             <b class="post__author-name"><?= esc($post['author']) ?></b>

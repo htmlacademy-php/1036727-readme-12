@@ -20,7 +20,7 @@
             </a>
             <p class="header__topic">micro blogging</p>
         </div>
-        <?php if ($_SERVER['PHP_SELF'] !== '/login.php' && $_SERVER['PHP_SELF'] !== '/register.php'): ?>
+        <?php if (isset($_SESSION['user'])): ?>
         <form class="header__search-form form" action="#" method="get">
             <div class="header__search">
                 <label class="visually-hidden">Поиск</label>
@@ -37,33 +37,22 @@
         <div class="header__nav-wrapper">
             <!-- здесь должен быть PHP код, который показывает следующий тег по условию -->
             <nav class="header__nav">
-                <?php if ($_SERVER['PHP_SELF'] === '/login.php' || $_SERVER['PHP_SELF'] === '/register.php'): ?>
-                <ul class="header__user-nav" style="margin-left: auto;">
-                    <li class="header__authorization">
-                        <?php $classname = $_SERVER['PHP_SELF'] === '/login.php' ? ' header__user-button--active' : ''; ?>
-                        <?php $url = $_SERVER['PHP_SELF'] !== '/login.php' ? '/login.php' : '#'; ?>
-                        <a class="header__user-button<?= $classname ?> header__authorization-button button" href="<?= $url ?>">Вход</a>
-                    </li>
-                    <li>
-                        <?php $classname = $_SERVER['PHP_SELF'] === '/register.php' ? ' header__user-button--active' : ''; ?>
-                        <?php $url = $_SERVER['PHP_SELF'] !== '/register.php' ? '/register.php' : '#'; ?>
-                        <a class="header__user-button<?= $classname ?> header__register-button button" href="<?= $url ?>">Регистрация</a>
-                    </li>
-                </ul>
-                <?php elseif ($is_auth === 1): ?>
+                <?php if (isset($_SESSION['user'])): ?>
                 <ul class="header__my-nav">
                     <li class="header__my-page header__my-page--popular">
-                        <a class="header__page-link header__page-link--active" title="Популярный контент">
+                        <?php $classname = $_SERVER['PHP_SELF'] === '/popular.php' ? ' header__page-link--active' : ''; ?>
+                        <a class="header__page-link<?= $classname ?>" href="/popular.php" title="Популярный контент">
                             <span class="visually-hidden">Популярный контент</span>
                         </a>
                     </li>
                     <li class="header__my-page header__my-page--feed">
-                        <a class="header__page-link" href="feed.html" title="Моя лента">
+                        <?php $classname = $_SERVER['PHP_SELF'] === '/feed.php' ? ' header__page-link--active' : ''; ?>
+                        <a class="header__page-link<?= $classname ?>" href="/feed.php" title="Моя лента">
                             <span class="visually-hidden">Моя лента</span>
                         </a>
                     </li>
                     <li class="header__my-page header__my-page--messages">
-                        <a class="header__page-link" href="messages.html" title="Личные сообщения">
+                        <a class="header__page-link" href="#" title="Личные сообщения">
                             <span class="visually-hidden">Личные сообщения</span>
                         </a>
                     </li>
@@ -73,12 +62,13 @@
                     <li class="header__profile">
                         <a class="header__profile-link" href="#">
                             <div class="header__avatar-wrapper">
-                                <img class="header__profile-avatar" src="img/userpic-medium.jpg" alt="Аватар профиля">
+                                <?php if (!empty($_SESSION['user']['avatar_path'])): ?>
+                                <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
+                                <img style="<?= $style ?>" class="header__profile-avatar" src="uploads/<?= $_SESSION['user']['avatar_path'] ?>" alt="Аватар профиля">
+                                <?php endif; ?>
                             </div>
                             <div class="header__profile-name">
-                                <span>
-                                    <!--здесь должно быть имя пользователя-->
-                                </span>
+                                <span><?= $_SESSION['user']['login'] ?></span>
                                 <svg class="header__link-arrow" width="10" height="6">
                                     <use xlink:href="#icon-arrow-right-ad"></use>
                                 </svg>
@@ -100,7 +90,7 @@
                                         </a>
                                     </li>
                                     <li class="header__profile-nav-item">
-                                        <a class="header__profile-nav-link" href="#">
+                                        <a class="header__profile-nav-link" href="/logout.php">
                                             <span class="header__profile-nav-text">Выход</span>
                                         </a>
                                     </li>
@@ -109,7 +99,20 @@
                         </div>
                     </li>
                     <li>
-                        <a class="header__post-button button button--transparent" href="add.php?tab=photo">Пост</a>
+                        <a class="header__post-button button button--transparent" href="/add.php?tab=photo">Пост</a>
+                    </li>
+                </ul>
+                <?php else: ?>
+                <ul class="header__user-nav" style="margin-left: auto;">
+                    <li class="header__authorization">
+                        <?php $classname = $_SERVER['PHP_SELF'] === '/login.php' ? ' header__user-button--active' : ''; ?>
+                        <?php $url = $_SERVER['PHP_SELF'] !== '/login.php' ? '/login.php' : '#'; ?>
+                        <a class="header__user-button<?= $classname ?> header__authorization-button button" href="<?= $url ?>">Вход</a>
+                    </li>
+                    <li>
+                        <?php $classname = $_SERVER['PHP_SELF'] === '/register.php' ? ' header__user-button--active' : ''; ?>
+                        <?php $url = $_SERVER['PHP_SELF'] !== '/register.php' ? '/register.php' : '#'; ?>
+                        <a class="header__user-button<?= $classname ?> header__register-button button" href="<?= $url ?>">Регистрация</a>
                     </li>
                 </ul>
                 <?php endif; ?>

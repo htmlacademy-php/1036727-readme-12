@@ -2,6 +2,11 @@
 
 require_once('init.php');
 
+if (isset($_SESSION['user'])) {
+    header('Location: /feed.php');
+    exit;
+}
+
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -19,7 +24,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (empty($errors)) {
+        $email = mysqli_real_escape_string($link, $input['email']);
 
+        $sql = "SELECT * FROM user WHERE email = '$email';";
+        $user = get_mysqli_result($link, $sql, 'assoc');
+
+        if ($user && password_verify($input['password'], $user['password'])) {
+            $_SESSION['user'] = $user;
+
+            header('Location: /feed.php');
+            exit;
+
+        } else {
+            $errors['email'] = 'Вы ввели неверный email/пароль';
+            $errors['password'] = 'Вы ввели неверный email/пароль';
+        }
     }
 }
 
