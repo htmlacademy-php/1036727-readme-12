@@ -1,0 +1,3 @@
+09-01-2021 14:07:23 - Unknown column 'email2' in 'where clause'
+SELECT * FROM user WHERE email2 = 'toffee10@mail.ru';
+

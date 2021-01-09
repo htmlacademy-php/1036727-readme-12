@@ -22,7 +22,8 @@ INSERT INTO form (name, modifier) VALUES
 ('adding-post', 'quote'),
 ('adding-post', 'link'),
 ('comments', null),
-('registration', null);
+('registration', null),
+('login', null);
 
 -- --------------------------------------------------------
 
@@ -59,7 +60,10 @@ INSERT INTO form_input (form_id, input_id) VALUES
 (7, 12),
 (7, 13),
 (7, 14),
-(7, 15);
+(7, 15),
+
+(8, 11),
+(8, 16);
 
 -- --------------------------------------------------------
 
@@ -82,7 +86,8 @@ INSERT INTO input (label, type, name, placeholder, required) VALUES
 ('Логин', 'text', 'login', 'Укажите логин', 1),
 ('Пароль', 'password', 'password', 'Придумайте пароль', 1),
 ('Повтор пароля', 'password', 'password-repeat', 'Повторите пароль', 1),
-(null, 'file', 'avatar', null, null);
+(null, 'file', 'avatar', null, null),
+('Пароль', 'password', 'password', 'Введите пароль', 1);
 
 -- --------------------------------------------------------
 

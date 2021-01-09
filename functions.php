@@ -4,26 +4,49 @@ function exceptions_error_handler($severity, $message, $filename, $lineno) {
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
 }
 
-function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : array {
-    $result = mysqli_query($link, $sql);
-    $mysqli_result = [];
+// function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') {
+//     $result = mysqli_query($link, $sql);
+//     $mysqli_result = [];
 
-    if (!$result && ini_get('display_errors')) {
+//     if (!$result && ini_get('display_errors')) {
+//         $error = mysqli_error($link);
+//         print("Ошибка MySQL: $error");
+
+//     } elseif (!$result && $type === 'insert') {
+//         http_response_code(500);
+//         exit;
+
+//     } elseif ($result && $type === 'all') {
+//         $mysqli_result = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+//     } elseif ($result && $type === 'assoc') {
+//         $mysqli_result = mysqli_fetch_assoc($result);
+//     }
+
+//     return $mysqli_result;
+// }
+
+function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') {
+
+    if (!$result = mysqli_query($link, $sql)) {
+        $filename = 'mysql_errors.txt';
+        $date = date('d-m-Y H:i:s');
         $error = mysqli_error($link);
-        print("Ошибка MySQL: $error");
 
-    } elseif (!$result && $type == 'insert') {
+        $content = "{$date} - {$error}\n{$sql}\n\n";
+        file_put_contents($filename, $content, FILE_APPEND | LOCK_EX);
+
         http_response_code(500);
         exit;
 
-    } elseif ($result && $type == 'all') {
-        $mysqli_result = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } elseif ($result && $type === 'all') {
+        $result = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-    } elseif ($result && $type == 'assoc') {
-        $mysqli_result = mysqli_fetch_assoc($result);
+    } elseif ($result && $type === 'assoc') {
+        $result = mysqli_fetch_assoc($result);
     }
 
-    return $mysqli_result;
+    return $result;
 }
 
 function get_text_content(string $text, int $num_letters = 300) : string {
