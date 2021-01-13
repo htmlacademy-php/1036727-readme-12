@@ -2,6 +2,11 @@
 
 require_once('init.php');
 
+if (!isset($_SESSION['user'])) {
+    header('Location: /index.php');
+    exit;
+}
+
 $post_id = filter_input(INPUT_GET, 'id');
 settype($post_id, 'integer');
 validate_post($link, $post_id);
@@ -28,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($errors)) {
         $comment = mysqli_real_escape_string($link, $input['comment']);
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
-             . "('$comment', 1, $post_id)";
+             . "('$comment', {$_SESSION['user']['id']}, $post_id)";
         get_mysqli_result($link, $sql, 'insert');
 
         header("Location: /post.php?id=$post_id");
@@ -55,9 +60,6 @@ $sql = 'SELECT c.*, u.login, u.avatar_path FROM comment c '
      . 'ORDER BY c.dt_add DESC';
 $comments = get_mysqli_result($link, $sql);
 
-$is_auth = rand(0, 1);
-$user_name = 'Максим'; // укажите здесь ваше имя
-
 $page_content = include_template('post-details.php', [
     'inputs' => $form_inputs,
     'errors' => $errors,
@@ -70,9 +72,7 @@ $page_content = include_template('post-details.php', [
 $layout_content = include_template('layout.php', [
     'page_main_class' => 'publication',
     'title' => 'readme: публикация',
-    'page_content' => $page_content,
-    'is_auth' => $is_auth,
-    'username' => $user_name
+    'page_content' => $page_content
 ]);
 
 print($layout_content);

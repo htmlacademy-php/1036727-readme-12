@@ -2,6 +2,11 @@
 
 require_once('init.php');
 
+if (isset($_SESSION['user'])) {
+    header('Location: /feed.php');
+    exit;
+}
+
 $sql = 'SELECT i.*, f.name AS form FROM input i '
      . 'INNER JOIN form_input fi ON fi.input_id = i.id '
      . 'INNER JOIN form f ON f.id = fi.form_id '
@@ -68,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (empty($errors)) {
-        $email = mysqli_real_escape_string($link, $input['email']);
         $login = mysqli_real_escape_string($link, $input['login']);
 
         $sql = 'INSERT INTO user (email, login, password, avatar_path) VALUES '

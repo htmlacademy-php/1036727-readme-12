@@ -58,9 +58,12 @@
                     <?php endforeach; ?>
                 </ul>
                 <div class="comments">
-                    <form class="comments__form form" id="input" action="/post.php?id=<?= esc($post['id']) ?>#input" method="post">
+                    <form class="comments__form form" action="/post.php?id=<?= esc($post['id']) ?>" method="post">
                         <div class="comments__my-avatar">
-                            <img class="comments__picture" src="img/<?= esc($post['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
+                            <?php if (!empty($_SESSION['user']['avatar_path'])): ?>
+                            <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
+                            <img style="<?= $style ?>" class="comments__picture" src="uploads/<?= esc($_SESSION['user']['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
+                            <?php endif; ?>
                         </div>
                         <?php $input = $inputs['comment'] ?>
                         <?php $classname = isset($errors[$input['name']][0]) ? ' form__input-section--error' : ''; ?>
@@ -79,11 +82,14 @@
                         <ul class="comments__list">
                             <?php foreach ($comments as $comment): ?>
                             <li class="comments__item user">
-                                <div class="comments__avatar">
-                                    <a class="user__avatar-link" href="#">
-                                        <img class="comments__picture" src="img/<?= esc($comment['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
-                                    </a>
-                                </div>
+                                <a class="user__avatar-link" href="#">
+                                    <div class="comments__avatar">
+                                        <?php if (!empty($comment['avatar_path'])): ?>
+                                        <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
+                                        <img style="<?= $style ?>" class="comments__picture" src="uploads/<?= esc($comment['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
+                                        <?php endif; ?>
+                                    </div>
+                                </a>
                                 <div class="comments__info">
                                     <div class="comments__name-wrapper">
                                         <a class="comments__user-name" href="#">
@@ -107,11 +113,14 @@
             </div>
             <div class="post-details__user user">
                 <div class="post-details__user-info user__info">
-                    <div class="post-details__avatar user__avatar">
-                        <a class="post-details__avatar-link user__avatar-link" href="#">
-                            <img class="post-details__picture user__picture" src="img/<?= esc($post['avatar_path']) ?>" alt="Аватар пользователя">
-                        </a>
-                    </div>
+                    <a class="post-details__avatar-link user__avatar-link" href="#">
+                        <div class="post-details__avatar user__avatar">
+                            <?php if (!empty($post['avatar_path'])): ?>
+                            <?php $style = 'width: 60px; height: 60px; object-fit: cover;'; ?>
+                            <img style="<?= $style ?>" class="post-details__picture user__picture" src="uploads/<?= esc($post['avatar_path']) ?>" alt="Аватар пользователя">
+                            <?php endif; ?>
+                        </div>
+                    </a>
                     <div class="post-details__name-wrapper user__name-wrapper">
                         <a class="post-details__name user__name" href="#">
                             <span><?= esc($post['author']) ?></span>

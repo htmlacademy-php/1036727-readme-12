@@ -85,7 +85,7 @@
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__buttons">
-                            <button class="adding-post__submit button button--main" type="submit">Опубликовать</button>
+                            <button style="margin-top: 18px;" class="adding-post__submit button button--main" type="submit">Опубликовать</button>
                             <a class="adding-post__close" href="#">Закрыть</a>
                         </div>
                     </form>
@@ -118,7 +118,7 @@
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__buttons">
-                            <button class="adding-post__submit button button--main" type="submit">Опубликовать</button>
+                            <button style="margin-top: 18px;" class="adding-post__submit button button--main" type="submit">Опубликовать</button>
                             <a class="adding-post__close" href="#">Закрыть</a>
                         </div>
                     </form>
@@ -154,7 +154,7 @@
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__buttons">
-                            <button class="adding-post__submit button button--main" type="submit">Опубликовать</button>
+                            <button style="margin-top: 18px;" class="adding-post__submit button button--main" type="submit">Опубликовать</button>
                             <a class="adding-post__close" href="#">Закрыть</a>
                         </div>
                     </form>
@@ -187,7 +187,7 @@
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__buttons">
-                            <button class="adding-post__submit button button--main" type="submit">Опубликовать</button>
+                            <button style="margin-top: 18px;" class="adding-post__submit button button--main" type="submit">Опубликовать</button>
                             <a class="adding-post__close" href="#">Закрыть</a>
                         </div>
                     </form>

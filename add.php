@@ -2,6 +2,11 @@
 
 require_once('init.php');
 
+if (!isset($_SESSION['user'])) {
+    header('Location: /index.php');
+    exit;
+}
+
 $sql = 'SELECT * FROM content_type';
 $content_types = get_mysqli_result($link, $sql);
 $class_names = array_column($content_types, 'class_name');
@@ -130,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (empty($errors)) {
         $sql = 'INSERT INTO post (title, text_content, quote_author, image_path, video_path, link, author_id, content_type_id) VALUES '
-             . '(?, ?, ?, ?, ?, ?, 1, ?)';
+             . '(?, ?, ?, ?, ?, ?, ?, ?)';
         $stmt_data = get_stmt_data($input, $content_type_id);
         $stmt = db_get_prepare_stmt($link, $sql, $stmt_data);
 
@@ -169,9 +174,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$is_auth = rand(0, 1);
-$user_name = 'Максим'; // укажите здесь ваше имя
-
 $page_content = include_template('adding-post.php', [
     'content_types' => $content_types,
     'errors' => $errors,
@@ -181,9 +183,7 @@ $page_content = include_template('adding-post.php', [
 $layout_content = include_template('layout.php', [
     'page_main_class' => 'adding-post',
     'title' => 'readme: добавление публикации',
-    'page_content' => $page_content,
-    'is_auth' => $is_auth,
-    'username' => $user_name
+    'page_content' => $page_content
 ]);
 
 print($layout_content);

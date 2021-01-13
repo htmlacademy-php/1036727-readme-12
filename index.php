@@ -2,89 +2,49 @@
 
 require_once('init.php');
 
-$sql = 'SELECT * FROM content_type';
-$content_types = get_mysqli_result($link, $sql);
+if (isset($_SESSION['user'])) {
+    header('Location: /feed.php');
+    exit;
+}
 
-$sort_fields = ['popular', 'likes', 'date'];
-$sort_types = array_fill_keys($sort_fields, 'desc');
-setcookie('sort', 'popular');
-setcookie('dir', 'desc');
+$errors = [];
 
-if (isset($_COOKIE['sort']) && isset($_COOKIE['dir'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $input = get_post_input($link, 'login');
 
-    if (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields) && $_COOKIE['sort'] == $_GET['sort']) {
-        $sort = $_GET['sort'];
+    if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'E-mail введён некорректно';
+    }
 
-        $value = $_COOKIE['dir'] == 'desc' ? 'asc' : 'desc';
-        $sort_types[$sort] = $value;
-        setcookie('dir', $value);
+    $required_fields = get_required_fields($link, 'login');
+    foreach ($required_fields as $field) {
+        if (strlen($input[$field]) == 0) {
+            $errors[$field] = 'Заполните это поле';
+        }
+    }
 
-    } elseif (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields)) {
-        $sort = $_GET['sort'];
+    if (empty($errors)) {
+        $email = mysqli_real_escape_string($link, $input['email']);
 
-        $sort_types[$sort] = 'asc';
-        setcookie('sort', $sort);
-        setcookie('dir', 'asc');
+        $sql = "SELECT * FROM user WHERE email = '$email';";
+        $user = get_mysqli_result($link, $sql, 'assoc');
+
+        if ($user && password_verify($input['password'], $user['password'])) {
+            $_SESSION['user'] = $user;
+
+            header('Location: /feed.php');
+            exit;
+
+        } else {
+            $errors['email'] = 'Вы ввели неверный email/пароль';
+            $errors['password'] = 'Вы ввели неверный email/пароль';
+        }
     }
 }
 
-$content_type_filter = '';
-if ($content_type = filter_input(INPUT_GET, 'filter')) {
-    $content_type = mysqli_real_escape_string($link, $content_type);
-
-    if (is_content_type_valid($link, $content_type)) {
-        $content_type_filter = "WHERE ct.class_name = '$content_type' ";
-    }
-}
-
-$sort_filter = 'p.show_count DESC';
-if (isset($_GET['sort']) && isset($_GET['dir'])) {
-
-    switch ($_GET['sort']) {
-        case 'popular':
-            $sort_filter = 'p.show_count ';
-            break;
-        case 'likes':
-            $sort_filter = 'like_count ';
-            break;
-        case 'date':
-            $sort_filter = 'p.dt_add ';
-            break;
-        default:
-            $sort_filter = 'p.show_count ';
-            break;
-    }
-
-    $sort_filter .= $_GET['dir'] == 'asc' ? 'ASC' : 'DESC';
-}
-
-$sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
-     . 'INNER JOIN user u ON p.author_id = u.id '
-     . 'INNER JOIN content_type ct ON p.content_type_id = ct.id '
-
-     . $content_type_filter
-
-     . 'GROUP BY p.id '
-     . "ORDER BY $sort_filter LIMIT 6";
-$posts = get_mysqli_result($link, $sql);
-
-$is_auth = rand(0, 1);
-$user_name = 'Максим'; // укажите здесь ваше имя
-
-$page_content = include_template('main.php', [
-    'sort_fields' => $sort_fields,
-    'sort_types' => $sort_types,
-    'content_types' => $content_types,
-    'posts' => $posts,
-    'link' => $link
-]);
-
-$layout_content = include_template('layout.php', [
-    'page_main_class' => 'popular',
-    'title' => 'readme: популярное',
-    'page_content' => $page_content,
-    'is_auth' => $is_auth,
-    'username' => $user_name
+$layout_content = include_template('layout2.php', [
+    'title' => 'readme: блог, каким он должен быть',
+    'errors' => $errors
 ]);
 
 print($layout_content);

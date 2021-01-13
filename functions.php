@@ -4,26 +4,30 @@ function exceptions_error_handler($severity, $message, $filename, $lineno) {
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
 }
 
-function get_mysqli_result(mysqli $link, string $sql, string $type = 'all') : array {
-    $result = mysqli_query($link, $sql);
-    $mysqli_result = [];
+function get_mysqli_result(mysqli $link, string $sql, string $result_type = 'all') {
 
-    if (!$result && ini_get('display_errors')) {
-        $error = mysqli_error($link);
-        print("Ошибка MySQL: $error");
+    if (!$result = mysqli_query($link, $sql)) {
+        update_errors_log($link, $sql, 'mysql_errors.txt');
 
-    } elseif (!$result && $type == 'insert') {
         http_response_code(500);
         exit;
 
-    } elseif ($result && $type == 'all') {
-        $mysqli_result = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } elseif ($result_type === 'all') {
+        $result = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-    } elseif ($result && $type == 'assoc') {
-        $mysqli_result = mysqli_fetch_assoc($result);
+    } elseif ($result_type === 'assoc') {
+        $result = mysqli_fetch_assoc($result);
     }
 
-    return $mysqli_result;
+    return $result;
+}
+
+function update_errors_log(mysqli $link, string $sql, string $filename) : void {
+    $date = date('d-m-Y H:i:s');
+    $error = mysqli_error($link);
+    $data = "$date - $error\n$sql\n\n";
+
+    file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
 }
 
 function get_text_content(string $text, int $num_letters = 300) : string {
@@ -132,7 +136,7 @@ function get_sorting_link_url(string $field, array $types) : string {
     $parameters['sort'] = $field;
     $parameters['dir'] = $types[$field];
 
-    $scriptname = 'index.php';
+    $scriptname = 'popular.php';
     $query = http_build_query($parameters);
     $url = '/' . $scriptname . '?' . $query;
 
@@ -213,6 +217,7 @@ function get_stmt_data(array $input, int $content_type_id) : array {
         }
     }
 
+    $stmt_data[] = $_SESSION['user']['id'];
     $stmt_data[] = $content_type_id;
 
     return $stmt_data;
