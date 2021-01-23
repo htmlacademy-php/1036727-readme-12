@@ -1,128 +1,95 @@
 <div class="container">
-    <h1 class="page__title page__title--popular">Популярное</h1>
+    <h1 class="page__title page__title--feed">Моя лента</h1>
 </div>
-<div class="popular container">
-    <div class="popular__filters-wrapper">
-        <div class="popular__sorting sorting">
-            <b class="popular__sorting-caption sorting__caption">Сортировка:</b>
-            <ul class="popular__sorting-list sorting__list">
-                <li class="sorting__item sorting__item--popular">
-                    <?php $classname = get_sorting_link_class($sort_fields[0]) ?>
-                    <?php $url = get_sorting_link_url($sort_fields[0], $sort_types) ?>
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
-                        <span>Популярность</span>
-                        <svg class="sorting__icon" width="10" height="12">
-                            <use xlink:href="#icon-sort"></use>
-                        </svg>
-                    </a>
-                </li>
-                <li class="sorting__item">
-                    <?php $classname = get_sorting_link_class($sort_fields[1]) ?>
-                    <?php $url = get_sorting_link_url($sort_fields[1], $sort_types) ?>
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
-                        <span>Лайки</span>
-                        <svg class="sorting__icon" width="10" height="12">
-                            <use xlink:href="#icon-sort"></use>
-                        </svg>
-                    </a>
-                </li>
-                <li class="sorting__item">
-                    <?php $classname = get_sorting_link_class($sort_fields[2]) ?>
-                    <?php $url = get_sorting_link_url($sort_fields[2], $sort_types) ?>
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
-                        <span>Дата</span>
-                        <svg class="sorting__icon" width="10" height="12">
-                            <use xlink:href="#icon-sort"></use>
-                        </svg>
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <div class="popular__filters filters">
-            <b class="popular__filters-caption filters__caption">Тип контента:</b>
-            <ul class="popular__filters-list filters__list">
-                <li class="popular__filters-item popular__filters-item--all filters__item filters__item--all">
-                    <a class="filters__button filters__button--ellipse filters__button--all<?php if (!isset($_GET['filter'])): ?> filters__button--active<?php endif; ?>" href="/popular.php">
-                        <span>Все</span>
-                    </a>
-                </li>
-                <?php foreach ($content_types as $type): ?>
-                <li class="popular__filters-item filters__item">
-                    <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button<?php if (isset($_GET['filter']) && $_GET['filter'] == $type['class_name']): ?> filters__button--active<?php endif; ?>" href="/popular.php?filter=<?= esc($type['class_name']) ?>">
-                        <span class="visually-hidden"><?= esc($type['type_name']) ?></span>
-                        <svg class="filters__icon" width="<?= esc($type['icon_width']) ?>" height="<?= esc($type['icon_height']) ?>">
-                            <use xlink:href="#icon-filter-<?= esc($type['class_name']) ?>"></use>
-                        </svg>
-                    </a>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    </div>
-    <div class="popular__posts">
-        <?php foreach ($posts as $post): ?>
-        <article class="popular__post post post-<?= esc($post['class_name']) ?>">
-            <header class="post__header">
-                <h2 style="padding-bottom: 24px;">
-                    <a href="/post.php?id=<?= $post['id'] ?>"><?= esc($post['title']) ?></a>
-                </h2>
-            </header>
-            <div class="post__main">
-                <?php $post['details'] = false; ?>
-                <?php if ($post['class_name'] == 'quote'): ?>
-                <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
-
-                <?php elseif ($post['class_name'] == 'link'): ?>
-                <?= include_template('inc/post-link.php', ['post' => $post]) ?>
-
-                <?php elseif ($post['class_name'] == 'photo'): ?>
-                <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
-
-                <?php elseif ($post['class_name'] == 'video'): ?>
-                <?= include_template('inc/post-video.php', ['post' => $post]) ?>
-
-                <?php elseif ($post['class_name'] == 'text'): ?>
-                <?= include_template('inc/post-text.php', ['post' => $post]) ?>
-                <?php endif; ?>
-            </div>
-            <footer class="post__footer">
-                <div class="post__author">
-                    <a class="post__author-link" href="#" title="Автор">
-                        <div class="post__avatar-wrapper">
-                            <?php if (!empty($post['avatar_path'])): ?>
-                            <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
-                            <img style="<?= $style ?>" class="post__author-avatar" src="uploads/<?= esc($post['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
-                            <?php endif; ?>
-                        </div>
-                        <div class="post__info">
-                            <b class="post__author-name"><?= esc($post['author']) ?></b>
-                            <time class="post__time" datetime="<?= esc($post['dt_add']) ?>" title="<?= get_time_title($post['dt_add']) ?>"><?= get_post_time($post['dt_add']) ?></time>
-                        </div>
-                    </a>
-                </div>
-                <div class="post__indicators">
-                    <div class="post__buttons">
-                        <a class="post__indicator post__indicator--likes button" href="#" title="Лайк">
-                            <svg class="post__indicator-icon" width="20" height="17">
-                                <use xlink:href="#icon-heart"></use>
-                            </svg>
-                            <svg class="post__indicator-icon post__indicator-icon--like-active" width="20" height="17">
-                                <use xlink:href="#icon-heart-active"></use>
-                            </svg>
-                            <span><?= get_likes_count($link, $post['id']) ?></span>
-                            <span class="visually-hidden">количество лайков</span>
+<div class="page__main-wrapper container">
+    <section class="feed">
+        <h2 class="visually-hidden">Лента</h2>
+        <div class="feed__main-wrapper">
+            <div class="feed__wrapper">
+                <article class="feed__post post post-photo">
+                    <header class="post__header post__author">
+                        <a class="post__author-link" href="#" title="Автор">
+                            <div class="post__avatar-wrapper">
+                                <img class="post__author-avatar" src="img/userpic-elvira.jpg" alt="Аватар пользователя" width="60" height="60">
+                            </div>
+                            <div class="post__info">
+                                <b class="post__author-name">Эльвира Хайпулинова</b>
+                                <span class="post__time">15 минут назад</span>
+                            </div>
                         </a>
-                        <a class="post__indicator post__indicator--comments button" href="#" title="Комментарии">
-                            <svg class="post__indicator-icon" width="19" height="17">
-                                <use xlink:href="#icon-comment"></use>
-                            </svg>
-                            <span><?= get_comment_count($link, $post['id']) ?></span>
-                            <span class="visually-hidden">количество комментариев</span>
-                        </a>
+                    </header>
+                    <div class="post__main">
+                        <h2><a href="#">Наконец, обработала фотки!</a></h2>
+                        <div class="post-photo__image-wrapper">
+                            <img src="img/rock.jpg" alt="Фото от пользователя" width="760" height="396">
+                        </div>
                     </div>
-                </div>
-            </footer>
+                    <footer class="post__footer post__indicators">
+                        <div class="post__buttons">
+                            <a class="post__indicator post__indicator--likes button" href="#" title="Лайк">
+                                <svg class="post__indicator-icon" width="20" height="17">
+                                    <use xlink:href="#icon-heart"></use>
+                                </svg>
+                                <svg class="post__indicator-icon post__indicator-icon--like-active" width="20" height="17">
+                                    <use xlink:href="#icon-heart-active"></use>
+                                </svg>
+                                <span>250</span>
+                                <span class="visually-hidden">количество лайков</span>
+                            </a>
+                            <a class="post__indicator post__indicator--comments button" href="#" title="Комментарии">
+                                <svg class="post__indicator-icon" width="19" height="17">
+                                    <use xlink:href="#icon-comment"></use>
+                                </svg>
+                                <span>25</span>
+                                <span class="visually-hidden">количество комментариев</span>
+                            </a>
+                            <a class="post__indicator post__indicator--repost button" href="#" title="Репост">
+                                <svg class="post__indicator-icon" width="19" height="17">
+                                    <use xlink:href="#icon-repost"></use>
+                                </svg>
+                                <span>5</span>
+                                <span class="visually-hidden">количество репостов</span>
+                            </a>
+                        </div>
+                    </footer>
+                </article>
+            </div>
+        </div>
+        <ul class="feed__filters filters">
+            <li class="feed__filters-item filters__item">
+                <?php $classname = !isset($_GET['filter']) ? ' filters__button--active' : ''; ?>
+                <a class="filters__button<?= $classname ?>" href="/feed.php">
+                    <span>Все</span>
+                </a>
+            </li>
+            <?php foreach ($content_types as $type): ?>
+            <li class="feed__filters-item filters__item">
+                <?php $classname = isset($_GET['filter']) && $_GET['filter'] === $type['class_name'] ? ' filters__button--active' : ''; ?>
+                <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button<?= $classname ?>" href="/feed.php?filter=<?= esc($type['class_name']) ?>">
+                    <span class="visually-hidden"><?= esc($type['type_name']) ?></span>
+                    <svg class="filters__icon" width="<?= esc($type['icon_width']) ?>" height="<?= esc($type['icon_height']) ?>">
+                        <use xlink:href="#icon-filter-<?= esc($type['class_name']) ?>"></use>
+                    </svg>
+                </a>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+    </section>
+    <aside class="promo">
+        <article class="promo__block promo__block--barbershop">
+            <h2 class="visually-hidden">Рекламный блок</h2>
+            <p class="promo__text">Все еще сидишь на окладе в офисе? Открой свой барбершоп по нашей франшизе!</p>
+            <a class="promo__link" href="#">Подробнее</a>
         </article>
-        <?php endforeach; ?>
-    </div>
+        <article class="promo__block promo__block--technomart">
+            <h2 class="visually-hidden">Рекламный блок</h2>
+            <p class="promo__text">Товары будущего уже сегодня в онлайн-сторе Техномарт!</p>
+            <a class="promo__link" href="#">Перейти в магазин</a>
+        </article>
+        <article class="promo__block">
+            <h2 class="visually-hidden">Рекламный блок</h2>
+            <p class="promo__text">Здесь<br>могла быть<br>ваша реклама</p>
+            <a class="promo__link" href="#">Разместить</a>
+        </article>
+    </aside>
 </div>

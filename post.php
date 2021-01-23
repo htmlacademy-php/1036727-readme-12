@@ -7,9 +7,10 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$post_id = filter_input(INPUT_GET, 'id');
-settype($post_id, 'integer');
-validate_post($link, $post_id);
+$user_id = $_SESSION['user']['id'];
+
+$post_id = intval(filter_input(INPUT_GET, 'id'));
+$post_id = validate_post($link, $post_id);
 
 $sql = 'SELECT i.* FROM input i '
      . 'INNER JOIN form_input fi ON fi.input_id = i.id '
@@ -26,19 +27,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = get_post_input($link, 'comments');
 
     if (strlen($input['comment']) == 0) {
-        $errors['comment'][0] = 'Заполните это поле';
+        $errors['comment'][0] = 'Это поле должно быть заполнено';
+        $errors['comment'][1] = $form_inputs['comment']['label'];
+    } elseif (strlen($input['comment']) < 4) {
+        $errors['comment'][0] = 'Длина комментария не должна быть меньше четырёх символов';
         $errors['comment'][1] = $form_inputs['comment']['label'];
     }
 
     if (empty($errors)) {
+        $post_id = validate_post($link, intval($input['post-id']));
         $comment = mysqli_real_escape_string($link, $input['comment']);
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
-             . "('$comment', {$_SESSION['user']['id']}, $post_id)";
-        get_mysqli_result($link, $sql, 'insert');
+             . "('$comment', $user_id, $post_id)";
+        get_mysqli_result($link, $sql, false);
 
-        header("Location: /post.php?id=$post_id");
+        header("Location: /profile.php?id=$user_id");
         exit;
     }
+}
+
+if (!isset($_COOKIE['like'])) {
+    $sql = "UPDATE post SET show_count = show_count + 1 WHERE id = $post_id";
+    get_mysqli_result($link, $sql, false);
+} else {
+    setcookie('like', '', time() - 3600);
 }
 
 $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
@@ -60,7 +72,7 @@ $sql = 'SELECT c.*, u.login, u.avatar_path FROM comment c '
      . 'ORDER BY c.dt_add DESC';
 $comments = get_mysqli_result($link, $sql);
 
-$page_content = include_template('post-details.php', [
+$page_content = include_template('post.php', [
     'inputs' => $form_inputs,
     'errors' => $errors,
     'link' => $link,

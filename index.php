@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $required_fields = get_required_fields($link, 'login');
     foreach ($required_fields as $field) {
         if (strlen($input[$field]) == 0) {
-            $errors[$field] = 'Заполните это поле';
+            $errors[$field] = 'Это поле должно быть заполнено';
         }
     }
 
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$layout_content = include_template('layout2.php', [
+$layout_content = include_template('anonym.php', [
     'title' => 'readme: блог, каким он должен быть',
     'errors' => $errors
 ]);

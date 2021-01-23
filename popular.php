@@ -12,8 +12,9 @@ $content_types = get_mysqli_result($link, $sql);
 
 $sort_fields = ['popular', 'likes', 'date'];
 $sort_types = array_fill_keys($sort_fields, 'desc');
-setcookie('sort', 'popular');
-setcookie('dir', 'desc');
+$expires = strtotime('+30 days');
+setcookie('sort', 'popular', $expires);
+setcookie('dir', 'desc', $expires);
 
 if (isset($_COOKIE['sort']) && isset($_COOKIE['dir'])) {
 
@@ -22,14 +23,14 @@ if (isset($_COOKIE['sort']) && isset($_COOKIE['dir'])) {
 
         $value = $_COOKIE['dir'] == 'desc' ? 'asc' : 'desc';
         $sort_types[$sort] = $value;
-        setcookie('dir', $value);
+        setcookie('dir', $value, $expires);
 
     } elseif (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields)) {
         $sort = $_GET['sort'];
 
         $sort_types[$sort] = 'asc';
-        setcookie('sort', $sort);
-        setcookie('dir', 'asc');
+        setcookie('sort', $sort, $expires);
+        setcookie('dir', 'asc', $expires);
     }
 }
 
@@ -74,7 +75,7 @@ $sql = 'SELECT p.*, COUNT(pl.id) AS like_count, u.login AS author, u.avatar_path
      . "ORDER BY $sort_filter LIMIT 6";
 $posts = get_mysqli_result($link, $sql);
 
-$page_content = include_template('main.php', [
+$page_content = include_template('popular.php', [
     'sort_fields' => $sort_fields,
     'sort_types' => $sort_types,
     'content_types' => $content_types,

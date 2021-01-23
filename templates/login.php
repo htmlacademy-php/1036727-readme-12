@@ -13,7 +13,7 @@
                 <?= include_template('inc/input-text.php', $data) ?>
             </div>
             <?php if (!empty($errors)): ?>
-            <div class="form__invalid-block" style="margin-bottom: 22px; padding-bottom: 18px;">
+            <div class="form__invalid-block" style="margin-bottom: 22px;">
                 <b class="form__invalid-slogan">Пожалуйста, исправьте следующие ошибки:</b>
                 <ul class="form__invalid-list">
                     <?php foreach ($errors as $error): ?>

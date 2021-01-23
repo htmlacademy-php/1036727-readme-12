@@ -67,17 +67,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $required_fields = get_required_fields($link, 'registration');
     foreach ($required_fields as $field) {
         if (strlen($input[$field]) == 0) {
-            $errors[$field][0] = 'Заполните это поле';
+            $errors[$field][0] = 'Это поле должно быть заполнено';
             $errors[$field][1] = $form_inputs[$field]['label'];
         }
     }
 
     if (empty($errors)) {
         $login = mysqli_real_escape_string($link, $input['login']);
+        $avatar = $input['avatar'] ? "'{$input['avatar']}'" : 'null';
 
         $sql = 'INSERT INTO user (email, login, password, avatar_path) VALUES '
-             . "('$email', '$login', '$password', '{$input['avatar']}')";
-        get_mysqli_result($link, $sql, 'insert');
+             . "('$email', '$login', '$password', $avatar)";
+        get_mysqli_result($link, $sql, false);
 
         if ($input['avatar']) {
             move_uploaded_file($file_path, 'uploads/' . $file_name);
@@ -88,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$page_content = include_template('form-register.php', [
+$page_content = include_template('register.php', [
     'inputs' => $form_inputs,
     'errors' => $errors
 ]);

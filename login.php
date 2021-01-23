@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $required_fields = get_required_fields($link, 'login');
     foreach ($required_fields as $field) {
         if (strlen($input[$field]) == 0) {
-            $errors[$field][0] = 'Заполните это поле';
+            $errors[$field][0] = 'Это поле должно быть заполнено';
             $errors[$field][1] = $form_inputs[$field]['label'];
         }
     }
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$page_content = include_template('form-login.php', [
+$page_content = include_template('login.php', [
     'inputs' => $form_inputs,
     'errors' => $errors
 ]);

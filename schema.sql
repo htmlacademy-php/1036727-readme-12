@@ -42,9 +42,12 @@ CREATE TABLE post (
 	show_count INT UNSIGNED NOT NULL DEFAULT 0,
 	is_repost BOOLEAN NOT NULL DEFAULT 0,
 	author_id INT UNSIGNED NOT NULL,
+	origin_post_id INT UNSIGNED,
 	content_type_id INT UNSIGNED NOT NULL,
 	FOREIGN KEY (author_id) REFERENCES user(id),
-	FOREIGN KEY (content_type_id) REFERENCES content_type(id)
+	FOREIGN KEY (origin_post_id) REFERENCES post(id),
+	FOREIGN KEY (content_type_id) REFERENCES content_type(id),
+	FULLTEXT INDEX post_ft_search(title, text_content)
 );
 
 -- --------------------------------------------------------
@@ -132,20 +135,6 @@ CREATE TABLE post_hashtag (
 	post_id INT UNSIGNED NOT NULL,
 	FOREIGN KEY (hashtag_id) REFERENCES hashtag(id),
 	FOREIGN KEY (post_id) REFERENCES post(id)
-);
-
--- --------------------------------------------------------
-
---
--- Структура таблицы repost
---
-
-CREATE TABLE repost (
-	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	post_id INT UNSIGNED NOT NULL,
-	author_id INT UNSIGNED NOT NULL,
-	FOREIGN KEY (post_id) REFERENCES post(id),
-	FOREIGN KEY (author_id) REFERENCES user(id)
 );
 
 -- --------------------------------------------------------
