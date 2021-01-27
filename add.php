@@ -144,6 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($tags = array_filter(explode(' ', $input['tags']))) {
 
                 foreach ($tags as $tag_name) {
+
+                    if (!$tag_name = ltrim($tag_name, '#')) {
+                        continue;
+                    }
+
                     $tag_name = mysqli_real_escape_string($link, $tag_name);
                     $sql = "SELECT COUNT(*), id FROM hashtag WHERE name = '$tag_name'";
                     $hashtag = get_mysqli_result($link, $sql, 'assoc');

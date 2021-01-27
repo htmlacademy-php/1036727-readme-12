@@ -22,7 +22,7 @@ if ($result['COUNT(*)'] == 0) {
 }
 
 get_mysqli_result($link, $sql, false);
-$ref = $_SERVER['HTTP_REFERER'];
+$ref = $_SERVER['HTTP_REFERER'] ?? '/';
 
 if (parse_url($ref, PHP_URL_PATH) === '/post.php') {
     setcookie('like', 1, strtotime('+30 days'));

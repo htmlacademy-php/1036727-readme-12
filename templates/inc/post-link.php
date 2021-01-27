@@ -1,5 +1,6 @@
-<?php if (isset($post['details']) && $post['details'] == true): ?>
-<div class="post-link__wrapper" style="border-top: none;">
+<?php if (isset($post['display_mode']) && in_array($post['display_mode'], ['details', 'feed'])): ?>
+<?php $style = $post['display_mode'] === 'details' ? 'style="border-top: none;"' : ''; ?>
+<div class="post-link__wrapper"<?= $style ?>>
     <a class="post-link__external" href="http://<?= esc($post['link']) ?>" title="Перейти по ссылке">
         <div class="post-link__icon-wrapper">
             <img src="img/logo-vita.jpg" alt="Иконка">

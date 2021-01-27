@@ -70,7 +70,6 @@
                 </h2>
             </header>
             <div class="post__main">
-                <?php $post['details'] = false; ?>
                 <?php if ($post['class_name'] == 'quote'): ?>
                 <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
 

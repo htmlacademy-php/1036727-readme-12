@@ -1,14 +1,18 @@
-<div class="container">
-    <h1 class="page__title page__title--feed">Моя лента</h1>
-</div>
-<div class="page__main-wrapper container">
-    <section class="feed">
-        <h2 class="visually-hidden">Лента</h2>
-        <?php $style = !empty($posts) ? 'background-image: none;' : ''; ?>
-        <div style="<?= $style ?>" class="feed__main-wrapper">
-            <div class="feed__wrapper">
+<?php if (!empty($posts)): ?>
+<h1 class="visually-hidden">Страница результатов поиска</h1>
+<section class="search">
+    <h2 class="visually-hidden">Результаты поиска</h2>
+    <div class="search__query-wrapper">
+        <div class="search__query container">
+            <span>Вы искали:</span>
+            <span class="search__query-text"><?= esc(trim($_GET['q'] ?? '')) ?></span>
+        </div>
+    </div>
+    <div class="search__results-wrapper">
+        <div class="container">
+            <div class="search__content">
                 <?php foreach ($posts as $post): ?>
-                <article class="feed__post post post-<?= esc($post['class_name']) ?>">
+                <article class="search__post post post-<?= esc($post['class_name']) ?>">
                     <header class="post__header post__author">
                         <a class="post__author-link" href="#" title="Автор">
                             <div class="post__avatar-wrapper">
@@ -64,54 +68,34 @@
                                 <span><?= get_comment_count($link, $post['id']) ?></span>
                                 <span class="visually-hidden">количество комментариев</span>
                             </a>
-                            <a class="post__indicator post__indicator--repost button" href="#" title="Репост">
-                                <svg class="post__indicator-icon" width="19" height="17">
-                                    <use xlink:href="#icon-repost"></use>
-                                </svg>
-                                <span><?= get_repost_count($link, $post['id']) ?></span>
-                                <span class="visually-hidden">количество репостов</span>
-                            </a>
                         </div>
                     </footer>
                 </article>
                 <?php endforeach; ?>
             </div>
         </div>
-        <ul class="feed__filters filters">
-            <li class="feed__filters-item filters__item">
-                <?php $classname = !isset($_GET['filter']) ? ' filters__button--active' : ''; ?>
-                <a class="filters__button<?= $classname ?>" href="/feed.php">
-                    <span>Все</span>
-                </a>
-            </li>
-            <?php foreach ($content_types as $type): ?>
-            <li class="feed__filters-item filters__item">
-                <?php $classname = isset($_GET['filter']) && $_GET['filter'] === $type['class_name'] ? ' filters__button--active' : ''; ?>
-                <a class="filters__button filters__button--<?= esc($type['class_name']) ?> button<?= $classname ?>" href="/feed.php?filter=<?= esc($type['class_name']) ?>">
-                    <span class="visually-hidden"><?= esc($type['type_name']) ?></span>
-                    <svg class="filters__icon" width="<?= esc($type['icon_width']) ?>" height="<?= esc($type['icon_height']) ?>">
-                        <use xlink:href="#icon-filter-<?= esc($type['class_name']) ?>"></use>
-                    </svg>
-                </a>
-            </li>
-            <?php endforeach; ?>
-        </ul>
-    </section>
-    <aside class="promo">
-        <article class="promo__block promo__block--barbershop">
-            <h2 class="visually-hidden">Рекламный блок</h2>
-            <p class="promo__text">Все еще сидишь на окладе в офисе? Открой свой барбершоп по нашей франшизе!</p>
-            <a class="promo__link" href="#">Подробнее</a>
-        </article>
-        <article class="promo__block promo__block--technomart">
-            <h2 class="visually-hidden">Рекламный блок</h2>
-            <p class="promo__text">Товары будущего уже сегодня в онлайн-сторе Техномарт!</p>
-            <a class="promo__link" href="#">Перейти в магазин</a>
-        </article>
-        <article class="promo__block">
-            <h2 class="visually-hidden">Рекламный блок</h2>
-            <p class="promo__text">Здесь<br>могла быть<br>ваша реклама</p>
-            <a class="promo__link" href="#">Разместить</a>
-        </article>
-    </aside>
-</div>
+    </div>
+</section>
+<?php else: ?>
+<h1 class="visually-hidden">Страница результатов поиска (нет результатов)</h1>
+    <section class="search">
+        <h2 class="visually-hidden">Результаты поиска</h2>
+        <div class="search__query-wrapper">
+            <div class="search__query container">
+                <span>Вы искали:</span>
+                <span class="search__query-text"><?= esc(trim($_GET['q'] ?? '')) ?></span>
+            </div>
+        </div>
+        <div class="search__results-wrapper">
+            <div class="search__no-results container">
+                <p class="search__no-results-info">К сожалению, ничего не найдено.</p>
+                <p class="search__no-results-desc">Попробуйте изменить поисковый запрос или просто зайти в раздел &laquo;Популярное&raquo;, там живет самый крутой контент.</p>
+            <div class="search__links">
+                <a class="search__popular-link button button--main" href="/popular.php">Популярное</a>
+                <?php $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php'; ?>
+                <a class="search__back-link" href="<?= $ref ?>">Вернуться назад</a>
+            </div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>

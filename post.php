@@ -58,7 +58,7 @@ $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p 
      . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
      . "WHERE p.id = $post_id";
 $post = get_mysqli_result($link, $sql, 'assoc');
-$post['details'] = true;
+$post['display_mode'] = 'details';
 
 $sql = 'SELECT * FROM hashtag h '
      . 'INNER JOIN post_hashtag ph ON ph.hashtag_id = h.id '

@@ -19,7 +19,7 @@
                 <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'text'): ?>
-                <div class="post__main" style="padding: 32px 0; border-bottom: 1px solid #dee5fc;">
+                <div class="post__main" style="padding: 54px 0 63px; border-bottom: 1px solid #dee5fc;">
                     <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                 </div>
                 <?php endif; ?>
@@ -54,7 +54,7 @@
                 </div>
                 <ul class="post__tags">
                     <?php foreach ($hashtags as $hashtag): ?>
-                    <li><a href="#">#<?= esc($hashtag['name']) ?></a></li>
+                    <li><a href="/search.php?q=%23<?= $hashtag['name'] ?>">#<?= esc($hashtag['name']) ?></a></li>
                     <?php endforeach; ?>
                 </ul>
                 <div class="comments">

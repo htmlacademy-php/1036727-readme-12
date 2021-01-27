@@ -30,7 +30,8 @@ function update_errors_log(mysqli $link, string $sql, string $filename) : void {
     file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
 }
 
-function get_text_content(string $text, int $post_id, int $num_letters = 300) : string {
+function get_text_content(string $text, int $post_id, bool $margin = false, int $num_letters = 300) : string {
+    $style = $margin ? ' style="margin-top: 0;"' : '';
     $text_length = mb_strlen($text);
 
     if ($text_length > $num_letters) {
@@ -52,10 +53,10 @@ function get_text_content(string $text, int $post_id, int $num_letters = 300) : 
         $result = implode(' ', $result_words);
 
         $result .= '...';
-        $result = '<p style="margin-top: 0;">' . $result . '</p>';
+        $result = "<p{$style}>" . $result . '</p>';
         $result .= '<a class="post-text__more-link" href="post.php?id=' . $post_id . '">Читать далее</a>';
     } else {
-        $result = '<p style="margin-top: 0;">' . $text . '</p>';
+        $result = "<p{$style}>" . $text . '</p>';
     }
 
     return $result;
@@ -282,4 +283,25 @@ function get_publication_count(mysqli $link, int $user_id, $numeric_value = fals
     }
 
     return get_noun_plural_form($result['COUNT(*)'], ' публикация', ' публикации', ' публикаций');
+}
+
+function get_search_sql(string $value, bool $hashtag_mode = false) : string {
+
+    if ($hashtag_mode === true) {
+        $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+             . 'INNER JOIN user u ON u.id = p.author_id '
+             . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
+             . 'INNER JOIN post_hashtag ph ON ph.post_id = p.id '
+             . 'INNER JOIN hashtag h ON h.id = ph.hashtag_id '
+             . "WHERE h.name = '$value' "
+             . 'ORDER BY p.dt_add DESC LIMIT 6';
+    } else {
+        $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+             . 'INNER JOIN user u ON u.id = p.author_id '
+             . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
+             . "WHERE MATCH (p.title, p.text_content) AGAINST ('$value' IN BOOLEAN MODE) "
+             . 'ORDER BY p.dt_add DESC LIMIT 6';
+    }
+
+    return $sql;
 }
