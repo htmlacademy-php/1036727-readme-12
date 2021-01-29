@@ -1,4 +1,4 @@
-<?php if (isset($post['details']) && $post['details'] == true): ?>
+<?php if (isset($post['display_mode']) && in_array($post['display_mode'], ['details', 'feed'])): ?>
 <div class="post-video__block">
     <div class="post-video__preview">
         <?=embed_youtube_video(esc($post['video_path'])); ?>

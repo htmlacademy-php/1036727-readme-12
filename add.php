@@ -27,10 +27,8 @@ $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = get_post_input($link, 'adding-post');
-    $content_type = get_content_type($link);
-    $content_type_id = get_content_type($link, true);
 
-    switch ($content_type) {
+    switch ($input['content-type']) {
         case 'photo':
             $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
@@ -128,12 +126,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $required_fields = get_required_fields($link, 'adding-post', $tab);
     foreach ($required_fields as $field) {
         if (strlen($input[$field]) == 0) {
-            $errors[$field][0] = 'Заполните это поле';
+            $errors[$field][0] = 'Это поле должно быть заполнено';
             $errors[$field][1] = $form_inputs[$field]['label'];
         }
     }
 
     if (empty($errors)) {
+        $content_type_id = get_content_type_id($link, $input['content-type']);
         $sql = 'INSERT INTO post (title, text_content, quote_author, image_path, video_path, link, author_id, content_type_id) VALUES '
              . '(?, ?, ?, ?, ?, ?, ?, ?)';
         $stmt_data = get_stmt_data($input, $content_type_id);
@@ -145,20 +144,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($tags = array_filter(explode(' ', $input['tags']))) {
 
                 foreach ($tags as $tag_name) {
+
+                    if (!$tag_name = ltrim($tag_name, '#')) {
+                        continue;
+                    }
+
                     $tag_name = mysqli_real_escape_string($link, $tag_name);
                     $sql = "SELECT COUNT(*), id FROM hashtag WHERE name = '$tag_name'";
                     $hashtag = get_mysqli_result($link, $sql, 'assoc');
 
                     if ($hashtag['COUNT(*)'] == 0) {
                         $sql = "INSERT INTO hashtag SET name = '$tag_name'";
-                        get_mysqli_result($link, $sql, 'insert');
+                        get_mysqli_result($link, $sql, false);
                         $hashtag_id = mysqli_insert_id($link);
                     } else {
                         $hashtag_id = $hashtag['id'];
                     }
 
                     $sql = "INSERT INTO post_hashtag (hashtag_id, post_id) VALUES ($hashtag_id, $post_id)";
-                    get_mysqli_result($link, $sql, 'insert');
+                    get_mysqli_result($link, $sql, false);
                 }
             }
 
@@ -174,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$page_content = include_template('adding-post.php', [
+$page_content = include_template('add.php', [
     'content_types' => $content_types,
     'errors' => $errors,
     'inputs' => $form_inputs

@@ -19,13 +19,13 @@
                 <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] == 'text'): ?>
-                <div class="post__main" style="padding: 32px 0; border-bottom: 1px solid #dee5fc;">
+                <div class="post__main" style="padding: 54px 0 63px; border-bottom: 1px solid #dee5fc;">
                     <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                 </div>
                 <?php endif; ?>
                 <div class="post__indicators">
                     <div class="post__buttons">
-                        <a class="post__indicator post__indicator--likes button" href="#" title="Лайк">
+                        <a class="post__indicator post__indicator--likes<?= get_likes_indicator_class($link, $post['id']) ?> button" href="/like.php?id=<?= $post['id'] ?>" title="Лайк">
                             <svg class="post__indicator-icon" width="20" height="17">
                                 <use xlink:href="#icon-heart"></use>
                             </svg>
@@ -46,7 +46,7 @@
                             <svg class="post__indicator-icon" width="19" height="17">
                                 <use xlink:href="#icon-repost"></use>
                             </svg>
-                            <span>5</span>
+                            <span><?= get_repost_count($link, $post['id']) ?></span>
                             <span class="visually-hidden">количество репостов</span>
                         </a>
                     </div>
@@ -54,11 +54,11 @@
                 </div>
                 <ul class="post__tags">
                     <?php foreach ($hashtags as $hashtag): ?>
-                    <li><a href="#">#<?= esc($hashtag['name']) ?></a></li>
+                    <li><a href="/search.php?q=%23<?= $hashtag['name'] ?>">#<?= esc($hashtag['name']) ?></a></li>
                     <?php endforeach; ?>
                 </ul>
                 <div class="comments">
-                    <form class="comments__form form" action="/post.php?id=<?= esc($post['id']) ?>" method="post">
+                    <form class="comments__form form" action="/post.php?id=<?= $post['id'] ?>" method="post">
                         <div class="comments__my-avatar">
                             <?php if (!empty($_SESSION['user']['avatar_path'])): ?>
                             <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
@@ -68,7 +68,7 @@
                         <?php $input = $inputs['comment'] ?>
                         <?php $classname = isset($errors[$input['name']][0]) ? ' form__input-section--error' : ''; ?>
                         <div class="form__input-section<?= $classname ?>">
-                            <textarea class="comments__textarea form__textarea form__input" name="<?= esc($input['name']) ?>" placeholder="<?= esc($input['placeholder']) ?>"></textarea>
+                            <textarea class="comments__textarea form__textarea form__input" name="<?= esc($input['name']) ?>" placeholder="<?= esc($input['placeholder']) ?>"><?= esc(get_post_value($input['name'])) ?></textarea>
                             <label class="visually-hidden"><?= esc($input['label']) ?></label>
                             <button class="form__error-button button" type="button">!</button>
                             <div class="form__error-text">
@@ -76,6 +76,7 @@
                                 <p class="form__error-desc"><?= isset($errors[$input['name']][0]) ? $errors[$input['name']][0] : '' ?></p>
                             </div>
                         </div>
+                        <input type="hidden" name="post-id" value="<?= $post['id'] ?>">
                         <button class="comments__submit button button--green" type="submit">Отправить</button>
                     </form>
                     <div class="comments__list-wrapper">

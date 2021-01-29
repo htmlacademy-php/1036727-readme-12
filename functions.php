@@ -30,7 +30,8 @@ function update_errors_log(mysqli $link, string $sql, string $filename) : void {
     file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
 }
 
-function get_text_content(string $text, int $num_letters = 300) : string {
+function get_text_content(string $text, int $post_id, bool $margin = false, int $num_letters = 300) : string {
+    $style = $margin ? ' style="margin-top: 0;"' : '';
     $text_length = mb_strlen($text);
 
     if ($text_length > $num_letters) {
@@ -52,10 +53,10 @@ function get_text_content(string $text, int $num_letters = 300) : string {
         $result = implode(' ', $result_words);
 
         $result .= '...';
-        $result = '<p style="margin-top: 0;">' . $result . '</p>';
-        $result .= '<a class="post-text__more-link" href="#">Читать далее</a>';
+        $result = "<p{$style}>" . $result . '</p>';
+        $result .= '<a class="post-text__more-link" href="post.php?id=' . $post_id . '">Читать далее</a>';
     } else {
-        $result = '<p style="margin-top: 0;">' . $text . '</p>';
+        $result = "<p{$style}>" . $text . '</p>';
     }
 
     return $result;
@@ -115,17 +116,17 @@ function get_time_title(string $date) : string {
 }
 
 function get_sorting_link_class(string $field) : string {
-    $result = '';
+    $classname = '';
 
-    if (isset($_GET['sort']) && $_GET['sort'] == $field) {
-        $result = ' sorting__link--active';
+    if (isset($_GET['sort']) && $_GET['sort'] === $field) {
+        $classname = ' sorting__link--active';
 
-        if (isset($_GET['dir']) && $_GET['dir'] == 'asc') {
-            $result .= ' sorting__link--reverse';
+        if (isset($_GET['dir']) && $_GET['dir'] === 'asc') {
+            $classname .= ' sorting__link--reverse';
         }
     }
 
-    return $result;
+    return $classname;
 }
 
 function get_sorting_link_url(string $field, array $types) : string {
@@ -148,11 +149,7 @@ function is_content_type_valid(mysqli $link, string $type) : bool {
     $content_types = get_mysqli_result($link, $sql);
     $class_names = array_column($content_types, 'class_name');
 
-    if (in_array($type, $class_names)) {
-        return true;
-    }
-
-    return false;
+    return in_array($type, $class_names) ? true : false;
 }
 
 function get_post_input(mysqli $link, string $form) : array {
@@ -163,37 +160,32 @@ function get_post_input(mysqli $link, string $form) : array {
     $form_inputs = get_mysqli_result($link, $sql);
     $input_names = array_column($form_inputs, 'name');
 
-    switch ($form) {
-        case 'adding-post':
-            list($input['text-content'], $input['image-path']) = [null, null];
-            break;
-        case 'registration':
-            $input['avatar'] = null;
-            break;
-    }
-
     foreach ($input_names as $name) {
         $input[$name] = filter_input(INPUT_POST, $name);
         $input[$name] = is_null($input[$name]) ? null : trim($input[$name]);
     }
 
+    if ($form === 'adding-post') {
+        list($input['text-content'], $input['image-path']) = [null, null];
+
+        if (!is_content_type_valid($link, $input['content-type'])) {
+            return false;
+        }
+    }
+
     return $input;
 }
 
-function get_content_type(mysqli $link, bool $id_value = false) : string {
-    $content_type = filter_input(INPUT_POST, 'content-type') ?? 'photo';
+function get_content_type_id(mysqli $link, string $content_type) : string {
 
     if (!is_content_type_valid($link, $content_type)) {
         return false;
     }
 
-    if ($id_value) {
-        $sql = "SELECT * FROM content_type WHERE class_name = '$content_type'";
-        $result = get_mysqli_result($link, $sql, 'assoc');
-        $content_type = $result['id'];
-    }
+    $sql = "SELECT * FROM content_type WHERE class_name = '$content_type'";
+    $result = get_mysqli_result($link, $sql, 'assoc');
 
-    return $content_type;
+    return $result['id'];
 }
 
 function get_required_fields(mysqli $link, string $form, string $tab = '') : array {
@@ -229,37 +221,50 @@ function get_post_value(string $name) : string {
     return $value;
 }
 
-function validate_post(mysqli $link, int $post) : void {
-    $sql = "SELECT COUNT(*) FROM post WHERE id = $post";
-    $result = get_mysqli_result($link, $sql, 'assoc');
+function validate_post(mysqli $link, int $post_id) : int {
+    $sql = "SELECT id FROM post WHERE id = $post_id";
+    $result = get_mysqli_result($link, $sql, false);
 
-    if ($result['COUNT(*)'] == 0) {
+    if (!mysqli_num_rows($result)) {
         http_response_code(404);
         exit;
     }
+
+    return $post_id;
 }
 
-function get_likes_count(mysqli $link, int $post) : int {
-    $sql = "SELECT COUNT(*) FROM post_like WHERE post_id = $post";
+function get_likes_indicator_class(mysqli $link, int $post_id) : string {
+    $user_id = $_SESSION['user']['id'];
+    $sql = "SELECT id FROM post_like WHERE post_id = $post_id AND author_id = $user_id";
+    $result = get_mysqli_result($link, $sql, false);
+
+    return mysqli_num_rows($result) ? ' post__indicator--likes-active' : '';
+}
+
+function get_likes_count(mysqli $link, int $post_id) : int {
+    $sql = "SELECT COUNT(*) FROM post_like WHERE post_id = $post_id";
     $result = get_mysqli_result($link, $sql, 'assoc');
 
     return $result['COUNT(*)'];
 }
 
-function get_comment_count(mysqli $link, int $post) : int {
-    $sql = "SELECT COUNT(*) FROM comment WHERE post_id = $post";
+function get_comment_count(mysqli $link, int $post_id) : int {
+    $sql = "SELECT COUNT(*) FROM comment WHERE post_id = $post_id";
     $result = get_mysqli_result($link, $sql, 'assoc');
 
     return $result['COUNT(*)'];
 
 }
 
-function get_repost_count(mysqli $link, int $post) : int {
+function get_repost_count(mysqli $link, int $post_id) : int {
+    $sql = "SELECT COUNT(*) FROM post WHERE origin_post_id = $post_id";
+    $result = get_mysqli_result($link, $sql, 'assoc');
 
+    return $result['COUNT(*)'];
 }
 
-function get_subscriber_count(mysqli $link, int $user, $numeric_value = false) : string {
-    $sql = "SELECT COUNT(*) FROM subscription WHERE user_id = $user";
+function get_subscriber_count(mysqli $link, int $user_id, $numeric_value = false) : string {
+    $sql = "SELECT COUNT(*) FROM subscription WHERE user_id = $user_id";
     $result = get_mysqli_result($link, $sql, 'assoc');
 
     if ($numeric_value) {
@@ -269,8 +274,8 @@ function get_subscriber_count(mysqli $link, int $user, $numeric_value = false) :
     return get_noun_plural_form($result['COUNT(*)'], ' подписчик', ' подписчика', ' подписчиков');
 }
 
-function get_publication_count(mysqli $link, int $user, $numeric_value = false) : string {
-    $sql = "SELECT COUNT(*) FROM post WHERE author_id = $user";
+function get_publication_count(mysqli $link, int $user_id, $numeric_value = false) : string {
+    $sql = "SELECT COUNT(*) FROM post WHERE author_id = $user_id";
     $result = get_mysqli_result($link, $sql, 'assoc');
 
     if ($numeric_value) {
@@ -278,4 +283,25 @@ function get_publication_count(mysqli $link, int $user, $numeric_value = false) 
     }
 
     return get_noun_plural_form($result['COUNT(*)'], ' публикация', ' публикации', ' публикаций');
+}
+
+function get_search_sql(string $value, bool $hashtag_mode = false) : string {
+
+    if ($hashtag_mode === true) {
+        $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+             . 'INNER JOIN user u ON u.id = p.author_id '
+             . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
+             . 'INNER JOIN post_hashtag ph ON ph.post_id = p.id '
+             . 'INNER JOIN hashtag h ON h.id = ph.hashtag_id '
+             . "WHERE h.name = '$value' "
+             . 'ORDER BY p.dt_add DESC LIMIT 6';
+    } else {
+        $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+             . 'INNER JOIN user u ON u.id = p.author_id '
+             . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
+             . "WHERE MATCH (p.title, p.text_content) AGAINST ('$value' IN BOOLEAN MODE) "
+             . 'ORDER BY p.dt_add DESC LIMIT 6';
+    }
+
+    return $sql;
 }

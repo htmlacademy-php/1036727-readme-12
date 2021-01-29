@@ -55,7 +55,7 @@
                 <div class="authorization__input-wrapper form__input-wrapper">
                     <?php $classname = isset($errors['email']) ? ' form__input-section--error' : ''; ?>
                     <div class="form__input-section<?= $classname ?>">
-                        <input class="authorization__input authorization__input--login form__input" type="email" name="email" value="<?= esc(get_post_value('email')) ?>" placeholder="Логин">
+                        <input class="authorization__input authorization__input--login form__input" type="text" name="email" value="<?= esc(get_post_value('email')) ?>" placeholder="Логин">
                         <svg class="form__input-icon" width="19" height="18">
                             <use xlink:href="#icon-input-user"></use>
                         </svg>
@@ -112,13 +112,16 @@
             <div class="footer__my-info">
                 <ul class="footer__my-pages">
                     <li class="footer__my-page footer__my-page--feed">
-                        <a class="footer__page-link" href="/feed.php">Моя лента</a>
+                        <?php $url = isset($_SESSION['user']) ? '/feed.php' : '/login.php'; ?>
+                        <a class="footer__page-link" href="<?= $url ?>">Моя лента</a>
                     </li>
                     <li class="footer__my-page footer__my-page--popular">
-                        <a class="footer__page-link" href="/popular.php">Популярный контент</a>
+                        <?php $url = isset($_SESSION['user']) ? '/popular.php' : '/login.php'; ?>
+                        <a class="footer__page-link" href="<?= $url ?>">Популярный контент</a>
                     </li>
                     <li class="footer__my-page footer__my-page--messages">
-                        <a class="footer__page-link" href="/messages.php">Личные сообщения</a>
+                        <?php $url = isset($_SESSION['user']) ? '/messages.php' : '/login.php'; ?>
+                        <a class="footer__page-link" href="<?= $url ?>">Личные сообщения</a>
                     </li>
                 </ul>
                 <div class="footer__copyright">
