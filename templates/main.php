@@ -45,7 +45,7 @@
                         <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                         <?php endif; ?>
                     </div>
-                    <footer class="post__footer post__indicators">
+                    <footer style="flex-direction: column;" class="post__footer post__indicators">
                         <div class="post__buttons">
                             <a class="post__indicator post__indicator--likes<?= get_likes_indicator_class($link, $post['id']) ?> button" href="/like.php?id=<?= $post['id'] ?>" title="Лайк">
                                 <svg class="post__indicator-icon" width="20" height="17">
@@ -72,6 +72,13 @@
                                 <span class="visually-hidden">количество репостов</span>
                             </a>
                         </div>
+                        <?php if ($hashtags = get_post_hashtags($link, $post['id'])): ?>
+                        <ul style="margin: 0 0 0 -3px; padding: 23px 0 0 0;" class="post__tags">
+                            <?php foreach ($hashtags as $hashtag): ?>
+                            <li><a href="/search.php?q=%23<?= $hashtag['name'] ?>">#<?= esc($hashtag['name']) ?></a></li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <?php endif; ?>
                     </footer>
                 </article>
                 <?php endforeach; ?>

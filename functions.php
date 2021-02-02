@@ -233,12 +233,32 @@ function validate_post(mysqli $link, int $post_id) : int {
     return $post_id;
 }
 
+function validate_profile(mysqli $link, int $profile_id) : int {
+    $sql = "SELECT id FROM user WHERE id = $profile_id";
+    $result = get_mysqli_result($link, $sql, false);
+
+    if (!mysqli_num_rows($result)) {
+        http_response_code(404);
+        exit;
+    }
+
+    return $profile_id;
+}
+
 function get_likes_indicator_class(mysqli $link, int $post_id) : string {
     $user_id = $_SESSION['user']['id'];
     $sql = "SELECT id FROM post_like WHERE post_id = $post_id AND author_id = $user_id";
     $result = get_mysqli_result($link, $sql, false);
 
     return mysqli_num_rows($result) ? ' post__indicator--likes-active' : '';
+}
+
+function get_subscription_status(mysqli $link, int $profile_id) : bool {
+    $user_id = $_SESSION['user']['id'];
+    $sql = "SELECT id FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
+    $result = get_mysqli_result($link, $sql, false);
+
+    return boolval(mysqli_num_rows($result));
 }
 
 function get_likes_count(mysqli $link, int $post_id) : int {
@@ -261,6 +281,12 @@ function get_repost_count(mysqli $link, int $post_id) : int {
     $result = get_mysqli_result($link, $sql, 'assoc');
 
     return $result['COUNT(*)'];
+}
+
+function get_show_count(int $show_count) : string {
+    $result = "$show_count " . get_noun_plural_form($show_count, 'просмотр', 'просмотра', 'просмотров');
+
+    return $result;
 }
 
 function get_subscriber_count(mysqli $link, int $user_id, $numeric_value = false) : string {
@@ -294,14 +320,25 @@ function get_search_sql(string $value, bool $hashtag_mode = false) : string {
              . 'INNER JOIN post_hashtag ph ON ph.post_id = p.id '
              . 'INNER JOIN hashtag h ON h.id = ph.hashtag_id '
              . "WHERE h.name = '$value' "
-             . 'ORDER BY p.dt_add DESC LIMIT 6';
+             . 'ORDER BY p.dt_add DESC';
     } else {
-        $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+        $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name, '
+             . "MATCH (p.title, p.text_content) AGAINST ('$value') AS score FROM post p "
              . 'INNER JOIN user u ON u.id = p.author_id '
              . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
              . "WHERE MATCH (p.title, p.text_content) AGAINST ('$value' IN BOOLEAN MODE) "
-             . 'ORDER BY p.dt_add DESC LIMIT 6';
+             . 'ORDER BY score DESC';
     }
 
     return $sql;
+}
+
+function get_post_hashtags(mysqli $link, int $post_id) : array {
+    $sql = 'SELECT * FROM hashtag h '
+         . 'INNER JOIN post_hashtag ph ON ph.hashtag_id = h.id '
+         . 'INNER JOIN post p ON p.id = ph.post_id '
+         . "WHERE p.id = $post_id";
+    $hashtags = get_mysqli_result($link, $sql);
+
+    return $hashtags;
 }

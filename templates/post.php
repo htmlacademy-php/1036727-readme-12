@@ -3,7 +3,7 @@
     <section class="post-details">
         <h2 class="visually-hidden">Публикация</h2>
         <div class="post-details__wrapper post-<?= esc($post['class_name']) ?>">
-            <div class="post-details__main-block post post--details" style="border-top-right-radius: 0;">
+            <div class="post-details__main-block post post--details" style="border-top: none; border-top-right-radius: 0;">
                 <?php if ($post['class_name'] == 'quote'): ?>
                 <div class="post__main">
                     <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
@@ -50,7 +50,7 @@
                             <span class="visually-hidden">количество репостов</span>
                         </a>
                     </div>
-                    <span class="post__view"><?= esc($post['show_count']) ?></span>
+                    <span class="post__view"><?= get_show_count($post['show_count']) ?></span>
                 </div>
                 <ul class="post__tags">
                     <?php foreach ($hashtags as $hashtag): ?>
@@ -140,8 +140,13 @@
                     </p>
                 </div>
                 <div class="post-details__user-buttons user__buttons">
-                    <button class="user__button user__button--subscription button button--main" type="button">Подписаться</button>
+                    <?php if ($post['author_id'] !== $_SESSION['user']['id']): ?>
+                    <?php $button_text = get_subscription_status($link, $post['author_id']) ? 'Отписаться' : 'Подписаться'; ?>
+                    <a class="user__button user__button--subscription button button--main" href="/subscription.php?profile_id=<?= $post['author_id'] ?>"><?= $button_text ?></a>
+                    <?php if (get_subscription_status($link, $post['author_id'])): ?>
                     <a class="user__button user__button--writing button button--green" href="#">Сообщение</a>
+                    <?php endif; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
