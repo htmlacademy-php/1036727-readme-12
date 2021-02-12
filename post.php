@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
              . "('$comment', $user_id, $post_id)";
         get_mysqli_result($link, $sql, false);
 
-        header("Location: /profile.php?id=$user_id");
+        header("Location: /profile.php?id={$user_id}&tab=posts");
         exit;
     }
 }
@@ -53,7 +53,7 @@ if (!isset($_COOKIE['like'])) {
     setcookie('like', '', time() - 3600);
 }
 
-$sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+$sql = 'SELECT p.*, u.dt_add AS dt_reg, u.login AS author, u.avatar_path, ct.class_name FROM post p '
      . 'INNER JOIN user u ON u.id = p.author_id '
      . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
      . "WHERE p.id = $post_id";

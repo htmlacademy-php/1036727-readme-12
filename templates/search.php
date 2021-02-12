@@ -14,7 +14,7 @@
                 <?php foreach ($posts as $post): ?>
                 <article class="search__post post post-<?= esc($post['class_name']) ?>">
                     <header class="post__header post__author">
-                        <a class="post__author-link" href="#" title="Автор">
+                        <a class="post__author-link" href="/profile.php?id=<?= $post['author_id'] ?>&tab=posts" title="Автор">
                             <div class="post__avatar-wrapper">
                                 <?php if (!empty($post['avatar_path'])): ?>
                                 <?php $style = 'width: 60px; height: 60px; object-fit: cover;'; ?>
@@ -23,7 +23,7 @@
                             </div>
                             <div class="post__info">
                                 <b class="post__author-name"><?= esc($post['author']) ?></b>
-                                <span class="post__time"><?= get_post_time($post['dt_add']) ?></span>
+                                <span class="post__time"><?= get_relative_time($post['dt_add']) ?> назад</span>
                             </div>
                         </a>
                     </header>

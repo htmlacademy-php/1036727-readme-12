@@ -88,7 +88,7 @@
             </div>
             <footer class="post__footer">
                 <div class="post__author">
-                    <a class="post__author-link" href="#" title="Автор">
+                    <a class="post__author-link" href="/profile.php?id=<?= $post['author_id'] ?>&tab=posts" title="Автор">
                         <div class="post__avatar-wrapper">
                             <?php if (!empty($post['avatar_path'])): ?>
                             <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
@@ -97,7 +97,7 @@
                         </div>
                         <div class="post__info">
                             <b class="post__author-name"><?= esc($post['author']) ?></b>
-                            <time class="post__time" datetime="<?= esc($post['dt_add']) ?>" title="<?= get_time_title($post['dt_add']) ?>"><?= get_post_time($post['dt_add']) ?></time>
+                            <time class="post__time" datetime="<?= esc($post['dt_add']) ?>" title="<?= get_time_title($post['dt_add']) ?>"><?= get_relative_time($post['dt_add']) ?> назад</time>
                         </div>
                     </a>
                 </div>

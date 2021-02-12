@@ -68,7 +68,7 @@ function esc(string $str) : string {
     return $text;
 }
 
-function get_post_time(string $date) : string {
+function get_relative_time(string $date) : string {
 
     if (!strtotime($date)) {
         return '';
@@ -77,28 +77,28 @@ function get_post_time(string $date) : string {
     $ts_diff = time() - strtotime($date);
 
     if ($ts_diff < 60) {
-        $relative_time = "$ts_diff " . get_noun_plural_form($ts_diff, 'секунда', 'секунды', 'секунд') . ' назад';
+        $relative_time = "$ts_diff " . get_noun_plural_form($ts_diff, 'секунда', 'секунды', 'секунд');
 
     } elseif ($ts_diff < 3600) {
         $minutes = floor($ts_diff / 60);
-        $relative_time = "$minutes " . get_noun_plural_form($minutes, 'минута', 'минуты', 'минут') . ' назад';
+        $relative_time = "$minutes " . get_noun_plural_form($minutes, 'минута', 'минуты', 'минут');
 
     } elseif ($ts_diff < 86400) {
         $hours = floor($ts_diff / 3600);
-        $relative_time = "$hours " . get_noun_plural_form($hours, 'час', 'часа', 'часов') . ' назад';
+        $relative_time = "$hours " . get_noun_plural_form($hours, 'час', 'часа', 'часов');
 
     } elseif ($ts_diff < 604800) {
         $days = floor($ts_diff / 86400);
-        $relative_time = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней') . ' назад';
+        $relative_time = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней');
 
     } elseif ($ts_diff < 3024000) {
         $weeks = floor($ts_diff / 604800);
-        $relative_time = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель') . ' назад';
+        $relative_time = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель');
 
     } elseif ($ts_diff >= 3024000) {
         $dt_diff = date_diff(date_create($date), date_create('now'));
         $months = date_interval_format($dt_diff, '%m');
-        $relative_time = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев') . ' назад';
+        $relative_time = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев');
     }
 
     return $relative_time;
@@ -341,4 +341,14 @@ function get_post_hashtags(mysqli $link, int $post_id) : array {
     $hashtags = get_mysqli_result($link, $sql);
 
     return $hashtags;
+}
+
+function get_post_comments(mysqli $link, int $post_id) : array {
+    $sql = 'SELECT c.*, u.login, u.avatar_path FROM comment c '
+     . 'INNER JOIN user u ON u.id = c.author_id '
+     . "WHERE post_id = $post_id "
+     . 'ORDER BY c.dt_add DESC';
+    $comments = get_mysqli_result($link, $sql);
+
+    return $comments;
 }
