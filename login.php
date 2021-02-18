@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $required_fields = get_required_fields($link, 'login');
     foreach ($required_fields as $field) {
-        if (strlen($input[$field]) == 0) {
+        if (mb_strlen($input[$field]) == 0) {
             $errors[$field][0] = 'Это поле должно быть заполнено';
             $errors[$field][1] = $form_inputs[$field]['label'];
         }

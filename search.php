@@ -30,7 +30,7 @@ if (substr($search, 0, 1) === '#') {
 
     foreach (explode(' ', $search) as $search_word) {
         $search_word = ltrim($search_word, '+-<>');
-        if (strlen($search_word) >= 3) {
+        if (mb_strlen($search_word) >= 3) {
             $search_words[] = "{$search_word}*";
         }
     }

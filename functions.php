@@ -144,6 +144,23 @@ function get_sorting_link_url(string $field, array $types) : string {
     return $url;
 }
 
+function get_page_link_url(int $current_page, bool $next) : string {
+    $parameters['filter'] = filter_input(INPUT_GET, 'filter');
+    $parameters['sort'] = filter_input(INPUT_GET, 'sort');
+    $parameters['dir'] = filter_input(INPUT_GET, 'dir');
+
+    $parameters = array_filter($parameters);
+
+    $parameters['page'] = $current_page;
+    $next ? $parameters['page']++ : $parameters['page']--;
+
+    $scriptname = 'popular.php';
+    $query = http_build_query($parameters);
+    $url = '/' . $scriptname . '?' . $query;
+
+    return $url;
+}
+
 function is_content_type_valid(mysqli $link, string $type) : bool {
     $sql = 'SELECT * FROM content_type';
     $content_types = get_mysqli_result($link, $sql);

@@ -126,4 +126,12 @@
         </article>
         <?php endforeach; ?>
     </div>
+    <?php if ($pages_count > 1): ?>
+    <div class="popular__page-links">
+        <?php $href = $current_page > 1 ? ' href="' . get_page_link_url($current_page, false) . '"' : ''; ?>
+        <a class="popular__page-link popular__page-link--prev button button--gray"<?= $href ?>>Предыдущая страница</a>
+        <?php $href = $current_page < $pages_count ? ' href="' . get_page_link_url($current_page, true) . '"' : ''; ?>
+        <a class="popular__page-link popular__page-link--next button button--gray"<?= $href ?>>Следующая страница</a>
+    </div>
+    <?php endif; ?>
 </div>
