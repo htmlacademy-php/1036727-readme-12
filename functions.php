@@ -68,7 +68,7 @@ function esc(string $str) : string {
     return $text;
 }
 
-function get_post_time(string $date) : string {
+function get_relative_time(string $date) : string {
 
     if (!strtotime($date)) {
         return '';
@@ -77,28 +77,28 @@ function get_post_time(string $date) : string {
     $ts_diff = time() - strtotime($date);
 
     if ($ts_diff < 60) {
-        $relative_time = "$ts_diff " . get_noun_plural_form($ts_diff, 'секунда', 'секунды', 'секунд') . ' назад';
+        $relative_time = "$ts_diff " . get_noun_plural_form($ts_diff, 'секунда', 'секунды', 'секунд');
 
     } elseif ($ts_diff < 3600) {
         $minutes = floor($ts_diff / 60);
-        $relative_time = "$minutes " . get_noun_plural_form($minutes, 'минута', 'минуты', 'минут') . ' назад';
+        $relative_time = "$minutes " . get_noun_plural_form($minutes, 'минута', 'минуты', 'минут');
 
     } elseif ($ts_diff < 86400) {
         $hours = floor($ts_diff / 3600);
-        $relative_time = "$hours " . get_noun_plural_form($hours, 'час', 'часа', 'часов') . ' назад';
+        $relative_time = "$hours " . get_noun_plural_form($hours, 'час', 'часа', 'часов');
 
     } elseif ($ts_diff < 604800) {
         $days = floor($ts_diff / 86400);
-        $relative_time = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней') . ' назад';
+        $relative_time = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней');
 
     } elseif ($ts_diff < 3024000) {
         $weeks = floor($ts_diff / 604800);
-        $relative_time = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель') . ' назад';
+        $relative_time = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель');
 
     } elseif ($ts_diff >= 3024000) {
         $dt_diff = date_diff(date_create($date), date_create('now'));
         $months = date_interval_format($dt_diff, '%m');
-        $relative_time = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев') . ' назад';
+        $relative_time = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев');
     }
 
     return $relative_time;
@@ -136,6 +136,23 @@ function get_sorting_link_url(string $field, array $types) : string {
 
     $parameters['sort'] = $field;
     $parameters['dir'] = $types[$field];
+
+    $scriptname = 'popular.php';
+    $query = http_build_query($parameters);
+    $url = '/' . $scriptname . '?' . $query;
+
+    return $url;
+}
+
+function get_page_link_url(int $current_page, bool $next) : string {
+    $parameters['filter'] = filter_input(INPUT_GET, 'filter');
+    $parameters['sort'] = filter_input(INPUT_GET, 'sort');
+    $parameters['dir'] = filter_input(INPUT_GET, 'dir');
+
+    $parameters = array_filter($parameters);
+
+    $parameters['page'] = $current_page;
+    $next ? $parameters['page']++ : $parameters['page']--;
 
     $scriptname = 'popular.php';
     $query = http_build_query($parameters);
@@ -233,12 +250,32 @@ function validate_post(mysqli $link, int $post_id) : int {
     return $post_id;
 }
 
+function validate_profile(mysqli $link, int $profile_id) : int {
+    $sql = "SELECT id FROM user WHERE id = $profile_id";
+    $result = get_mysqli_result($link, $sql, false);
+
+    if (!mysqli_num_rows($result)) {
+        http_response_code(404);
+        exit;
+    }
+
+    return $profile_id;
+}
+
 function get_likes_indicator_class(mysqli $link, int $post_id) : string {
     $user_id = $_SESSION['user']['id'];
     $sql = "SELECT id FROM post_like WHERE post_id = $post_id AND author_id = $user_id";
     $result = get_mysqli_result($link, $sql, false);
 
     return mysqli_num_rows($result) ? ' post__indicator--likes-active' : '';
+}
+
+function get_subscription_status(mysqli $link, int $profile_id) : bool {
+    $user_id = $_SESSION['user']['id'];
+    $sql = "SELECT id FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
+    $result = get_mysqli_result($link, $sql, false);
+
+    return boolval(mysqli_num_rows($result));
 }
 
 function get_likes_count(mysqli $link, int $post_id) : int {
@@ -261,6 +298,12 @@ function get_repost_count(mysqli $link, int $post_id) : int {
     $result = get_mysqli_result($link, $sql, 'assoc');
 
     return $result['COUNT(*)'];
+}
+
+function get_show_count(int $show_count) : string {
+    $result = "$show_count " . get_noun_plural_form($show_count, 'просмотр', 'просмотра', 'просмотров');
+
+    return $result;
 }
 
 function get_subscriber_count(mysqli $link, int $user_id, $numeric_value = false) : string {
@@ -294,14 +337,35 @@ function get_search_sql(string $value, bool $hashtag_mode = false) : string {
              . 'INNER JOIN post_hashtag ph ON ph.post_id = p.id '
              . 'INNER JOIN hashtag h ON h.id = ph.hashtag_id '
              . "WHERE h.name = '$value' "
-             . 'ORDER BY p.dt_add DESC LIMIT 6';
+             . 'ORDER BY p.dt_add DESC';
     } else {
-        $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+        $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name, '
+             . "MATCH (p.title, p.text_content) AGAINST ('$value') AS score FROM post p "
              . 'INNER JOIN user u ON u.id = p.author_id '
              . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
              . "WHERE MATCH (p.title, p.text_content) AGAINST ('$value' IN BOOLEAN MODE) "
-             . 'ORDER BY p.dt_add DESC LIMIT 6';
+             . 'ORDER BY score DESC';
     }
 
     return $sql;
+}
+
+function get_post_hashtags(mysqli $link, int $post_id) : array {
+    $sql = 'SELECT * FROM hashtag h '
+         . 'INNER JOIN post_hashtag ph ON ph.hashtag_id = h.id '
+         . 'INNER JOIN post p ON p.id = ph.post_id '
+         . "WHERE p.id = $post_id";
+    $hashtags = get_mysqli_result($link, $sql);
+
+    return $hashtags;
+}
+
+function get_post_comments(mysqli $link, int $post_id) : array {
+    $sql = 'SELECT c.*, u.login, u.avatar_path FROM comment c '
+     . 'INNER JOIN user u ON u.id = c.author_id '
+     . "WHERE post_id = $post_id "
+     . 'ORDER BY c.dt_add DESC';
+    $comments = get_mysqli_result($link, $sql);
+
+    return $comments;
 }

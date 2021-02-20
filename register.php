@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    if (strlen($input['password']) > 0 && strlen($input['password-repeat']) > 0) {
+    if (mb_strlen($input['password']) > 0 && mb_strlen($input['password-repeat']) > 0) {
         if ($input['password'] != $input['password-repeat']) {
             $errors['password-repeat'][0] = 'Пароли не совпадают';
             $errors['password-repeat'][1] = 'Повтор пароля';
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $required_fields = get_required_fields($link, 'registration');
     foreach ($required_fields as $field) {
-        if (strlen($input[$field]) == 0) {
+        if (mb_strlen($input[$field]) == 0) {
             $errors[$field][0] = 'Это поле должно быть заполнено';
             $errors[$field][1] = $form_inputs[$field]['label'];
         }

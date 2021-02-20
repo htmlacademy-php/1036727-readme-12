@@ -3,7 +3,7 @@
     <section class="post-details">
         <h2 class="visually-hidden">Публикация</h2>
         <div class="post-details__wrapper post-<?= esc($post['class_name']) ?>">
-            <div class="post-details__main-block post post--details" style="border-top-right-radius: 0;">
+            <div class="post-details__main-block post post--details" style="border-top: none; border-top-right-radius: 0;">
                 <?php if ($post['class_name'] == 'quote'): ?>
                 <div class="post__main">
                     <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
@@ -50,7 +50,7 @@
                             <span class="visually-hidden">количество репостов</span>
                         </a>
                     </div>
-                    <span class="post__view"><?= esc($post['show_count']) ?></span>
+                    <span class="post__view"><?= get_show_count($post['show_count']) ?></span>
                 </div>
                 <ul class="post__tags">
                     <?php foreach ($hashtags as $hashtag): ?>
@@ -76,14 +76,14 @@
                                 <p class="form__error-desc"><?= isset($errors[$input['name']][0]) ? $errors[$input['name']][0] : '' ?></p>
                             </div>
                         </div>
-                        <input type="hidden" name="post-id" value="<?= $post['id'] ?>">
+                        <input type="hidden" name="post-id" value="<?= esc($post['id']) ?>">
                         <button class="comments__submit button button--green" type="submit">Отправить</button>
                     </form>
                     <div class="comments__list-wrapper">
                         <ul class="comments__list">
                             <?php foreach ($comments as $comment): ?>
                             <li class="comments__item user">
-                                <a class="user__avatar-link" href="#">
+                                <a class="user__avatar-link" href="/profile.php?id=<?= esc($comment['author_id']) ?>&tab=posts">
                                     <div class="comments__avatar">
                                         <?php if (!empty($comment['avatar_path'])): ?>
                                         <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
@@ -93,10 +93,10 @@
                                 </a>
                                 <div class="comments__info">
                                     <div class="comments__name-wrapper">
-                                        <a class="comments__user-name" href="#">
+                                        <a class="comments__user-name" href="/profile.php?id=<?= esc($comment['author_id']) ?>&tab=posts">
                                             <span><?= esc($comment['login']) ?></span>
                                         </a>
-                                        <time class="comments__time" datetime="<?= esc($comment['dt_add']) ?>"><?= get_post_time($comment['dt_add']) ?></time>
+                                        <time class="comments__time" datetime="<?= esc($comment['dt_add']) ?>"><?= get_relative_time($comment['dt_add']) ?> назад</time>
                                     </div>
                                     <p class="comments__text"><?= esc($comment['content']) ?></p>
                                 </div>
@@ -114,7 +114,7 @@
             </div>
             <div class="post-details__user user">
                 <div class="post-details__user-info user__info">
-                    <a class="post-details__avatar-link user__avatar-link" href="#">
+                    <a class="post-details__avatar-link user__avatar-link" href="/profile.php?id=<?= esc($post['author_id']) ?>&tab=posts">
                         <div class="post-details__avatar user__avatar">
                             <?php if (!empty($post['avatar_path'])): ?>
                             <?php $style = 'width: 60px; height: 60px; object-fit: cover;'; ?>
@@ -123,10 +123,10 @@
                         </div>
                     </a>
                     <div class="post-details__name-wrapper user__name-wrapper">
-                        <a class="post-details__name user__name" href="#">
+                        <a class="post-details__name user__name" href="/profile.php?id=<?= esc($post['author_id']) ?>&tab=posts">
                             <span><?= esc($post['author']) ?></span>
                         </a>
-                        <time class="post-details__time user__time" datetime="2014-03-20">5 лет на сайте</time>
+                        <time class="post-details__time user__time" datetime="<?= esc($post['dt_reg']) ?>"><?= get_relative_time($post['dt_reg']) ?> на сайте</time>
                     </div>
                 </div>
                 <div class="post-details__rating user__rating">
@@ -140,8 +140,13 @@
                     </p>
                 </div>
                 <div class="post-details__user-buttons user__buttons">
-                    <button class="user__button user__button--subscription button button--main" type="button">Подписаться</button>
+                    <?php if ($post['author_id'] !== $_SESSION['user']['id']): ?>
+                    <?php $button_text = get_subscription_status($link, $post['author_id']) ? 'Отписаться' : 'Подписаться'; ?>
+                    <a class="user__button user__button--subscription button button--main" href="/subscription.php?profile_id=<?= $post['author_id'] ?>"><?= $button_text ?></a>
+                    <?php if (get_subscription_status($link, $post['author_id'])): ?>
                     <a class="user__button user__button--writing button button--green" href="#">Сообщение</a>
+                    <?php endif; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

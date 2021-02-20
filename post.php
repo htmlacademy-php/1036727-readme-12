@@ -26,10 +26,10 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = get_post_input($link, 'comments');
 
-    if (strlen($input['comment']) == 0) {
+    if (mb_strlen($input['comment']) == 0) {
         $errors['comment'][0] = 'Это поле должно быть заполнено';
         $errors['comment'][1] = $form_inputs['comment']['label'];
-    } elseif (strlen($input['comment']) < 4) {
+    } elseif (mb_strlen($input['comment']) < 4) {
         $errors['comment'][0] = 'Длина комментария не должна быть меньше четырёх символов';
         $errors['comment'][1] = $form_inputs['comment']['label'];
     }
@@ -41,7 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
              . "('$comment', $user_id, $post_id)";
         get_mysqli_result($link, $sql, false);
 
-        header("Location: /profile.php?id=$user_id");
+        $sql = "SELECT author_id FROM post WHERE id = $post_id";
+        $author_id = get_mysqli_result($link, $sql, 'assoc')['author_id'];
+
+        header("Location: /profile.php?id={$author_id}&tab=posts");
         exit;
     }
 }
@@ -53,7 +56,7 @@ if (!isset($_COOKIE['like'])) {
     setcookie('like', '', time() - 3600);
 }
 
-$sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+$sql = 'SELECT p.*, u.dt_add AS dt_reg, u.login AS author, u.avatar_path, ct.class_name FROM post p '
      . 'INNER JOIN user u ON u.id = p.author_id '
      . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
      . "WHERE p.id = $post_id";

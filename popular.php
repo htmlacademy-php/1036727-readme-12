@@ -12,11 +12,17 @@ $content_types = get_mysqli_result($link, $sql);
 
 $sort_fields = ['popular', 'likes', 'date'];
 $sort_types = array_fill_keys($sort_fields, 'desc');
-$expires = strtotime('+30 days');
-setcookie('sort', 'popular', $expires);
-setcookie('dir', 'desc', $expires);
 
-if (isset($_COOKIE['sort']) && isset($_COOKIE['dir'])) {
+$expires = strtotime('+30 days');
+$sort = isset($_GET['sort'], $_COOKIE['sort']) ? $_COOKIE['sort'] : 'popular';
+$value = isset($_GET['dir'], $_COOKIE['dir']) ? $_COOKIE['dir'] : 'desc';
+
+setcookie('sort', $sort, $expires);
+setcookie('dir', $value, $expires);
+$request_uri = preg_replace('%&page=[0-9]+%', '', $_SERVER['REQUEST_URI']);
+setcookie('request_uri', $request_uri, $expires);
+
+if (isset($_COOKIE['sort']) && isset($_COOKIE['dir']) && $_COOKIE['request_uri'] !== $request_uri) {
 
     if (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields) && $_COOKIE['sort'] == $_GET['sort']) {
         $sort = $_GET['sort'];
@@ -26,13 +32,14 @@ if (isset($_COOKIE['sort']) && isset($_COOKIE['dir'])) {
         setcookie('dir', $value, $expires);
 
     } elseif (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields)) {
-        $sort = $_GET['sort'];
+        list($sort, $value) = [$_GET['sort'], 'asc'];
 
-        $sort_types[$sort] = 'asc';
         setcookie('sort', $sort, $expires);
         setcookie('dir', 'asc', $expires);
     }
 }
+
+$sort_types[$sort] = $value;
 
 $content_type_filter = '';
 if ($content_type = filter_input(INPUT_GET, 'filter')) {
@@ -64,6 +71,24 @@ if (isset($_GET['sort']) && isset($_GET['dir'])) {
     $sort_filter .= $_GET['dir'] == 'asc' ? 'ASC' : 'DESC';
 }
 
+$current_page = intval(filter_input(INPUT_GET, 'page') ?? 1);
+$page_items = 6;
+
+$sql = 'SELECT COUNT(p.id) FROM post p '
+     . 'LEFT JOIN content_type ct ON ct.id = p.content_type_id '
+
+     . $content_type_filter;
+$items_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(p.id)'];
+$pages_count = ceil($items_count / $page_items) ?: 1;
+
+if ($current_page <= 0) {
+    $current_page = 1;
+} elseif ($current_page > $pages_count) {
+    $current_page = $pages_count;
+}
+
+$offset = ($current_page - 1) * $page_items;
+
 $sql = 'SELECT p.*, COUNT(pl.id) AS like_count, u.login AS author, u.avatar_path, ct.class_name FROM post p '
      . 'LEFT JOIN user u ON u.id = p.author_id '
      . 'LEFT JOIN content_type ct ON ct.id = p.content_type_id '
@@ -72,7 +97,7 @@ $sql = 'SELECT p.*, COUNT(pl.id) AS like_count, u.login AS author, u.avatar_path
      . $content_type_filter
 
      . 'GROUP BY p.id '
-     . "ORDER BY $sort_filter LIMIT 6";
+     . "ORDER BY $sort_filter LIMIT $page_items OFFSET $offset";
 $posts = get_mysqli_result($link, $sql);
 
 $page_content = include_template('popular.php', [
@@ -80,7 +105,9 @@ $page_content = include_template('popular.php', [
     'sort_types' => $sort_types,
     'content_types' => $content_types,
     'posts' => $posts,
-    'link' => $link
+    'link' => $link,
+    'current_page' => $current_page,
+    'pages_count' => $pages_count
 ]);
 
 $layout_content = include_template('layout.php', [

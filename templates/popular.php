@@ -88,7 +88,7 @@
             </div>
             <footer class="post__footer">
                 <div class="post__author">
-                    <a class="post__author-link" href="#" title="Автор">
+                    <a class="post__author-link" href="/profile.php?id=<?= $post['author_id'] ?>&tab=posts" title="Автор">
                         <div class="post__avatar-wrapper">
                             <?php if (!empty($post['avatar_path'])): ?>
                             <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
@@ -97,7 +97,7 @@
                         </div>
                         <div class="post__info">
                             <b class="post__author-name"><?= esc($post['author']) ?></b>
-                            <time class="post__time" datetime="<?= esc($post['dt_add']) ?>" title="<?= get_time_title($post['dt_add']) ?>"><?= get_post_time($post['dt_add']) ?></time>
+                            <time class="post__time" datetime="<?= esc($post['dt_add']) ?>" title="<?= get_time_title($post['dt_add']) ?>"><?= get_relative_time($post['dt_add']) ?> назад</time>
                         </div>
                     </a>
                 </div>
@@ -126,4 +126,12 @@
         </article>
         <?php endforeach; ?>
     </div>
+    <?php if ($pages_count > 1): ?>
+    <div class="popular__page-links">
+        <?php $href = $current_page > 1 ? ' href="' . get_page_link_url($current_page, false) . '"' : ''; ?>
+        <a class="popular__page-link popular__page-link--prev button button--gray"<?= $href ?>>Предыдущая страница</a>
+        <?php $href = $current_page < $pages_count ? ' href="' . get_page_link_url($current_page, true) . '"' : ''; ?>
+        <a class="popular__page-link popular__page-link--next button button--gray"<?= $href ?>>Следующая страница</a>
+    </div>
+    <?php endif; ?>
 </div>

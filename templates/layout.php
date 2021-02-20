@@ -25,7 +25,7 @@
         <form class="header__search-form form" action="/search.php" method="get">
             <div class="header__search">
                 <label class="visually-hidden">Поиск</label>
-                <input class="header__search-input form__input" type="search" name="q">
+                <input class="header__search-input form__input" type="search" name="q" value="<?= $_GET['q'] ?? '' ?>">
                 <button class="header__search-button button" type="submit">
                     <svg class="header__search-icon" width="18" height="18">
                         <use xlink:href="#icon-search"></use>
@@ -79,7 +79,8 @@
                             <div class="header__profile-tooltip">
                                 <ul class="header__profile-nav">
                                     <li class="header__profile-nav-item">
-                                        <a class="header__profile-nav-link" href="#">
+                                        <?php $url = "/profile.php?id={$_SESSION['user']['id']}&tab=posts"; ?>
+                                        <a class="header__profile-nav-link" href="<?= $url ?>">
                                             <span class="header__profile-nav-text">Мой профиль</span>
                                         </a>
                                     </li>
@@ -181,8 +182,11 @@
         </div>
     </div>
 </footer>
-<script src="libs/dropzone.js"></script>
+<!-- <script src="libs/dropzone.js"></script> -->
 <!-- <script src="js/dropzone-settings.js"></script> -->
 <script src="js/main.js"></script>
+<?php if (in_array($_SERVER['PHP_SELF'], ['/register.php', '/add.php'])): ?>
+<script src="js/upload.js"></script>
+<?php endif; ?>
 </body>
 </html>
