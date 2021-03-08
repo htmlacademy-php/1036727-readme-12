@@ -8,7 +8,7 @@
                 <ul class="adding-post__tabs-list filters__list tabs__list">
                     <?php foreach ($content_types as $type): ?>
                     <li class="adding-post__tabs-item filters__item">
-                        <?php $classname = isset($_GET['tab']) && $_GET['tab'] == $type['class_name'] ? 'filters__button--active tabs__item--active' : ''; ?>
+                        <?php $classname = isset($_GET['tab']) && $_GET['tab'] === $type['class_name'] ? 'filters__button--active tabs__item--active' : ''; ?>
                         <?php $url = '/add.php?tab=' . esc($type['class_name']); ?>
                         <a class="adding-post__tabs-link filters__button filters__button--<?= esc($type['class_name']) ?> tabs__item button <?= $classname ?>" href="<?= $url ?>">
                             <svg class="filters__icon" width="<?= esc($type['icon_width']) ?>" height="<?= esc($type['icon_height']) ?>">
@@ -21,7 +21,7 @@
                 </ul>
             </div>
             <div class="adding-post__tab-content">
-                <section class="adding-post__photo tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] == 'photo'): ?> tabs__content--active<?php endif; ?>">
+                <section class="adding-post__photo tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'photo'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления фото</h2>
                     <form class="adding-post__form form" action="/add.php?tab=photo" method="post" enctype="multipart/form-data">
                         <div class="form__text-inputs-wrapper">
@@ -58,7 +58,7 @@
                     </form>
                 </section>
 
-                <section class="adding-post__video tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] == 'video'): ?> tabs__content--active<?php endif; ?>">
+                <section class="adding-post__video tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'video'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления видео</h2>
                     <form class="adding-post__form form" action="/add.php?tab=video" method="post" enctype="multipart/form-data">
                         <div class="form__text-inputs-wrapper">
@@ -91,7 +91,7 @@
                     </form>
                 </section>
 
-                <section class="adding-post__text tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] == 'text'): ?> tabs__content--active<?php endif; ?>">
+                <section class="adding-post__text tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'text'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления текста</h2>
                     <form class="adding-post__form form" action="/add.php?tab=text" method="post">
                         <div class="form__text-inputs-wrapper">
@@ -124,7 +124,7 @@
                     </form>
                 </section>
 
-                <section class="adding-post__quote tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] == 'quote'): ?> tabs__content--active<?php endif; ?>">
+                <section class="adding-post__quote tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'quote'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления цитаты</h2>
                     <form class="adding-post__form form" action="/add.php?tab=quote" method="post">
                         <div class="form__text-inputs-wrapper">
@@ -160,7 +160,7 @@
                     </form>
                 </section>
 
-                <section class="adding-post__link tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] == 'link'): ?> tabs__content--active<?php endif; ?>">
+                <section class="adding-post__link tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'link'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления ссылки</h2>
                     <form class="adding-post__form form" action="/add.php?tab=link" method="post">
                         <div class="form__text-inputs-wrapper">

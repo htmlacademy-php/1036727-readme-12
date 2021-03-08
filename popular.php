@@ -24,10 +24,10 @@ setcookie('request_uri', $request_uri, $expires);
 
 if (isset($_COOKIE['sort']) && isset($_COOKIE['dir']) && $_COOKIE['request_uri'] !== $request_uri) {
 
-    if (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields) && $_COOKIE['sort'] == $_GET['sort']) {
+    if (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields) && $_COOKIE['sort'] === $_GET['sort']) {
         $sort = $_GET['sort'];
 
-        $value = $_COOKIE['dir'] == 'desc' ? 'asc' : 'desc';
+        $value = $_COOKIE['dir'] === 'desc' ? 'asc' : 'desc';
         $sort_types[$sort] = $value;
         setcookie('dir', $value, $expires);
 
@@ -68,7 +68,7 @@ if (isset($_GET['sort']) && isset($_GET['dir'])) {
             break;
     }
 
-    $sort_filter .= $_GET['dir'] == 'asc' ? 'ASC' : 'DESC';
+    $sort_filter .= $_GET['dir'] === 'asc' ? 'ASC' : 'DESC';
 }
 
 $current_page = intval(filter_input(INPUT_GET, 'page') ?? 1);

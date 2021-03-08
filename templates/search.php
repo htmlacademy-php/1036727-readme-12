@@ -33,19 +33,19 @@
                         <?php endif; ?>
 
                         <?php $post['display_mode'] = 'feed'; ?>
-                        <?php if ($post['class_name'] == 'quote'): ?>
+                        <?php if ($post['class_name'] === 'quote'): ?>
                         <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
 
-                        <?php elseif ($post['class_name'] == 'link'): ?>
+                        <?php elseif ($post['class_name'] === 'link'): ?>
                         <?= include_template('inc/post-link.php', ['post' => $post]) ?>
 
-                        <?php elseif ($post['class_name'] == 'photo'): ?>
+                        <?php elseif ($post['class_name'] === 'photo'): ?>
                         <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
 
-                        <?php elseif ($post['class_name'] == 'video'): ?>
+                        <?php elseif ($post['class_name'] === 'video'): ?>
                         <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
-                        <?php elseif ($post['class_name'] == 'text'): ?>
+                        <?php elseif ($post['class_name'] === 'text'): ?>
                         <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                         <?php endif; ?>
                     </div>

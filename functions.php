@@ -166,7 +166,7 @@ function is_content_type_valid(mysqli $link, string $type) : bool {
     $content_types = get_mysqli_result($link, $sql);
     $class_names = array_column($content_types, 'class_name');
 
-    return in_array($type, $class_names) ? true : false;
+    return in_array($type, $class_names);
 }
 
 function get_post_input(mysqli $link, string $form) : array {
@@ -233,7 +233,7 @@ function get_stmt_data(array $input, int $content_type_id) : array {
 }
 
 function get_post_value(string $name) : string {
-    $value = $_POST[$name] ?? '';
+    $value = filter_input(INPUT_POST, $name) ?? '';
 
     return $value;
 }

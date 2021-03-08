@@ -1,5 +1,5 @@
 <?php $classname = isset($errors[$input['name']][0]) ? ' form__input-section--error' : ''; ?>
-<?php $required = $input['required'] == true ? ' <span class="form__input-required">*</span>' : ''; ?>
+<?php $required = boolval($input['required']) === true ? ' <span class="form__input-required">*</span>' : ''; ?>
 <div class="<?= esc($input['form']) ?>__textarea-wrapper form__textarea-wrapper<?= $classname ?>">
     <label class="<?= esc($input['form']) ?>__label form__label" for="<?= esc($input['name']) ?>"><?= esc($input['label']) ?><?= $required ?></label>
     <div class="form__input-section">

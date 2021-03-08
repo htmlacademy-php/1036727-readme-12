@@ -23,10 +23,10 @@ $form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input($link, 'comments');
 
-    if (mb_strlen($input['comment']) == 0) {
+    if (mb_strlen($input['comment']) === 0) {
         $errors['comment'][0] = 'Это поле должно быть заполнено';
         $errors['comment'][1] = $form_inputs['comment']['label'];
     } elseif (mb_strlen($input['comment']) < 4) {
