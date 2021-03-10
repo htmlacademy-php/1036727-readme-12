@@ -27,9 +27,9 @@
             <div class="profile__user-buttons user__buttons">
                 <?php if ($user['id'] !== $_SESSION['user']['id']): ?>
                 <?php $button_text = get_subscription_status($link, $user['id']) ? 'Отписаться' : 'Подписаться'; ?>
-                <a class="profile__user-button user__button user__button--subscription button button--main" href="/subscription.php?profile_id=<?= $user['id'] ?>"><?= $button_text ?></a>
+                <a class="profile__user-button user__button user__button--subscription button button--main" href="/subscription.php?id=<?= esc($user['id']) ?>"><?= $button_text ?></a>
                 <?php if (get_subscription_status($link, $user['id'])): ?>
-                <a class="profile__user-button user__button user__button--writing button button--green" href="#">Сообщение</a>
+                <a class="profile__user-button user__button user__button--writing button button--green" href="/messages.php?contact=<?= esc($user['id']) ?>">Сообщение</a>
                 <?php endif; ?>
                 <?php endif; ?>
             </div>
@@ -43,17 +43,17 @@
                     <li class="profile__tabs-item filters__item">
                         <?php $user_id = esc($user['id']); ?>
                         <?php $classname = isset($_GET['tab']) && $_GET['tab'] === 'posts' ? ' filters__button--active tabs__item--active' : ''; ?>
-                        <?php $href = isset($_GET['tab']) && $_GET['tab'] !== 'posts' ? " href=\"/profile.php?id={$user_id}&tab=posts\"" : ''; ?>
+                        <?php $href = isset($_GET['tab']) && $_GET['tab'] === 'posts' ? '' : " href=\"/profile.php?id={$user_id}&tab=posts\""; ?>
                         <a class="profile__tabs-link filters__button tabs__item button<?= $classname ?>"<?= $href ?>>Посты</a>
                     </li>
                     <li class="profile__tabs-item filters__item">
                         <?php $classname = isset($_GET['tab']) && $_GET['tab'] === 'likes' ? ' filters__button--active tabs__item--active' : ''; ?>
-                        <?php $href = isset($_GET['tab']) && $_GET['tab'] !== 'likes' ? " href=\"/profile.php?id={$user_id}&tab=likes\"" : ''; ?>
+                        <?php $href = isset($_GET['tab']) && $_GET['tab'] === 'likes' ? '' : " href=\"/profile.php?id={$user_id}&tab=likes\""; ?>
                         <a class="profile__tabs-link filters__button tabs__item button<?= $classname ?>"<?= $href ?>>Лайки</a>
                     </li>
                     <li class="profile__tabs-item filters__item">
                         <?php $classname = isset($_GET['tab']) && $_GET['tab'] === 'subscriptions' ? ' filters__button--active tabs__item--active' : ''; ?>
-                        <?php $href = isset($_GET['tab']) && $_GET['tab'] !== 'subscriptions' ? " href=\"/profile.php?id={$user_id}&tab=subscriptions\"" : ''; ?>
+                        <?php $href = isset($_GET['tab']) && $_GET['tab'] === 'subscriptions' ? '' : " href=\"/profile.php?id={$user_id}&tab=subscriptions\""; ?>
                         <a class="profile__tabs-link filters__button tabs__item button<?= $classname ?>"<?= $href ?>>Подписки</a>
                     </li>
                 </ul>
@@ -64,10 +64,10 @@
                     <?php foreach ($posts as $post): ?>
                     <article id="article-<?= esc($post['id']) ?>" class="profile__post post post-<?= esc($post['class_name']) ?>">
                         <header class="post__header">
-                            <?php $style = $post['class_name'] === 'text' ? 'padding: 29px 40px 26px;' : ''; ?>
+                            <?php $style = $post['class_name'] === 'text' ? 'padding: 29px 40px 5px;' : ''; ?>
                             <h2 style="<?= $style ?>"><a href="/post.php?id=<?= esc($post['id']) ?>"><?= esc($post['title']) ?></a></h2>
                         </header>
-                        <div style="min-height: 141px;" class="post__main">
+                        <div style="min-height: 110px;" class="post__main">
                             <?php $post['display_mode'] = 'feed'; ?>
                             <?php if ($post['class_name'] === 'quote'): ?>
                             <?= include_template('inc/post-quote.php', ['post' => $post]) ?>

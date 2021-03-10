@@ -8,7 +8,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
-$profile_id = validate_profile($link, $profile_id);
+$profile_id = validate_user($link, $profile_id);
 
 $sql = 'SELECT i.* FROM input i '
      . 'INNER JOIN form_input fi ON fi.input_id = i.id '
@@ -79,8 +79,9 @@ $page_content = include_template('profile.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'profile',
+    'link' => $link,
     'title' => 'readme: профиль',
+    'page_main_class' => 'profile',
     'page_content' => $page_content
 ]);
 

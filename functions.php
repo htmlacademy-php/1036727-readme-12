@@ -250,8 +250,8 @@ function validate_post(mysqli $link, int $post_id) : int {
     return $post_id;
 }
 
-function validate_profile(mysqli $link, int $profile_id) : int {
-    $sql = "SELECT id FROM user WHERE id = $profile_id";
+function validate_user(mysqli $link, int $user_id) : int {
+    $sql = "SELECT id FROM user WHERE id = $user_id";
     $result = get_mysqli_result($link, $sql, false);
 
     if (!mysqli_num_rows($result)) {
@@ -259,11 +259,22 @@ function validate_profile(mysqli $link, int $profile_id) : int {
         exit;
     }
 
-    return $profile_id;
+    return $user_id;
+}
+
+function is_user_valid(mysqli $link, int $user_id) : bool {
+    $sql = "SELECT id FROM user WHERE id = $user_id";
+    $result = get_mysqli_result($link, $sql, false);
+
+    if (!mysqli_num_rows($result)) {
+        return false;
+    }
+
+    return true;
 }
 
 function get_likes_indicator_class(mysqli $link, int $post_id) : string {
-    $user_id = $_SESSION['user']['id'];
+    $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT id FROM post_like WHERE post_id = $post_id AND author_id = $user_id";
     $result = get_mysqli_result($link, $sql, false);
 
@@ -271,7 +282,7 @@ function get_likes_indicator_class(mysqli $link, int $post_id) : string {
 }
 
 function get_subscription_status(mysqli $link, int $profile_id) : bool {
-    $user_id = $_SESSION['user']['id'];
+    $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT id FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
     $result = get_mysqli_result($link, $sql, false);
 
@@ -279,25 +290,25 @@ function get_subscription_status(mysqli $link, int $profile_id) : bool {
 }
 
 function get_likes_count(mysqli $link, int $post_id) : int {
-    $sql = "SELECT COUNT(*) FROM post_like WHERE post_id = $post_id";
-    $result = get_mysqli_result($link, $sql, 'assoc');
+    $sql = "SELECT COUNT(id) FROM post_like WHERE post_id = $post_id";
+    $likes_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
 
-    return $result['COUNT(*)'];
+    return $likes_count;
 }
 
 function get_comment_count(mysqli $link, int $post_id) : int {
-    $sql = "SELECT COUNT(*) FROM comment WHERE post_id = $post_id";
-    $result = get_mysqli_result($link, $sql, 'assoc');
+    $sql = "SELECT COUNT(id) FROM comment WHERE post_id = $post_id";
+    $comment_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
 
-    return $result['COUNT(*)'];
+    return $comment_count;
 
 }
 
 function get_repost_count(mysqli $link, int $post_id) : int {
-    $sql = "SELECT COUNT(*) FROM post WHERE origin_post_id = $post_id";
-    $result = get_mysqli_result($link, $sql, 'assoc');
+    $sql = "SELECT COUNT(id) FROM post WHERE origin_post_id = $post_id";
+    $repost_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
 
-    return $result['COUNT(*)'];
+    return $repost_count;
 }
 
 function get_show_count(int $show_count) : string {
@@ -306,26 +317,26 @@ function get_show_count(int $show_count) : string {
     return $result;
 }
 
-function get_subscriber_count(mysqli $link, int $user_id, $numeric_value = false) : string {
-    $sql = "SELECT COUNT(*) FROM subscription WHERE user_id = $user_id";
-    $result = get_mysqli_result($link, $sql, 'assoc');
+function get_subscriber_count(mysqli $link, int $user_id, bool $numeric_value = false) : string {
+    $sql = "SELECT COUNT(id) FROM subscription WHERE user_id = $user_id";
+    $subscriber_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
 
     if ($numeric_value) {
-        return $result['COUNT(*)'];
+        return $subscriber_count;
     }
 
-    return get_noun_plural_form($result['COUNT(*)'], ' подписчик', ' подписчика', ' подписчиков');
+    return get_noun_plural_form($subscriber_count, ' подписчик', ' подписчика', ' подписчиков');
 }
 
-function get_publication_count(mysqli $link, int $user_id, $numeric_value = false) : string {
+function get_publication_count(mysqli $link, int $user_id, bool $numeric_value = false) : string {
     $sql = "SELECT COUNT(*) FROM post WHERE author_id = $user_id";
-    $result = get_mysqli_result($link, $sql, 'assoc');
+    $publication_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(*)'];
 
     if ($numeric_value) {
-        return $result['COUNT(*)'];
+        return $publication_count;
     }
 
-    return get_noun_plural_form($result['COUNT(*)'], ' публикация', ' публикации', ' публикаций');
+    return get_noun_plural_form($publication_count, ' публикация', ' публикации', ' публикаций');
 }
 
 function get_search_sql(string $value, bool $hashtag_mode = false) : string {
@@ -368,4 +379,89 @@ function get_post_comments(mysqli $link, int $post_id) : array {
     $comments = get_mysqli_result($link, $sql);
 
     return $comments;
+}
+
+function get_contact_messages(mysqli $link, int $contact_id) : array {
+    $user_id = intval($_SESSION['user']['id']);
+
+    $sql = "SELECT u.login AS author, u.avatar_path, m.* FROM message m "
+     . "INNER JOIN user u ON u.id = m.sender_id "
+     . "WHERE (m.recipient_id = $user_id AND m.sender_id = $contact_id) "
+     . "OR (m.recipient_id = $contact_id AND m.sender_id = $user_id) "
+     . "ORDER BY m.dt_add";
+    $messages = get_mysqli_result($link, $sql);
+
+    return $messages;
+}
+
+function get_message_preview(mysqli $link, int $contact_id) : string {
+    $user_id = intval($_SESSION['user']['id']);
+
+    $sql = 'SELECT content, sender_id FROM message '
+         . "WHERE (recipient_id = $user_id AND sender_id = $contact_id) "
+         . "OR (recipient_id = $contact_id AND sender_id = $user_id) "
+         . 'ORDER BY dt_add DESC LIMIT 1';
+    $message = get_mysqli_result($link, $sql, 'assoc');
+    $preview = mb_substr($message['content'], 0, 30);
+
+    return $message['sender_id'] == $user_id ? "Вы: $preview" : $preview;
+}
+
+function get_messages_count(mysqli $link, int $contact_id = null) : string {
+    $user_id = intval($_SESSION['user']['id']);
+
+    if (isset($contact_id) && is_user_valid($link, $contact_id)) {
+        $sql = 'SELECT COUNT(id) FROM message '
+             . "WHERE sender_id = $contact_id AND recipient_id = $user_id AND status = 0";
+    } else {
+        $sql = "SELECT COUNT(id) FROM message WHERE recipient_id = $user_id AND status = 0";
+    }
+
+    $messages_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
+
+    return $messages_count;
+}
+
+function add_new_contact(mysqli $link, array &$contacts, int $contact_id) : void {
+    $user_id = intval($_SESSION['user']['id']);
+
+    if (is_user_valid($link, $contact_id) && $contact_id !== $user_id
+        && get_subscription_status($link, $contact_id)) {
+        $sql = "SELECT id, login, avatar_path FROM user WHERE id = $contact_id";
+        $contact = get_mysqli_result($link, $sql, 'assoc');
+        array_unshift($contacts, $contact);
+
+        setcookie('new_contact', $contact_id);
+    }
+}
+
+function is_new_contact(mysqli $link, int $contact_id) : bool {
+    $user_id = intval($_SESSION['user']['id']);
+
+    $sql = 'SELECT id FROM message '
+         . "WHERE (recipient_id = $user_id AND sender_id = $contact_id) "
+         . "OR (recipient_id = $contact_id AND sender_id = $user_id)";
+    $result = get_mysqli_result($link, $sql, false);
+
+    return !boolval(mysqli_num_rows($result));
+}
+
+function update_messages_status(mysqli $link, int $contact_id) : void {
+    $user_id = intval($_SESSION['user']['id']);
+
+    $sql = 'UPDATE message SET status = 1 '
+         . "WHERE sender_id = $contact_id AND recipient_id = $user_id";
+    get_mysqli_result($link, $sql, false);
+}
+
+function get_messages_chat_style(array $contacts) : string {
+
+    if (!empty($contacts)) {
+        $style = 'display: flex; flex-direction: column; align-self: stretch; '
+               . 'min-height: 343px; margin-bottom: -30px;';
+    } else {
+        $style = 'padding-top: 0; border: none;';
+    }
+
+    return $style;
 }

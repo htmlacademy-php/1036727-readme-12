@@ -14,7 +14,7 @@
                             <div class="post__avatar-wrapper">
                                 <?php if (!empty($post['avatar_path'])): ?>
                                 <?php $style = 'width: 60px; height: 60px; object-fit: cover;'; ?>
-                                <img style="<?= $style ?>" class="post__author-avatar" src="uploads/<?= esc($post['avatar_path']) ?>" alt="Аватар пользователя" width="60" height="60">
+                                <img style="<?= $style ?>" class="post__author-avatar" src="uploads/<?= esc($post['avatar_path']) ?>" width="60" height="60" alt="Аватар пользователя">
                                 <?php endif; ?>
                             </div>
                             <div class="post__info">

@@ -142,9 +142,9 @@
                 <div class="post-details__user-buttons user__buttons">
                     <?php if ($post['author_id'] !== $_SESSION['user']['id']): ?>
                     <?php $button_text = get_subscription_status($link, $post['author_id']) ? 'Отписаться' : 'Подписаться'; ?>
-                    <a class="user__button user__button--subscription button button--main" href="/subscription.php?profile_id=<?= $post['author_id'] ?>"><?= $button_text ?></a>
+                    <a class="user__button user__button--subscription button button--main" href="/subscription.php?id=<?= esc($post['author_id']) ?>"><?= $button_text ?></a>
                     <?php if (get_subscription_status($link, $post['author_id'])): ?>
-                    <a class="user__button user__button--writing button button--green" href="#">Сообщение</a>
+                    <a class="user__button user__button--writing button button--green" href="/messages.php?contact=<?= esc($post['author_id']) ?>">Сообщение</a>
                     <?php endif; ?>
                     <?php endif; ?>
                 </div>

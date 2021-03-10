@@ -10,8 +10,8 @@ if (!isset($_SESSION['user'])) {
 
 $user_id = intval($_SESSION['user']['id']);
 
-$profile_id = intval(filter_input(INPUT_GET, 'profile_id'));
-$profile_id = validate_profile($link, $profile_id);
+$profile_id = intval(filter_input(INPUT_GET, 'id'));
+$profile_id = validate_user($link, $profile_id);
 
 if ($profile_id === $user_id) {
     http_response_code(500);

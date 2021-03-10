@@ -53,7 +53,8 @@
                         </a>
                     </li>
                     <li class="header__my-page header__my-page--messages">
-                        <a class="header__page-link" href="#" title="Личные сообщения">
+                        <?php $classname = $_SERVER['PHP_SELF'] === '/messages.php' ? ' header__page-link--active' : ''; ?>
+                        <a class="header__page-link<?= $classname ?>" href="/messages.php" title="Личные сообщения">
                             <span class="visually-hidden">Личные сообщения</span>
                         </a>
                     </li>
@@ -61,7 +62,8 @@
                 <!-- здесь должен быть PHP код, который показывает следующий тег по условию -->
                 <ul class="header__user-nav">
                     <li class="header__profile">
-                        <a class="header__profile-link" href="#">
+                        <?php $profile_url = "/profile.php?id={$_SESSION['user']['id']}&tab=posts"; ?>
+                        <a class="header__profile-link" href="<?= $profile_url ?>">
                             <div class="header__avatar-wrapper">
                                 <?php if (!empty($_SESSION['user']['avatar_path'])): ?>
                                 <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
@@ -79,15 +81,16 @@
                             <div class="header__profile-tooltip">
                                 <ul class="header__profile-nav">
                                     <li class="header__profile-nav-item">
-                                        <?php $url = "/profile.php?id={$_SESSION['user']['id']}&tab=posts"; ?>
-                                        <a class="header__profile-nav-link" href="<?= $url ?>">
+                                        <a class="header__profile-nav-link" href="<?= $profile_url ?>">
                                             <span class="header__profile-nav-text">Мой профиль</span>
                                         </a>
                                     </li>
                                     <li class="header__profile-nav-item">
-                                        <a class="header__profile-nav-link" href="#">
+                                        <a class="header__profile-nav-link" href="/messages.php">
                                             <span class="header__profile-nav-text">Сообщения
-                                                <i class="header__profile-indicator">2</i>
+                                                <?php if ($messages_count = get_messages_count($link)): ?>
+                                                <i class="header__profile-indicator"><?= $messages_count ?></i>
+                                                <?php endif; ?>
                                             </span>
                                         </a>
                                     </li>
@@ -123,7 +126,7 @@
     </div>
 </header>
 
-<section class="page__main page__main--<?= $page_main_class ?>">
+<section style="flex-grow: 1;" class="page__main page__main--<?= $page_main_class ?>">
     <?= $page_content ?>
 </section>
 

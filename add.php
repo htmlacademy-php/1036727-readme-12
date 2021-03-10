@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $tag_name = mysqli_real_escape_string($link, $tag_name);
                     $sql = "SELECT COUNT(*), id FROM hashtag WHERE name = '$tag_name'";
                     $hashtag = get_mysqli_result($link, $sql, 'assoc');
-                    mysqli_begin_transaction($link);
+                    mysqli_query($link, 'START TRANSACTION');
 
                     if ($hashtag['COUNT(*)'] === '0') {
                         $sql = "INSERT INTO hashtag SET name = '$tag_name'";
@@ -161,16 +161,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $hashtag_id = mysqli_insert_id($link);
                     } else {
                         $hashtag_id = $hashtag['id'];
-                        $result1 = true;
                     }
 
                     $sql = "INSERT INTO post_hashtag (hashtag_id, post_id) VALUES ($hashtag_id, $post_id)";
                     $result2 = get_mysqli_result($link, $sql, false);
 
-                    if ($result1 && $result2) {
-                        mysqli_commit($link);
+                    if (($result1 ?? true) && $result2) {
+                        mysqli_query($link, 'COMMIT');
                     } else {
-                        mysqli_rollback($link);
+                        mysqli_query($link, 'ROLLBACK');
                     }
                 }
             }
@@ -178,6 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql = "SELECT * FROM user u "
                  . "INNER JOIN subscription s ON s.author_id = u.id "
                  . "WHERE s.user_id = {$_SESSION['user']['id']}";
+
             if ($users = get_mysqli_result($link, $sql)) {
 
                 $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
@@ -220,8 +220,9 @@ $page_content = include_template('add.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'adding-post',
+    'link' => $link,
     'title' => 'readme: добавление публикации',
+    'page_main_class' => 'adding-post',
     'page_content' => $page_content
 ]);
 

@@ -22,6 +22,7 @@ INSERT INTO form (name, modifier) VALUES
 ('adding-post', 'quote'),
 ('adding-post', 'link'),
 ('comments', null),
+('messages', null),
 ('registration', null),
 ('login', null);
 
@@ -62,14 +63,17 @@ INSERT INTO form_input (form_id, input_id) VALUES
 (6, 17),
 (6, 18),
 
-(7, 1),
-(7, 2),
-(7, 3),
-(7, 4),
-(7, 5),
+(7, 19),
+(7, 20),
 
 (8, 1),
-(8, 6);
+(8, 2),
+(8, 3),
+(8, 4),
+(8, 5),
+
+(9, 1),
+(9, 6);
 
 -- --------------------------------------------------------
 
@@ -95,7 +99,9 @@ INSERT INTO input (label, type, name, placeholder, required) VALUES
 ('Ссылка', 'text', 'post-link', 'Введите ссылку', 1),
 ('Теги', 'text', 'tags', 'Введите теги', 0),
 ('Ваш комментарий', null, 'comment', 'Ваш комментарий', 1),
-(null, 'hidden', 'post-id', null, null);
+(null, 'hidden', 'post-id', null, null),
+('Ваше сообщение', null, 'message', 'Ваше сообщение', 1),
+(null, 'hidden', 'contact-id', null, null);
 
 -- --------------------------------------------------------
 

@@ -95,8 +95,9 @@ $page_content = include_template('register.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'registration',
+    'link' => $link,
     'title' => 'readme: регистрация',
+    'page_main_class' => 'registration',
     'page_content' => $page_content
 ]);
 

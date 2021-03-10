@@ -59,8 +59,8 @@ $page_content = include_template('login.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'login',
     'title' => 'readme: авторизация',
+    'page_main_class' => 'login',
     'page_content' => $page_content
 ]);
 

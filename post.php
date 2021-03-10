@@ -85,8 +85,9 @@ $page_content = include_template('post.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'publication',
+    'link' => $link,
     'title' => 'readme: публикация',
+    'page_main_class' => 'publication',
     'page_content' => $page_content
 ]);
 
