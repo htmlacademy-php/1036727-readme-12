@@ -4,21 +4,21 @@
         <h2 class="visually-hidden">Публикация</h2>
         <div class="post-details__wrapper post-<?= esc($post['class_name']) ?>">
             <div class="post-details__main-block post post--details" style="border-top: none; border-top-right-radius: 0;">
-                <?php if ($post['class_name'] == 'quote'): ?>
+                <?php if ($post['class_name'] === 'quote'): ?>
                 <div class="post__main">
                     <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
                 </div>
 
-                <?php elseif ($post['class_name'] == 'link'): ?>
+                <?php elseif ($post['class_name'] === 'link'): ?>
                 <?= include_template('inc/post-link.php', ['post' => $post]) ?>
 
-                <?php elseif ($post['class_name'] == 'photo'): ?>
+                <?php elseif ($post['class_name'] === 'photo'): ?>
                 <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
 
-                <?php elseif ($post['class_name'] == 'video'): ?>
+                <?php elseif ($post['class_name'] === 'video'): ?>
                 <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
-                <?php elseif ($post['class_name'] == 'text'): ?>
+                <?php elseif ($post['class_name'] === 'text'): ?>
                 <div class="post__main" style="padding: 54px 0 63px; border-bottom: 1px solid #dee5fc;">
                     <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                 </div>
@@ -142,9 +142,9 @@
                 <div class="post-details__user-buttons user__buttons">
                     <?php if ($post['author_id'] !== $_SESSION['user']['id']): ?>
                     <?php $button_text = get_subscription_status($link, $post['author_id']) ? 'Отписаться' : 'Подписаться'; ?>
-                    <a class="user__button user__button--subscription button button--main" href="/subscription.php?profile_id=<?= $post['author_id'] ?>"><?= $button_text ?></a>
+                    <a class="user__button user__button--subscription button button--main" href="/subscription.php?id=<?= esc($post['author_id']) ?>"><?= $button_text ?></a>
                     <?php if (get_subscription_status($link, $post['author_id'])): ?>
-                    <a class="user__button user__button--writing button button--green" href="#">Сообщение</a>
+                    <a class="user__button user__button--writing button button--green" href="/messages.php?contact=<?= esc($post['author_id']) ?>">Сообщение</a>
                     <?php endif; ?>
                     <?php endif; ?>
                 </div>

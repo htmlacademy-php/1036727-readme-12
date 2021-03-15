@@ -14,7 +14,7 @@
                             <div class="post__avatar-wrapper">
                                 <?php if (!empty($post['avatar_path'])): ?>
                                 <?php $style = 'width: 60px; height: 60px; object-fit: cover;'; ?>
-                                <img style="<?= $style ?>" class="post__author-avatar" src="uploads/<?= esc($post['avatar_path']) ?>" alt="Аватар пользователя" width="60" height="60">
+                                <img style="<?= $style ?>" class="post__author-avatar" src="uploads/<?= esc($post['avatar_path']) ?>" width="60" height="60" alt="Аватар пользователя">
                                 <?php endif; ?>
                             </div>
                             <div class="post__info">
@@ -29,19 +29,19 @@
                         <?php endif; ?>
 
                         <?php $post['display_mode'] = 'feed'; ?>
-                        <?php if ($post['class_name'] == 'quote'): ?>
+                        <?php if ($post['class_name'] === 'quote'): ?>
                         <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
 
-                        <?php elseif ($post['class_name'] == 'link'): ?>
+                        <?php elseif ($post['class_name'] === 'link'): ?>
                         <?= include_template('inc/post-link.php', ['post' => $post]) ?>
 
-                        <?php elseif ($post['class_name'] == 'photo'): ?>
+                        <?php elseif ($post['class_name'] === 'photo'): ?>
                         <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
 
-                        <?php elseif ($post['class_name'] == 'video'): ?>
+                        <?php elseif ($post['class_name'] === 'video'): ?>
                         <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
-                        <?php elseif ($post['class_name'] == 'text'): ?>
+                        <?php elseif ($post['class_name'] === 'text'): ?>
                         <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                         <?php endif; ?>
                     </div>

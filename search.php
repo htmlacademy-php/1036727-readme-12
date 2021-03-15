@@ -49,8 +49,9 @@ $page_content = include_template('search.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'search-results',
+    'link' => $link,
     'title' => 'readme: страница результатов поиска',
+    'page_main_class' => 'search-results',
     'page_content' => $page_content
 ]);
 

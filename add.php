@@ -1,5 +1,6 @@
 <?php
 
+require_once('vendor/autoload.php');
 require_once('init.php');
 
 if (!isset($_SESSION['user'])) {
@@ -25,7 +26,7 @@ $form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input($link, 'adding-post');
 
     switch ($input['content-type']) {
@@ -125,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $required_fields = get_required_fields($link, 'adding-post', $tab);
     foreach ($required_fields as $field) {
-        if (mb_strlen($input[$field]) == 0) {
+        if (mb_strlen($input[$field]) === 0) {
             $errors[$field][0] = 'Это поле должно быть заполнено';
             $errors[$field][1] = $form_inputs[$field]['label'];
         }
@@ -152,17 +153,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $tag_name = mysqli_real_escape_string($link, $tag_name);
                     $sql = "SELECT COUNT(*), id FROM hashtag WHERE name = '$tag_name'";
                     $hashtag = get_mysqli_result($link, $sql, 'assoc');
+                    mysqli_query($link, 'START TRANSACTION');
 
-                    if ($hashtag['COUNT(*)'] == 0) {
+                    if ($hashtag['COUNT(*)'] === '0') {
                         $sql = "INSERT INTO hashtag SET name = '$tag_name'";
-                        get_mysqli_result($link, $sql, false);
+                        $result1 = get_mysqli_result($link, $sql, false);
                         $hashtag_id = mysqli_insert_id($link);
                     } else {
                         $hashtag_id = $hashtag['id'];
                     }
 
                     $sql = "INSERT INTO post_hashtag (hashtag_id, post_id) VALUES ($hashtag_id, $post_id)";
-                    get_mysqli_result($link, $sql, false);
+                    $result2 = get_mysqli_result($link, $sql, false);
+
+                    if (($result1 ?? true) && $result2) {
+                        mysqli_query($link, 'COMMIT');
+                    } else {
+                        mysqli_query($link, 'ROLLBACK');
+                    }
+                }
+            }
+
+            $sql = "SELECT * FROM user u "
+                 . "INNER JOIN subscription s ON s.author_id = u.id "
+                 . "WHERE s.user_id = {$_SESSION['user']['id']}";
+
+            if ($users = get_mysqli_result($link, $sql)) {
+
+                $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
+                $transport->setUsername('keks@phpdemo.ru');
+                $transport->setPassword('htmlacademy');
+
+                $message = new Swift_Message();
+                $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
+
+                $mailer = new Swift_Mailer($transport);
+
+                foreach ($users as $user) {
+                    $message->setTo([$user['email'] => $user['login']]);
+
+                    $body = "Здравствуйте, {$user['login']}. Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
+                          . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
+                    $message->setBody($body);
+                    $message->setFrom('keks@phpdemo.ru', 'Readme');
+
+                    $mailer->send($message);
                 }
             }
 
@@ -185,8 +220,9 @@ $page_content = include_template('add.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'adding-post',
+    'link' => $link,
     'title' => 'readme: добавление публикации',
+    'page_main_class' => 'adding-post',
     'page_content' => $page_content
 ]);
 

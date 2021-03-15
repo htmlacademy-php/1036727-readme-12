@@ -27,9 +27,9 @@
             <div class="profile__user-buttons user__buttons">
                 <?php if ($user['id'] !== $_SESSION['user']['id']): ?>
                 <?php $button_text = get_subscription_status($link, $user['id']) ? 'Отписаться' : 'Подписаться'; ?>
-                <a class="profile__user-button user__button user__button--subscription button button--main" href="/subscription.php?profile_id=<?= $user['id'] ?>"><?= $button_text ?></a>
+                <a class="profile__user-button user__button user__button--subscription button button--main" href="/subscription.php?id=<?= esc($user['id']) ?>"><?= $button_text ?></a>
                 <?php if (get_subscription_status($link, $user['id'])): ?>
-                <a class="profile__user-button user__button user__button--writing button button--green" href="#">Сообщение</a>
+                <a class="profile__user-button user__button user__button--writing button button--green" href="/messages.php?contact=<?= esc($user['id']) ?>">Сообщение</a>
                 <?php endif; ?>
                 <?php endif; ?>
             </div>
@@ -43,44 +43,45 @@
                     <li class="profile__tabs-item filters__item">
                         <?php $user_id = esc($user['id']); ?>
                         <?php $classname = isset($_GET['tab']) && $_GET['tab'] === 'posts' ? ' filters__button--active tabs__item--active' : ''; ?>
-                        <?php $href = isset($_GET['tab']) && $_GET['tab'] !== 'posts' ? " href=\"/profile.php?id={$user_id}&tab=posts\"" : ''; ?>
+                        <?php $href = isset($_GET['tab']) && $_GET['tab'] === 'posts' ? '' : " href=\"/profile.php?id={$user_id}&tab=posts\""; ?>
                         <a class="profile__tabs-link filters__button tabs__item button<?= $classname ?>"<?= $href ?>>Посты</a>
                     </li>
                     <li class="profile__tabs-item filters__item">
                         <?php $classname = isset($_GET['tab']) && $_GET['tab'] === 'likes' ? ' filters__button--active tabs__item--active' : ''; ?>
-                        <?php $href = isset($_GET['tab']) && $_GET['tab'] !== 'likes' ? " href=\"/profile.php?id={$user_id}&tab=likes\"" : ''; ?>
+                        <?php $href = isset($_GET['tab']) && $_GET['tab'] === 'likes' ? '' : " href=\"/profile.php?id={$user_id}&tab=likes\""; ?>
                         <a class="profile__tabs-link filters__button tabs__item button<?= $classname ?>"<?= $href ?>>Лайки</a>
                     </li>
                     <li class="profile__tabs-item filters__item">
                         <?php $classname = isset($_GET['tab']) && $_GET['tab'] === 'subscriptions' ? ' filters__button--active tabs__item--active' : ''; ?>
-                        <?php $href = isset($_GET['tab']) && $_GET['tab'] !== 'subscriptions' ? " href=\"/profile.php?id={$user_id}&tab=subscriptions\"" : ''; ?>
+                        <?php $href = isset($_GET['tab']) && $_GET['tab'] === 'subscriptions' ? '' : " href=\"/profile.php?id={$user_id}&tab=subscriptions\""; ?>
                         <a class="profile__tabs-link filters__button tabs__item button<?= $classname ?>"<?= $href ?>>Подписки</a>
                     </li>
                 </ul>
             </div>
             <div class="profile__tab-content">
-                <section class="profile__posts tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] == 'posts'): ?> tabs__content--active<?php endif; ?>">
+                <section class="profile__posts tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'posts'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Публикации</h2>
                     <?php foreach ($posts as $post): ?>
                     <article id="article-<?= esc($post['id']) ?>" class="profile__post post post-<?= esc($post['class_name']) ?>">
                         <header class="post__header">
-                            <h2><a href="/post.php?id=<?= esc($post['id']) ?>"><?= esc($post['title']) ?></a></h2>
+                            <?php $style = $post['class_name'] === 'text' ? 'padding: 29px 40px 5px;' : ''; ?>
+                            <h2 style="<?= $style ?>"><a href="/post.php?id=<?= esc($post['id']) ?>"><?= esc($post['title']) ?></a></h2>
                         </header>
-                        <div style="min-height: 141px;" class="post__main">
+                        <div style="min-height: 110px;" class="post__main">
                             <?php $post['display_mode'] = 'feed'; ?>
-                            <?php if ($post['class_name'] == 'quote'): ?>
+                            <?php if ($post['class_name'] === 'quote'): ?>
                             <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
 
-                            <?php elseif ($post['class_name'] == 'link'): ?>
+                            <?php elseif ($post['class_name'] === 'link'): ?>
                             <?= include_template('inc/post-link.php', ['post' => $post]) ?>
 
-                            <?php elseif ($post['class_name'] == 'photo'): ?>
+                            <?php elseif ($post['class_name'] === 'photo'): ?>
                             <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
 
-                            <?php elseif ($post['class_name'] == 'video'): ?>
+                            <?php elseif ($post['class_name'] === 'video'): ?>
                             <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
-                            <?php elseif ($post['class_name'] == 'text'): ?>
+                            <?php elseif ($post['class_name'] === 'text'): ?>
                             <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                             <?php endif; ?>
                         </div>
@@ -178,111 +179,9 @@
                         <?php endif; ?>
                     </article>
                     <?php endforeach; ?>
-                    <!-- <article class="profile__post post post-text">
-                        <header class="post__header">
-                            <div class="post__author">
-                                <a class="post__author-link" href="#" title="Автор">
-                                    <div class="post__avatar-wrapper post__avatar-wrapper--repost">
-                                        <img class="post__author-avatar" src="img/userpic-tanya.jpg" alt="Аватар пользователя">
-                                    </div>
-                                    <div class="post__info">
-                                        <b class="post__author-name">Репост: Таня Фирсова</b>
-                                        <time class="post__time" datetime="2019-03-30T14:31">25 минут назад</time>
-                                    </div>
-                                </a>
-                            </div>
-                        </header>
-                        <div class="post__main">
-                            <h2><a href="#">Полезный пост про Байкал</a></h2>
-                            <p>Озеро Байкал – огромное древнее озеро в горах Сибири к северу от монгольской границы. Байкал считается самым глубоким озером в мире. Он окружен сетью пешеходных маршрутов, называемых Большой байкальской тропой. Деревня Листвянка, расположенная на западном берегу озера, – популярная отправная точка для летних экскурсий. Зимой здесь можно кататься на коньках и собачьих упряжках.</p>
-                            <a class="post-text__more-link" href="#">Читать далее</a>
-                        </div>
-                        <footer class="post__footer">
-                            <div class="post__indicators">
-                                <div class="post__buttons">
-                                    <a class="post__indicator post__indicator--likes button" href="#" title="Лайк">
-                                        <svg class="post__indicator-icon" width="20" height="17">
-                                            <use xlink:href="#icon-heart"></use>
-                                        </svg>
-                                        <svg class="post__indicator-icon post__indicator-icon--like-active" width="20" height="17">
-                                            <use xlink:href="#icon-heart-active"></use>
-                                        </svg>
-                                        <span>250</span>
-                                        <span class="visually-hidden">количество лайков</span>
-                                    </a>
-                                    <a class="post__indicator post__indicator--repost button" href="#" title="Репост">
-                                        <svg class="post__indicator-icon" width="19" height="17">
-                                            <use xlink:href="#icon-repost"></use>
-                                        </svg>
-                                        <span>5</span>
-                                        <span class="visually-hidden">количество репостов</span>
-                                    </a>
-                                </div>
-                                <time class="post__time" datetime="2019-01-30T23:41">15 минут назад</time>
-                            </div>
-                            <ul class="post__tags">
-                                <li><a href="#">#nature</a></li>
-                                <li><a href="#">#globe</a></li>
-                                <li><a href="#">#photooftheday</a></li>
-                                <li><a href="#">#canon</a></li>
-                                <li><a href="#">#landscape</a></li>
-                                <li><a href="#">#щикарныйвид</a></li>
-                            </ul>
-                        </footer>
-                        <div class="comments">
-                            <div class="comments__list-wrapper">
-                                <ul class="comments__list">
-                                    <li class="comments__item user">
-                                        <div class="comments__avatar">
-                                            <a class="user__avatar-link" href="#">
-                                                <img class="comments__picture" src="img/userpic-larisa.jpg" alt="Аватар пользователя">
-                                            </a>
-                                        </div>
-                                        <div class="comments__info">
-                                            <div class="comments__name-wrapper">
-                                                <a class="comments__user-name" href="#">
-                                                    <span>Лариса Роговая</span>
-                                                </a>
-                                                <time class="comments__time" datetime="2019-03-20">1 ч назад</time>
-                                            </div>
-                                            <p class="comments__text">Красота!!!1!</p>
-                                        </div>
-                                    </li>
-                                    <li class="comments__item user">
-                                        <div class="comments__avatar">
-                                            <a class="user__avatar-link" href="#">
-                                                <img class="comments__picture" src="img/userpic-larisa.jpg" alt="Аватар пользователя">
-                                            </a>
-                                        </div>
-                                        <div class="comments__info">
-                                            <div class="comments__name-wrapper">
-                                                <a class="comments__user-name" href="#">
-                                                    <span>Лариса Роговая</span>
-                                                </a>
-                                                <time class="comments__time" datetime="2019-03-18">2 дня назад</time>
-                                            </div>
-                                            <p class="comments__text">Озеро Байкал – огромное древнее озеро в горах Сибири к северу от монгольской границы. Байкал считается самым глубоким озером в мире. Он окружен сетью пешеходных маршрутов, называемых Большой байкальской тропой. Деревня Листвянка, расположенная на западном берегу озера, – популярная отправная точка для летних экскурсий. Зимой здесь можно кататься на коньках и собачьих упряжках.</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                                <a class="comments__more-link" href="#">
-                                    <span>Показать все комментарии</span>
-                                    <sup class="comments__amount">45</sup>
-                                </a>
-                            </div>
-                        </div>
-                        <form class="comments__form form" action="#" method="post">
-                            <div class="comments__my-avatar">
-                                <img class="comments__picture" src="img/userpic-medium.jpg" alt="Аватар пользователя">
-                            </div>
-                            <textarea class="comments__textarea form__textarea" placeholder="Ваш комментарий"></textarea>
-                            <label class="visually-hidden">Ваш комментарий</label>
-                            <button class="comments__submit button button--green" type="submit">Отправить</button>
-                        </form>
-                    </article> -->
                 </section>
 
-                <section class="profile__likes tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] == 'likes'): ?> tabs__content--active<?php endif; ?>">
+                <section class="profile__likes tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'likes'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Лайки</h2>
                     <ul class="profile__likes-list">
                         <li class="post-mini post-mini--photo post user">
@@ -423,7 +322,7 @@
                     </ul>
                 </section>
 
-                <section class="profile__subscriptions tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] == 'subscriptions'): ?> tabs__content--active<?php endif; ?>">
+                <section class="profile__subscriptions tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'subscriptions'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Подписки</h2>
                     <ul class="profile__subscriptions-list">
                         <li class="post-mini post-mini--photo post user">

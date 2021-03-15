@@ -9,7 +9,7 @@ if (isset($_SESSION['user'])) {
 
 $errors = [];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input($link, 'login');
 
     if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $required_fields = get_required_fields($link, 'login');
     foreach ($required_fields as $field) {
-        if (mb_strlen($input[$field]) == 0) {
+        if (mb_strlen($input[$field]) === 0) {
             $errors[$field] = 'Это поле должно быть заполнено';
         }
     }

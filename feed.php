@@ -36,8 +36,9 @@ $page_content = include_template('main.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'feed',
+    'link' => $link,
     'title' => 'readme: моя лента',
+    'page_main_class' => 'feed',
     'page_content' => $page_content
 ]);
 

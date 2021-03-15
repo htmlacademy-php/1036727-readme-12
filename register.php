@@ -18,7 +18,7 @@ $form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input($link, 'registration');
     $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (mb_strlen($input['password']) > 0 && mb_strlen($input['password-repeat']) > 0) {
-        if ($input['password'] != $input['password-repeat']) {
+        if ($input['password'] !== $input['password-repeat']) {
             $errors['password-repeat'][0] = 'Пароли не совпадают';
             $errors['password-repeat'][1] = 'Повтор пароля';
         } else {
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $required_fields = get_required_fields($link, 'registration');
     foreach ($required_fields as $field) {
-        if (mb_strlen($input[$field]) == 0) {
+        if (mb_strlen($input[$field]) === 0) {
             $errors[$field][0] = 'Это поле должно быть заполнено';
             $errors[$field][1] = $form_inputs[$field]['label'];
         }
@@ -95,8 +95,9 @@ $page_content = include_template('register.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'registration',
+    'link' => $link,
     'title' => 'readme: регистрация',
+    'page_main_class' => 'registration',
     'page_content' => $page_content
 ]);
 

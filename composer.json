@@ -1,0 +1,14 @@
+{
+    "name": "anatolev/readme",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anatolev Maksim",
+            "email": "anatolev.web@gmail.com"
+        }
+    ],
+    "require": {
+        "swiftmailer/swiftmailer": "^6.2"
+    }
+}

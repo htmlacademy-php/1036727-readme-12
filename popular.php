@@ -24,10 +24,10 @@ setcookie('request_uri', $request_uri, $expires);
 
 if (isset($_COOKIE['sort']) && isset($_COOKIE['dir']) && $_COOKIE['request_uri'] !== $request_uri) {
 
-    if (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields) && $_COOKIE['sort'] == $_GET['sort']) {
+    if (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields) && $_COOKIE['sort'] === $_GET['sort']) {
         $sort = $_GET['sort'];
 
-        $value = $_COOKIE['dir'] == 'desc' ? 'asc' : 'desc';
+        $value = $_COOKIE['dir'] === 'desc' ? 'asc' : 'desc';
         $sort_types[$sort] = $value;
         setcookie('dir', $value, $expires);
 
@@ -58,7 +58,7 @@ if (isset($_GET['sort']) && isset($_GET['dir'])) {
             $sort_filter = 'p.show_count ';
             break;
         case 'likes':
-            $sort_filter = 'like_count ';
+            $sort_filter = 'COUNT(pl.id) ';
             break;
         case 'date':
             $sort_filter = 'p.dt_add ';
@@ -68,7 +68,7 @@ if (isset($_GET['sort']) && isset($_GET['dir'])) {
             break;
     }
 
-    $sort_filter .= $_GET['dir'] == 'asc' ? 'ASC' : 'DESC';
+    $sort_filter .= $_GET['dir'] === 'asc' ? 'ASC' : 'DESC';
 }
 
 $current_page = intval(filter_input(INPUT_GET, 'page') ?? 1);
@@ -89,7 +89,7 @@ if ($current_page <= 0) {
 
 $offset = ($current_page - 1) * $page_items;
 
-$sql = 'SELECT p.*, COUNT(pl.id) AS like_count, u.login AS author, u.avatar_path, ct.class_name FROM post p '
+$sql = 'SELECT p.*, COUNT(pl.id), u.login AS author, u.avatar_path, ct.class_name FROM post p '
      . 'LEFT JOIN user u ON u.id = p.author_id '
      . 'LEFT JOIN content_type ct ON ct.id = p.content_type_id '
      . 'LEFT JOIN post_like pl ON pl.post_id = p.id '
@@ -111,8 +111,9 @@ $page_content = include_template('popular.php', [
 ]);
 
 $layout_content = include_template('layout.php', [
-    'page_main_class' => 'popular',
+    'link' => $link,
     'title' => 'readme: популярное',
+    'page_main_class' => 'popular',
     'page_content' => $page_content
 ]);
 
