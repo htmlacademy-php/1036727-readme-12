@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$user_id = $_SESSION['user']['id'];
+$user_id = intval($_SESSION['user']['id']);
 
 $sql = 'SELECT * FROM content_type';
 $content_types = get_mysqli_result($link, $sql);
@@ -26,7 +26,7 @@ $sql = 'SELECT p.*, u.login AS author, u.avatar_path, ct.class_name FROM post p 
      . 'INNER JOIN user u ON u.id = p.author_id '
      . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
      . "WHERE s.author_id = {$user_id}{$content_type_filter} "
-     . 'ORDER BY p.dt_add DESC LIMIT 6';
+     . 'ORDER BY p.dt_add DESC';
 $posts = get_mysqli_result($link, $sql);
 
 $page_content = include_template('main.php', [

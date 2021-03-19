@@ -19,7 +19,7 @@
                 <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
                 <?php elseif ($post['class_name'] === 'text'): ?>
-                <div class="post__main" style="padding: 54px 0 63px; border-bottom: 1px solid #dee5fc;">
+                <div class="post__main" style="border-bottom: 1px solid #dee5fc;">
                     <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                 </div>
                 <?php endif; ?>
@@ -52,11 +52,13 @@
                     </div>
                     <span class="post__view"><?= get_show_count($post['show_count']) ?></span>
                 </div>
+                <?php if (!empty($hashtags)): ?>
                 <ul class="post__tags">
                     <?php foreach ($hashtags as $hashtag): ?>
                     <li><a href="/search.php?q=%23<?= $hashtag['name'] ?>">#<?= esc($hashtag['name']) ?></a></li>
                     <?php endforeach; ?>
                 </ul>
+                <?php endif; ?>
                 <div class="comments">
                     <form class="comments__form form" action="/post.php?id=<?= $post['id'] ?>" method="post">
                         <div class="comments__my-avatar">
@@ -73,7 +75,7 @@
                             <button class="form__error-button button" type="button">!</button>
                             <div class="form__error-text">
                                 <h3 class="form__error-title"><?= esc($input['label']) ?></h3>
-                                <p class="form__error-desc"><?= isset($errors[$input['name']][0]) ? $errors[$input['name']][0] : '' ?></p>
+                                <p class="form__error-desc"><?= $errors[$input['name']][0] ?? '' ?></p>
                             </div>
                         </div>
                         <input type="hidden" name="post-id" value="<?= esc($post['id']) ?>">

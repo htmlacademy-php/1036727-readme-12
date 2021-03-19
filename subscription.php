@@ -48,7 +48,7 @@ if (!mysqli_num_rows($result)) {
     get_mysqli_result($link, $sql, false);
 }
 
-$ref = $_SERVER['HTTP_REFERER'] ?? '/';
+$ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
 
 header("Location: $ref");
 exit;

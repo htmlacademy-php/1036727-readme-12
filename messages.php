@@ -60,7 +60,12 @@ if (isset($_GET['contact'])) {
     update_messages_status($link, $contact_id);
 
     if (!in_array($contact_id, array_column($contacts, 'id'))) {
-        add_new_contact($link, $contacts, $contact_id);
+
+        if (!add_new_contact($link, $contacts, $contact_id)
+            && $contact_id = $_COOKIE['new_contact'] ?? null) {
+            add_new_contact($link, $contacts, $contact_id);
+        }
+
     } elseif ($contact_id = $_COOKIE['new_contact'] ?? null) {
         add_new_contact($link, $contacts, $contact_id);
     }

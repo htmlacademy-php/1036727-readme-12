@@ -30,8 +30,8 @@ function update_errors_log(mysqli $link, string $sql, string $filename) : void {
     file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
 }
 
-function get_text_content(string $text, int $post_id, bool $margin = false, int $num_letters = 300) : string {
-    $style = $margin ? ' style="margin-top: 0;"' : '';
+function get_text_content(string $text, int $post_id, string $style = '', int $num_letters = 300) : string {
+    $style = $style ? " style=\"{$style}\"" : '';
     $text_length = mb_strlen($text);
 
     if ($text_length > $num_letters) {
@@ -161,12 +161,33 @@ function get_page_link_url(int $current_page, bool $next) : string {
     return $url;
 }
 
+function get_adding_post_close_url() : string {
+    $url = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
+
+    if (parse_url($url, PHP_URL_PATH) === '/add.php') {
+        $url = $_COOKIE['add_ref'] ?? $url;
+    }
+
+    return $url;
+}
+
 function is_content_type_valid(mysqli $link, string $type) : bool {
     $sql = 'SELECT * FROM content_type';
     $content_types = get_mysqli_result($link, $sql);
     $class_names = array_column($content_types, 'class_name');
 
     return in_array($type, $class_names);
+}
+
+function validate_content_type(mysqli $link, string $type) : void {
+    $sql = 'SELECT * FROM content_type';
+    $content_types = get_mysqli_result($link, $sql);
+    $class_names = array_column($content_types, 'class_name');
+
+    if (!in_array($type, $class_names)) {
+        http_response_code(500);
+        exit;
+    }
 }
 
 function get_post_input(mysqli $link, string $form) : array {
@@ -183,21 +204,15 @@ function get_post_input(mysqli $link, string $form) : array {
     }
 
     if ($form === 'adding-post') {
+        validate_content_type($link, $input['content-type']);
         list($input['text-content'], $input['image-path']) = [null, null];
-
-        if (!is_content_type_valid($link, $input['content-type'])) {
-            return false;
-        }
     }
 
     return $input;
 }
 
 function get_content_type_id(mysqli $link, string $content_type) : string {
-
-    if (!is_content_type_valid($link, $content_type)) {
-        return false;
-    }
+    validate_content_type($link, $input['content-type']);
 
     $sql = "SELECT * FROM content_type WHERE class_name = '$content_type'";
     $result = get_mysqli_result($link, $sql, 'assoc');
@@ -210,7 +225,7 @@ function get_required_fields(mysqli $link, string $form, string $tab = '') : arr
          . 'INNER JOIN form_input fi ON fi.input_id = i.id '
          . 'INNER JOIN form f ON f.id = fi.form_id '
          . "WHERE f.name = '$form' AND i.required = 1";
-    $sql .= $form == 'adding-post' ? " AND f.modifier = '$tab'" : '';
+    $sql .= $form === 'adding-post' ? " AND f.modifier = '$tab'" : '';
     $required_fields = get_mysqli_result($link, $sql);
 
     return array_column($required_fields, 'name');
@@ -266,11 +281,7 @@ function is_user_valid(mysqli $link, int $user_id) : bool {
     $sql = "SELECT id FROM user WHERE id = $user_id";
     $result = get_mysqli_result($link, $sql, false);
 
-    if (!mysqli_num_rows($result)) {
-        return false;
-    }
-
-    return true;
+    return boolval(mysqli_num_rows($result));
 }
 
 function get_likes_indicator_class(mysqli $link, int $post_id) : string {
@@ -329,8 +340,8 @@ function get_subscriber_count(mysqli $link, int $user_id, bool $numeric_value = 
 }
 
 function get_publication_count(mysqli $link, int $user_id, bool $numeric_value = false) : string {
-    $sql = "SELECT COUNT(*) FROM post WHERE author_id = $user_id";
-    $publication_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(*)'];
+    $sql = "SELECT COUNT(id) FROM post WHERE author_id = $user_id";
+    $publication_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
 
     if ($numeric_value) {
         return $publication_count;
@@ -422,7 +433,7 @@ function get_messages_count(mysqli $link, int $contact_id = null) : string {
     return $messages_count;
 }
 
-function add_new_contact(mysqli $link, array &$contacts, int $contact_id) : void {
+function add_new_contact(mysqli $link, array &$contacts, int $contact_id) : bool {
     $user_id = intval($_SESSION['user']['id']);
 
     if (is_user_valid($link, $contact_id) && $contact_id !== $user_id
@@ -431,8 +442,10 @@ function add_new_contact(mysqli $link, array &$contacts, int $contact_id) : void
         $contact = get_mysqli_result($link, $sql, 'assoc');
         array_unshift($contacts, $contact);
 
-        setcookie('new_contact', $contact_id);
+        return setcookie('new_contact', $contact_id);
     }
+
+    return false;
 }
 
 function is_new_contact(mysqli $link, int $contact_id) : bool {

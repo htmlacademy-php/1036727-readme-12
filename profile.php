@@ -38,8 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
              . "('$comment', {$_SESSION['user']['id']}, $post_id)";
         get_mysqli_result($link, $sql, false);
+        $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
 
-        header("Location: {$_SERVER['HTTP_REFERER']}");
+        header("Location: $ref");
         exit;
     }
 }

@@ -8,7 +8,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 if (!$search = trim(filter_input(INPUT_GET, 'q'))) {
-    $ref = $_SERVER['HTTP_REFERER'] ?? '/index.php';
+    $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
 
     header("Location: $ref");
     exit;
@@ -17,7 +17,6 @@ if (!$search = trim(filter_input(INPUT_GET, 'q'))) {
 $posts = [];
 
 if (substr($search, 0, 1) === '#') {
-
     if ($hashtag = substr($search, 1)) {
         $hashtag = mysqli_real_escape_string($link, $hashtag);
         $search_sql = get_search_sql($hashtag, true);
@@ -41,6 +40,15 @@ if (substr($search, 0, 1) === '#') {
 
         $posts = get_mysqli_result($link, $search_sql);
     }
+}
+
+$search_ref = $_COOKIE['search_ref'] ?? null;
+$ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
+
+if (empty($posts) && is_null($search_ref)) {
+    setcookie('search_ref', $ref, strtotime('+30 days'));
+} elseif (!empty($posts) && !is_null($search_ref)) {
+    setcookie('search_ref', $search_ref, time() - 3600);
 }
 
 $page_content = include_template('search.php', [

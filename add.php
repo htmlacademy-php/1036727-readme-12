@@ -29,46 +29,39 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input($link, 'adding-post');
 
-    switch ($input['content-type']) {
-        case 'photo':
-            $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
+    if ($input['content-type'] === 'photo') {
+        $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
-            if (!empty($_FILES['file-photo']['name'])) {
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                $file_path = $_FILES['file-photo']['tmp_name'];
-                $file_size = $_FILES['file-photo']['size'];
-                $file_type = finfo_file($finfo, $file_path);
+        if (!empty($_FILES['file-photo']['name'])) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $file_path = $_FILES['file-photo']['tmp_name'];
+            $file_size = $_FILES['file-photo']['size'];
+            $file_type = finfo_file($finfo, $file_path);
 
-                if (!in_array($file_type, $mime_types)) {
-                    $errors['file-photo'][0] = 'Неверный MIME-тип файла';
-                    $errors['file-photo'][1] = 'Изображение';
-                } elseif ($file_size > 1000000) {
-                    $errors['file-photo'][0] = 'Максимальный размер файла: 1Мб';
-                    $errors['file-photo'][1] = 'Изображение';
-                } else {
-                    $file_name = uniqid();
-                    $file_extension = explode('/', $file_type);
-                    $file_name .= ".{$file_extension[1]}";
-                    move_uploaded_file($file_path, 'uploads/' . $file_name);
-                    $input['image-path'] = $file_name;
-                }
-
-            } elseif (filter_var($input['image-url'], FILTER_VALIDATE_URL)) {
-                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            if (!in_array($file_type, $mime_types)) {
+                $errors['file-photo'][0] = 'Неверный MIME-тип файла';
+                $errors['file-photo'][1] = 'Изображение';
+            } elseif ($file_size > 1000000) {
+                $errors['file-photo'][0] = 'Максимальный размер файла: 1Мб';
+                $errors['file-photo'][1] = 'Изображение';
+            } else {
                 $file_name = uniqid();
-                $file_path = "uploads/{$file_name}.jpeg";
+                $file_extension = explode('/', $file_type);
+                $file_name .= ".{$file_extension[1]}";
+                move_uploaded_file($file_path, 'uploads/' . $file_name);
+                $input['image-path'] = $file_name;
+            }
 
-                set_error_handler('exceptions_error_handler');
-                try {
-                    $content = file_get_contents($input['image-url']);
-                    file_put_contents($file_path, $content);
-                    $file_type = finfo_file($finfo, $file_path);
-                } catch (ErrorException $ex) {
-                    $errors['file-photo'][0] = 'Вы не загрузили файл';
-                    $errors['file-photo'][1] = 'Изображение';
-                    break;
-                }
-                restore_error_handler();
+        } elseif (filter_var($input['image-url'], FILTER_VALIDATE_URL)) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $file_name = uniqid();
+            $file_path = "uploads/{$file_name}.jpeg";
+
+            set_error_handler('exceptions_error_handler');
+            try {
+                $content = file_get_contents($input['image-url']);
+                file_put_contents($file_path, $content);
+                $file_type = finfo_file($finfo, $file_path);
 
                 if (!in_array($file_type, $mime_types)) {
                     unlink($file_path);
@@ -85,43 +78,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $input['image-path'] = $file_name;
                 }
 
-            } else {
+            } catch (ErrorException $ex) {
                 $errors['file-photo'][0] = 'Вы не загрузили файл';
                 $errors['file-photo'][1] = 'Изображение';
             }
+            restore_error_handler();
 
-            break;
 
-        case 'video':
-            if (filter_var($input['video-url'], FILTER_VALIDATE_URL)) {
+        } else {
+            $errors['file-photo'][0] = 'Вы не загрузили файл';
+            $errors['file-photo'][1] = 'Изображение';
+        }
 
-                if (strpos($input['video-url'], 'youtube.com/watch?v=') === false) {
-                    $errors['video-url'][0] = 'Некорректный url-адрес';
-                    $errors['video-url'][1] = 'Ссылка youtube';
-                }
-
-            } else {
+    } elseif ($input['content-type'] === 'video') {
+        if (filter_var($input['video-url'], FILTER_VALIDATE_URL)) {
+            if (strpos($input['video-url'], 'youtube.com/watch?v=') === false) {
                 $errors['video-url'][0] = 'Некорректный url-адрес';
                 $errors['video-url'][1] = 'Ссылка youtube';
             }
 
-            break;
+        } else {
+            $errors['video-url'][0] = 'Некорректный url-адрес';
+            $errors['video-url'][1] = 'Ссылка youtube';
+        }
 
-        case 'text':
-            $input['text-content'] = $input['post-text'];
-            break;
+    } elseif ($input['content-type'] === 'text') {
+        $input['text-content'] = $input['post-text'];
 
-        case 'quote':
-            $input['text-content'] = $input['cite-text'];
-            break;
+    } elseif ($input['content-type'] === 'quote') {
+        $input['text-content'] = $input['cite-text'];
 
-        case 'link':
-            if (!filter_var($input['post-link'], FILTER_VALIDATE_URL)) {
-                $errors['post-link'][0] = 'Некорректный url-адрес';
-                $errors['post-link'][1] = 'Ссылка';
-            }
-
-            break;
+    } elseif ($input['content-type'] === 'link') {
+        if (!filter_var($input['post-link'], FILTER_VALIDATE_URL)) {
+            $errors['post-link'][0] = 'Некорректный url-адрес';
+            $errors['post-link'][1] = 'Ссылка';
+        }
     }
 
     $required_fields = get_required_fields($link, 'adding-post', $tab);
@@ -134,7 +125,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $content_type_id = get_content_type_id($link, $input['content-type']);
-        $sql = 'INSERT INTO post (title, text_content, quote_author, image_path, video_path, link, author_id, content_type_id) VALUES '
+        $sql = 'INSERT INTO post (title, text_content, quote_author, image_path, '
+             . 'video_path, link, author_id, content_type_id) VALUES '
              . '(?, ?, ?, ?, ?, ?, ?, ?)';
         $stmt_data = get_stmt_data($input, $content_type_id);
         $stmt = db_get_prepare_stmt($link, $sql, $stmt_data);
@@ -192,7 +184,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($users as $user) {
                     $message->setTo([$user['email'] => $user['login']]);
 
-                    $body = "Здравствуйте, {$user['login']}. Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
+                    $body = "Здравствуйте, {$user['login']}. "
+                          . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
                           . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
                     $message->setBody($body);
                     $message->setFrom('keks@phpdemo.ru', 'Readme');
@@ -201,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            header("Location: /post.php?id=$post_id");
+            header("Location: /post.php?id={$post_id}");
             exit;
         }
 
@@ -211,6 +204,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (isset($input['image-path']) && file_exists($input['image-path'])) {
         unlink($input['image-path']);
     }
+}
+
+$url = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
+if (parse_url($url, PHP_URL_PATH) !== '/add.php') {
+    setcookie('add_ref', $url, strtotime('+30 days'));
 }
 
 $page_content = include_template('add.php', [

@@ -36,7 +36,6 @@
         </form>
         <?php endif; ?>
         <div class="header__nav-wrapper">
-            <!-- здесь должен быть PHP код, который показывает следующий тег по условию -->
             <nav class="header__nav">
                 <?php if (isset($_SESSION['user'])): ?>
                 <ul class="header__my-nav">
@@ -59,7 +58,6 @@
                         </a>
                     </li>
                 </ul>
-                <!-- здесь должен быть PHP код, который показывает следующий тег по условию -->
                 <ul class="header__user-nav">
                     <li class="header__profile">
                         <?php $profile_url = "/profile.php?id={$_SESSION['user']['id']}&tab=posts"; ?>
@@ -126,9 +124,9 @@
     </div>
 </header>
 
-<section style="flex-grow: 1;" class="page__main page__main--<?= $page_main_class ?>">
+<main style="flex-grow: 1;" class="page__main page__main--<?= $page_main_class ?>">
     <?= $page_content ?>
-</section>
+</main>
 
 <footer class="footer">
     <div class="footer__wrapper">
@@ -185,8 +183,6 @@
         </div>
     </div>
 </footer>
-<!-- <script src="libs/dropzone.js"></script> -->
-<!-- <script src="js/dropzone-settings.js"></script> -->
 <script src="js/main.js"></script>
 <?php if (in_array($_SERVER['PHP_SELF'], ['/register.php', '/add.php'])): ?>
 <script src="js/upload.js"></script>

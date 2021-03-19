@@ -106,7 +106,7 @@
                 <p class="search__no-results-desc">Попробуйте изменить поисковый запрос или просто зайти в раздел &laquo;Популярное&raquo;, там живет самый крутой контент.</p>
             <div class="search__links">
                 <a class="search__popular-link button button--main" href="/popular.php">Популярное</a>
-                <?php $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php'; ?>
+                <?php $ref = $_COOKIE['search_ref'] ?? $_SERVER['HTTP_REFERER'] ?? '/feed.php'; ?>
                 <a class="search__back-link" href="<?= $ref ?>">Вернуться назад</a>
             </div>
         </div>

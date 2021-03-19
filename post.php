@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$user_id = $_SESSION['user']['id'];
+$user_id = intval($_SESSION['user']['id']);
 
 $post_id = intval(filter_input(INPUT_GET, 'id'));
 $post_id = validate_post($link, $post_id);
@@ -49,10 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (!isset($_COOKIE['like'])) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && !isset($_COOKIE['like'])) {
     $sql = "UPDATE post SET show_count = show_count + 1 WHERE id = $post_id";
     get_mysqli_result($link, $sql, false);
-} else {
+} elseif (isset($_COOKIE['like'])) {
     setcookie('like', '', time() - 3600);
 }
 

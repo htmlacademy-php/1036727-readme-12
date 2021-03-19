@@ -64,7 +64,7 @@
                     <?php foreach ($posts as $post): ?>
                     <article id="article-<?= esc($post['id']) ?>" class="profile__post post post-<?= esc($post['class_name']) ?>">
                         <header class="post__header">
-                            <?php $style = $post['class_name'] === 'text' ? 'padding: 29px 40px 5px;' : ''; ?>
+                            <?php $style = $post['class_name'] === 'text' ? 'padding: 29px 40px 26px;' : ''; ?>
                             <h2 style="<?= $style ?>"><a href="/post.php?id=<?= esc($post['id']) ?>"><?= esc($post['title']) ?></a></h2>
                         </header>
                         <div style="min-height: 110px;" class="post__main">
@@ -82,6 +82,7 @@
                             <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
                             <?php elseif ($post['class_name'] === 'text'): ?>
+                            <?php $post['style'] = 'margin-top: 0;'; ?>
                             <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                             <?php endif; ?>
                         </div>
@@ -163,7 +164,7 @@
                                 <button class="form__error-button button" type="button">!</button>
                                 <div class="form__error-text">
                                     <h3 class="form__error-title"><?= esc($input['label']) ?></h3>
-                                    <p class="form__error-desc"><?= isset($errors[$input['name']][0]) ? $errors[$input['name']][0] : '' ?></p>
+                                    <p class="form__error-desc"><?= $errors[$input['name']][0] ?? '' ?></p>
                                 </div>
                             </div>
                             <input type="hidden" name="post-id" value="<?= esc($post['id']) ?>">
