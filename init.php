@@ -18,5 +18,3 @@ if (!$link) {
 }
 
 mysqli_set_charset($link, 'utf8');
-
-date_default_timezone_set('Europe/Moscow');
