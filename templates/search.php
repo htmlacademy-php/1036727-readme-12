@@ -29,7 +29,7 @@
                     </header>
                     <div style="min-height: 141px;" class="post__main">
                         <?php if (in_array($post['class_name'], ['photo', 'text'])): ?>
-                        <h2><a href="/post.php?id=<?= $post['id'] ?>"><?= esc($post['title']) ?></a></h2>
+                        <h2><a href="/post.php?id=<?= esc($post['id']) ?>"><?= esc($post['title']) ?></a></h2>
                         <?php endif; ?>
 
                         <?php $post['display_mode'] = 'feed'; ?>
@@ -61,14 +61,14 @@
                                 <span><?= get_likes_count($link, $post['id']) ?></span>
                                 <span class="visually-hidden">количество лайков</span>
                             </a>
-                            <a class="post__indicator post__indicator--comments button" href="#" title="Комментарии">
+                            <a class="post__indicator post__indicator--comments button" href="/post.php?id=<?= esc($post['id']) ?>#form" title="Комментарии">
                                 <svg class="post__indicator-icon" width="19" height="17">
                                     <use xlink:href="#icon-comment"></use>
                                 </svg>
                                 <span><?= get_comment_count($link, $post['id']) ?></span>
                                 <span class="visually-hidden">количество комментариев</span>
                             </a>
-                            <a class="post__indicator post__indicator--repost button" href="#" title="Репост">
+                            <a class="post__indicator post__indicator--repost button" href="/repost.php?id=<?= esc($post['id']) ?>" title="Репост">
                                 <svg class="post__indicator-icon" width="19" height="17">
                                     <use xlink:href="#icon-repost"></use>
                                 </svg>
@@ -79,7 +79,7 @@
                         <?php if ($hashtags = get_post_hashtags($link, $post['id'])): ?>
                         <ul style="margin: 0 0 0 -3px; padding: 23px 0 0 0;" class="post__tags">
                             <?php foreach ($hashtags as $hashtag): ?>
-                            <li><a href="/search.php?q=%23<?= $hashtag['name'] ?>">#<?= esc($hashtag['name']) ?></a></li>
+                            <li><a href="/search.php?q=%23<?= esc($hashtag['name']) ?>">#<?= esc($hashtag['name']) ?></a></li>
                             <?php endforeach; ?>
                         </ul>
                         <?php endif; ?>
@@ -106,7 +106,7 @@
                 <p class="search__no-results-desc">Попробуйте изменить поисковый запрос или просто зайти в раздел &laquo;Популярное&raquo;, там живет самый крутой контент.</p>
             <div class="search__links">
                 <a class="search__popular-link button button--main" href="/popular.php">Популярное</a>
-                <?php $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php'; ?>
+                <?php $ref = $_COOKIE['search_ref'] ?? $_SERVER['HTTP_REFERER'] ?? '/feed.php'; ?>
                 <a class="search__back-link" href="<?= $ref ?>">Вернуться назад</a>
             </div>
         </div>

@@ -1,9 +1,11 @@
 <?php if (isset($post['display_mode']) && $post['display_mode'] === 'details'): ?>
-<p style="margin: 0;"><?= nl2br(esc($post['text_content']), false) ?></p>
+<p style="margin: 54px 0;"><?= nl2br(esc($post['text_content']), false) ?></p>
 
 <?php elseif (isset($post['display_mode']) && $post['display_mode'] === 'feed'): ?>
-<?= nl2br(get_text_content(esc($post['text_content']), $post['id']), false) ?>
+<?php $style = isset($post['style']) ? $post['style'] : ''; ?>
+<?= nl2br(crop_text_content(esc($post['text_content']), $post['id'], $style), false) ?>
 
 <?php else: ?>
-<?= nl2br(get_text_content(esc($post['text_content']), $post['id'], true), false) ?>
+<?php $style = 'margin-top: 0;'; ?>
+<?= nl2br(crop_text_content(esc($post['text_content']), $post['id'], $style), false) ?>
 <?php endif; ?>

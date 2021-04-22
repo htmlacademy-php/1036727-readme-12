@@ -23,6 +23,8 @@
             <div class="adding-post__tab-content">
                 <section class="adding-post__photo tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'photo'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления фото</h2>
+                    <?php $keys = ['heading', 'image-url', 'tags', 'file-photo']; ?>
+                    <?php if (!array_diff_key(array_flip($keys), $inputs)): ?>
                     <form class="adding-post__form form" action="/add.php?tab=photo" method="post" enctype="multipart/form-data">
                         <div class="form__text-inputs-wrapper">
                             <div class="form__text-inputs">
@@ -37,14 +39,8 @@
                                 <input type="hidden" name="content-type" value="photo">
                             </div>
                             <?php if (!empty($errors)): ?>
-                            <div class="form__invalid-block">
-                                <b class="form__invalid-slogan">Пожалуйста, исправьте следующие ошибки:</b>
-                                <ul class="form__invalid-list">
-                                    <?php foreach ($errors as $error): ?>
-                                    <li class="form__invalid-item"><?= "{$error[1]}. {$error[0]}." ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
+                            <?php $data = ['errors' => $errors]; ?>
+                            <?= include_template('inc/invalid-block.php', $data) ?>
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__input-file-container form__input-container form__input-container--file">
@@ -53,13 +49,17 @@
                         </div>
                         <div class="adding-post__buttons">
                             <button class="adding-post__submit button button--main" type="submit">Опубликовать</button>
-                            <a class="adding-post__close" href="#">Закрыть</a>
+                            <?php $url = get_adding_post_close_url(); ?>
+                            <a class="adding-post__close" href="<?= $url ?>">Закрыть</a>
                         </div>
                     </form>
+                    <?php endif; ?>
                 </section>
 
                 <section class="adding-post__video tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'video'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления видео</h2>
+                    <?php $keys = ['heading', 'video-url', 'tags']; ?>
+                    <?php if (!array_diff_key(array_flip($keys), $inputs)): ?>
                     <form class="adding-post__form form" action="/add.php?tab=video" method="post" enctype="multipart/form-data">
                         <div class="form__text-inputs-wrapper">
                             <div class="form__text-inputs">
@@ -74,25 +74,22 @@
                                 <input type="hidden" name="content-type" value="video">
                             </div>
                             <?php if (!empty($errors)): ?>
-                            <div class="form__invalid-block">
-                                <b class="form__invalid-slogan">Пожалуйста, исправьте следующие ошибки:</b>
-                                <ul class="form__invalid-list">
-                                    <?php foreach ($errors as $error): ?>
-                                    <li class="form__invalid-item"><?= "{$error[1]}. {$error[0]}." ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
+                            <?php $data = ['errors' => $errors]; ?>
+                            <?= include_template('inc/invalid-block.php', $data) ?>
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__buttons">
                             <button style="margin-top: 18px;" class="adding-post__submit button button--main" type="submit">Опубликовать</button>
-                            <a class="adding-post__close" href="#">Закрыть</a>
+                            <a class="adding-post__close" href="<?= $url ?>">Закрыть</a>
                         </div>
                     </form>
+                    <?php endif; ?>
                 </section>
 
                 <section class="adding-post__text tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'text'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления текста</h2>
+                    <?php $keys = ['heading', 'post-text', 'tags']; ?>
+                    <?php if (!array_diff_key(array_flip($keys), $inputs)): ?>
                     <form class="adding-post__form form" action="/add.php?tab=text" method="post">
                         <div class="form__text-inputs-wrapper">
                             <div class="form__text-inputs">
@@ -107,25 +104,22 @@
                                 <input type="hidden" name="content-type" value="text">
                             </div>
                             <?php if (!empty($errors)): ?>
-                            <div class="form__invalid-block">
-                                <b class="form__invalid-slogan">Пожалуйста, исправьте следующие ошибки:</b>
-                                <ul class="form__invalid-list">
-                                    <?php foreach ($errors as $error): ?>
-                                    <li class="form__invalid-item"><?= "{$error[1]}. {$error[0]}." ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
+                            <?php $data = ['errors' => $errors]; ?>
+                            <?= include_template('inc/invalid-block.php', $data) ?>
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__buttons">
                             <button style="margin-top: 18px;" class="adding-post__submit button button--main" type="submit">Опубликовать</button>
-                            <a class="adding-post__close" href="#">Закрыть</a>
+                            <a class="adding-post__close" href="<?= $url ?>">Закрыть</a>
                         </div>
                     </form>
+                    <?php endif; ?>
                 </section>
 
                 <section class="adding-post__quote tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'quote'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления цитаты</h2>
+                    <?php $keys = ['heading', 'cite-text', 'quote-author', 'tags']; ?>
+                    <?php if (!array_diff_key(array_flip($keys), $inputs)): ?>
                     <form class="adding-post__form form" action="/add.php?tab=quote" method="post">
                         <div class="form__text-inputs-wrapper">
                             <div class="form__text-inputs">
@@ -143,25 +137,22 @@
                                 <input type="hidden" name="content-type" value="quote">
                             </div>
                             <?php if (!empty($errors)): ?>
-                            <div class="form__invalid-block">
-                                <b class="form__invalid-slogan">Пожалуйста, исправьте следующие ошибки:</b>
-                                <ul class="form__invalid-list">
-                                    <?php foreach ($errors as $error): ?>
-                                    <li class="form__invalid-item"><?= "{$error[1]}. {$error[0]}." ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
+                            <?php $data = ['errors' => $errors]; ?>
+                            <?= include_template('inc/invalid-block.php', $data) ?>
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__buttons">
                             <button style="margin-top: 18px;" class="adding-post__submit button button--main" type="submit">Опубликовать</button>
-                            <a class="adding-post__close" href="#">Закрыть</a>
+                            <a class="adding-post__close" href="<?= $url ?>">Закрыть</a>
                         </div>
                     </form>
+                    <?php endif; ?>
                 </section>
 
                 <section class="adding-post__link tabs__content<?php if (isset($_GET['tab']) && $_GET['tab'] === 'link'): ?> tabs__content--active<?php endif; ?>">
                     <h2 class="visually-hidden">Форма добавления ссылки</h2>
+                    <?php $keys = ['heading', 'post-link', 'tags']; ?>
+                    <?php if (!array_diff_key(array_flip($keys), $inputs)): ?>
                     <form class="adding-post__form form" action="/add.php?tab=link" method="post">
                         <div class="form__text-inputs-wrapper">
                             <div class="form__text-inputs">
@@ -176,21 +167,16 @@
                                 <input type="hidden" name="content-type" value="link">
                             </div>
                             <?php if (!empty($errors)): ?>
-                            <div class="form__invalid-block">
-                                <b class="form__invalid-slogan">Пожалуйста, исправьте следующие ошибки:</b>
-                                <ul class="form__invalid-list">
-                                    <?php foreach ($errors as $error): ?>
-                                    <li class="form__invalid-item"><?= "{$error[1]}. {$error[0]}." ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
+                            <?php $data = ['errors' => $errors]; ?>
+                            <?= include_template('inc/invalid-block.php', $data) ?>
                             <?php endif; ?>
                         </div>
                         <div class="adding-post__buttons">
                             <button style="margin-top: 18px;" class="adding-post__submit button button--main" type="submit">Опубликовать</button>
-                            <a class="adding-post__close" href="#">Закрыть</a>
+                            <a class="adding-post__close" href="<?= $url ?>">Закрыть</a>
                         </div>
                     </form>
+                    <?php endif; ?>
                 </section>
             </div>
         </div>

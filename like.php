@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$user_id = $_SESSION['user']['id'];
+$user_id = intval($_SESSION['user']['id']);
 
 $post_id = intval(filter_input(INPUT_GET, 'id'));
 $post_id = validate_post($link, $post_id);
@@ -22,7 +22,7 @@ if (!mysqli_num_rows($result)) {
 }
 
 get_mysqli_result($link, $sql, false);
-$ref = $_SERVER['HTTP_REFERER'] ?? '/';
+$ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
 
 if (parse_url($ref, PHP_URL_PATH) === '/post.php') {
     setcookie('like', 1, strtotime('+30 days'));

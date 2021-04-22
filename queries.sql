@@ -110,10 +110,10 @@ INSERT INTO input (label, type, name, placeholder, required) VALUES
 --
 
 INSERT INTO user (email, login, password, avatar_path) VALUES
-('example1@gmail.com', 'Лариса Роговая', 'password1', 'userpic-larisa.jpg'),
-('example2@gmail.com', 'Пётр Дёмин', 'password2', 'userpic-petro.jpg'),
-('example3@gmail.com', 'Марк Смолов', 'password3', 'userpic-mark.jpg'),
-('example4@gmail.com', 'Таня Фирсова', 'password4', 'userpic-tanya.jpg');
+('example1@gmail.com', 'Лариса Роговая', 'password1', '../img/userpic-larisa.jpg'),
+('example2@gmail.com', 'Пётр Дёмин', 'password2', '../img/userpic-petro.jpg'),
+('example3@gmail.com', 'Марк Смолов', 'password3', '../img/userpic-mark.jpg'),
+('example4@gmail.com', 'Таня Фирсова', 'password4', '../img/userpic-tanya.jpg');
 
 -- --------------------------------------------------------
 
@@ -126,7 +126,7 @@ INSERT INTO post (title, text_content, quote_author, image_path, link, author_id
 ('Игра престолов', 'Не могу дождаться начала финального сезона своего любимого сериала!', null, null, null, 2, 3),
 ('Наконец, обработал фотки!', null, null, 'rock-default.jpg', null, 3, 1),
 ('Моя мечта', null, null, 'rock-default.jpg', null, 1, 1),
-('Лучшие курсы', null, null, null, 'www.htmlacademy.ru', 2, 5);
+('Лучшие курсы', 'Интерактивные онлайн-курсы HTML Academy', null, null, 'https://htmlacademy.ru', 2, 5);
 
 -- --------------------------------------------------------
 

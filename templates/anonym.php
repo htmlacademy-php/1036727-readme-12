@@ -61,7 +61,7 @@
                         </svg>
                         <label class="visually-hidden">Логин</label>
                     </div>
-                    <span class="form__error-label form__error-label--login"><?= isset($errors['email']) ? $errors['email'] : '' ?></span>
+                    <span class="form__error-label form__error-label--login"><?= $errors['email'] ?? '' ?></span>
                 </div>
                 <div class="authorization__input-wrapper form__input-wrapper">
                     <?php $classname = isset($errors['password']) ? ' form__input-section--error' : ''; ?>
@@ -72,7 +72,7 @@
                         </svg>
                         <label class="visually-hidden">Пароль</label>
                     </div>
-                    <span class="form__error-label"><?= isset($errors['password']) ? $errors['password'] : '' ?></span>
+                    <span class="form__error-label"><?= $errors['password'] ?? '' ?></span>
                 </div>
                 <a class="authorization__recovery" href="#">Восстановить пароль</a>
                 <button class="authorization__submit button button--main" type="submit">Войти</button>
