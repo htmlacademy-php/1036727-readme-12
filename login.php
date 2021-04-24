@@ -59,13 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_content = include_template('login.php', [
-    'inputs' => $form_inputs,
-    'errors' => $errors
+    'errors' => $errors,
+    'inputs' => $form_inputs
 ]);
 
 $layout_content = include_template('layout.php', [
     'title' => 'readme: авторизация',
-    'page_main_class' => 'login',
+    'main_modifier' => 'login',
     'page_content' => $page_content
 ]);
 

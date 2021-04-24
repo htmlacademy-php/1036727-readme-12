@@ -243,8 +243,7 @@ function get_content_type_id(mysqli $link, string $content_type) : string {
 }
 
 function get_required_fields(mysqli $link, string $form, string $tab = '') : array {
-    $input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
-    $sql = "SELECT $input_fields FROM input i
+    $sql = "SELECT i.name FROM input i
         INNER JOIN form_input fi ON fi.input_id = i.id
         INNER JOIN form f ON f.id = fi.form_id
         WHERE f.name = '$form' AND i.required = 1";
@@ -308,14 +307,6 @@ function is_user_valid(mysqli $link, int $user_id) : bool {
     return boolval(mysqli_num_rows($result));
 }
 
-function get_likes_indicator_class(mysqli $link, int $post_id) : string {
-    $user_id = intval($_SESSION['user']['id']);
-    $sql = "SELECT id FROM post_like WHERE post_id = $post_id AND author_id = $user_id";
-    $result = get_mysqli_result($link, $sql, false);
-
-    return mysqli_num_rows($result) ? ' post__indicator--likes-active' : '';
-}
-
 function get_subscription_status(mysqli $link, int $profile_id) : bool {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT id FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
@@ -324,54 +315,10 @@ function get_subscription_status(mysqli $link, int $profile_id) : bool {
     return boolval(mysqli_num_rows($result));
 }
 
-function get_likes_count(mysqli $link, int $post_id) : int {
-    $sql = "SELECT COUNT(id) FROM post_like WHERE post_id = $post_id";
-    $likes_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
-
-    return $likes_count;
-}
-
-function get_comment_count(mysqli $link, int $post_id) : int {
-    $sql = "SELECT COUNT(id) FROM comment WHERE post_id = $post_id";
-    $comment_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
-
-    return $comment_count;
-
-}
-
-function get_repost_count(mysqli $link, int $post_id) : int {
-    $sql = "SELECT COUNT(id) FROM post WHERE origin_post_id = $post_id";
-    $repost_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
-
-    return $repost_count;
-}
-
 function get_show_count(int $show_count) : string {
     $result = "$show_count " . get_noun_plural_form($show_count, 'просмотр', 'просмотра', 'просмотров');
 
     return $result;
-}
-
-function get_subscriber_count(mysqli $link, int $user_id, bool $numeric_value = false) : string {
-    $sql = "SELECT COUNT(id) FROM subscription WHERE user_id = $user_id";
-    $subscriber_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
-
-    if ($numeric_value) {
-        return $subscriber_count;
-    }
-
-    return get_noun_plural_form($subscriber_count, ' подписчик', ' подписчика', ' подписчиков');
-}
-
-function get_publication_count(mysqli $link, int $user_id, bool $numeric_value = false) : string {
-    $sql = "SELECT COUNT(id) FROM post WHERE author_id = $user_id";
-    $publication_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
-
-    if ($numeric_value) {
-        return $publication_count;
-    }
-
-    return get_noun_plural_form($publication_count, ' публикация', ' публикации', ' публикаций');
 }
 
 function get_search_sql(string $value, bool $hashtag_mode = false) : string {
@@ -379,75 +326,48 @@ function get_search_sql(string $value, bool $hashtag_mode = false) : string {
     $user_fields = 'u.login AS author, u.avatar_path';
 
     if ($hashtag_mode === true) {
-        $sql = "SELECT {$post_fields}, {$user_fields}, ct.class_name FROM post p
-            INNER JOIN user u ON u.id = p.author_id
-            INNER JOIN content_type ct ON ct.id = p.content_type_id
-            INNER JOIN post_hashtag ph ON ph.post_id = p.id
-            INNER JOIN hashtag h ON h.id = ph.hashtag_id
+        $sql = "SELECT
+            COUNT(DISTINCT p2.id) AS repost_count,
+            COUNT(DISTINCT c.id) AS comment_count,
+            COUNT(DISTINCT pl.id) AS like_count,
+            COUNT(DISTINCT pl2.id) AS is_like,
+            {$post_fields}, {$user_fields}, ct.class_name
+            FROM post p
+            LEFT JOIN user u ON u.id = p.author_id
+            LEFT JOIN content_type ct ON ct.id = p.content_type_id
+            LEFT JOIN post p2 ON p2.origin_post_id = p.id
+            LEFT JOIN comment c ON c.post_id = p.id
+            LEFT JOIN post_like pl ON pl.post_id = p.id
+            LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = {$_SESSION['user']['id']}
+            LEFT JOIN post_hashtag ph ON ph.post_id = p.id
+            LEFT JOIN hashtag h ON h.id = ph.hashtag_id
             WHERE h.name = '$value'
+            GROUP BY p.id
             ORDER BY p.dt_add DESC";
     } else {
-        $sql = "SELECT {$post_fields}, {$user_fields}, ct.class_name,
-            MATCH (p.title, p.text_content) AGAINST ('$value') AS score FROM post p
-            INNER JOIN user u ON u.id = p.author_id
-            INNER JOIN content_type ct ON ct.id = p.content_type_id
+        $sql = "SELECT
+            COUNT(DISTINCT p2.id) AS repost_count,
+            COUNT(DISTINCT c.id) AS comment_count,
+            COUNT(DISTINCT pl.id) AS like_count,
+            COUNT(DISTINCT pl2.id) AS is_like,
+            MATCH (p.title, p.text_content) AGAINST ('$value') AS score,
+            {$post_fields}, {$user_fields}, ct.class_name
+            FROM post p
+            LEFT JOIN user u ON u.id = p.author_id
+            LEFT JOIN content_type ct ON ct.id = p.content_type_id
+            LEFT JOIN post p2 ON p2.origin_post_id = p.id
+            LEFT JOIN comment c ON c.post_id = p.id
+            LEFT JOIN post_like pl ON pl.post_id = p.id
+            LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = {$_SESSION['user']['id']}
             WHERE MATCH (p.title, p.text_content) AGAINST ('$value' IN BOOLEAN MODE)
+            GROUP BY p.id
             ORDER BY score DESC";
     }
 
     return $sql;
 }
 
-function get_post_hashtags(mysqli $link, int $post_id) : array {
-    $sql = "SELECT h.id, h.name FROM hashtag h
-        INNER JOIN post_hashtag ph ON ph.hashtag_id = h.id
-        INNER JOIN post p ON p.id = ph.post_id
-        WHERE p.id = $post_id";
-    $hashtags = get_mysqli_result($link, $sql);
-
-    return $hashtags;
-}
-
-function get_post_comments(mysqli $link, int $post_id) : array {
-    $comments = filter_input(INPUT_GET, 'show');
-    $limit = !$comments || $comments !== 'all' ? ' LIMIT 2' : '';
-
-    $comment_fields = 'c.id, c.dt_add, c.content, c.author_id, c.post_id';
-    $sql = "SELECT {$comment_fields}, u.login, u.avatar_path FROM comment c
-        INNER JOIN user u ON u.id = c.author_id
-        WHERE post_id = $post_id
-        ORDER BY c.dt_add DESC{$limit}";
-    $comments = get_mysqli_result($link, $sql);
-
-    return $comments;
-}
-
-function get_contact_messages(mysqli $link, int $contact_id) : array {
-    $user_id = intval($_SESSION['user']['id']);
-    $message_fields = 'm.id, m.dt_add, m.content, m.status, m.sender_id, m.recipient_id';
-    $sql = "SELECT {$message_fields}, u.login AS author, u.avatar_path FROM message m
-        INNER JOIN user u ON u.id = m.sender_id
-        WHERE (m.recipient_id = $user_id AND m.sender_id = $contact_id)
-        OR (m.recipient_id = $contact_id AND m.sender_id = $user_id)
-        ORDER BY m.dt_add";
-    $messages = get_mysqli_result($link, $sql);
-
-    return $messages;
-}
-
-function get_message_preview(mysqli $link, int $contact_id) : string {
-    $user_id = intval($_SESSION['user']['id']);
-    $sql = "SELECT content, sender_id FROM message
-        WHERE (recipient_id = $user_id AND sender_id = $contact_id)
-        OR (recipient_id = $contact_id AND sender_id = $user_id)
-        ORDER BY dt_add DESC LIMIT 1";
-    $message = get_mysqli_result($link, $sql, 'assoc');
-    $preview = mb_substr($message['content'], 0, 30);
-
-    return $message['sender_id'] == $user_id ? "Вы: $preview" : $preview;
-}
-
-function get_messages_count(mysqli $link, int $contact_id = null, bool $unread = true) : string {
+function get_messages_count2(mysqli $link, int $contact_id = null, bool $unread = true) : string {
     $user_id = intval($_SESSION['user']['id']);
     $read_filter = $unread ? ' AND status = 0' : '';
     $contact_filter = isset($contact_id) ? " AND sender_id = $contact_id" : '';
@@ -466,22 +386,13 @@ function add_new_contact(mysqli $link, array &$contacts, int $contact_id) : bool
         && get_subscription_status($link, $contact_id)) {
         $sql = "SELECT id, login, avatar_path FROM user WHERE id = $contact_id";
         $contact = get_mysqli_result($link, $sql, 'assoc');
+        $contact['is_new'] = true;
         array_unshift($contacts, $contact);
 
         return setcookie('new_contact', $contact_id);
     }
 
     return false;
-}
-
-function is_new_contact(mysqli $link, int $contact_id) : bool {
-    $user_id = intval($_SESSION['user']['id']);
-    $sql = "SELECT id FROM message
-        WHERE (recipient_id = $user_id AND sender_id = $contact_id)
-        OR (recipient_id = $contact_id AND sender_id = $user_id)";
-    $result = get_mysqli_result($link, $sql, false);
-
-    return !boolval(mysqli_num_rows($result));
 }
 
 function update_messages_status(mysqli $link, int $contact_id) : void {
@@ -497,45 +408,6 @@ function get_messages_chat_style(array $contacts) : string {
     if (!empty($contacts)) {
         $style = 'display: flex; flex-direction: column; align-self: stretch;
             min-height: 343px; margin-bottom: -30px;';
-    }
-
-    return $style;
-}
-
-function get_origin_post(mysqli $link, int $post_id) : array {
-    $sql = "SELECT p.dt_add, u.id AS author_id, u.login AS author,
-        u.avatar_path FROM post p
-        INNER JOIN user u ON u.id = p.author_id
-        WHERE p.id = $post_id";
-    $post = get_mysqli_result($link, $sql, 'assoc');
-
-    return $post;
-}
-
-function get_post_header_h2_style(array $post) : string {
-    $style = '';
-
-    if ($post['class_name'] === 'text' && $post['is_repost']) {
-        $style = 'padding: 29px 40px 26px; padding-top: 4px;';
-    } elseif ($post['class_name'] === 'text') {
-        $style = 'padding: 29px 40px 26px;';
-    } elseif ($post['is_repost']) {
-        $style = 'padding-top: 4px;';
-    }
-
-    return $style;
-}
-
-function get_post_main_style(mysqli $link, array $post) : string {
-    $cond1 = !$post['is_repost'] && empty($post['COUNT(c.id)']);
-    $sql = "SELECT COUNT(id) FROM post_hashtag WHERE post_id = {$post['id']}";
-    $cond2 = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
-    $style = '';
-
-    if ($cond1 && $cond2) {
-        $style = 'min-height: 67px;';
-    } elseif ($cond1) {
-        $style = 'min-height: 110px;';
     }
 
     return $style;
@@ -559,7 +431,7 @@ function is_contact_valid(mysqli $link, int $contact_id = null) : bool {
     }
 
     $is_subscription = get_subscription_status($link, $contact_id);
-    $messages_count = get_messages_count($link, $contact_id, false);
+    $messages_count = get_messages_count2($link, $contact_id, false);
 
     return $is_subscription || $messages_count;
 }

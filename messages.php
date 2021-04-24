@@ -43,7 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        $message = mysqli_real_escape_string($link, $input['message']);
+        $message = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['message']);
+        $message = preg_replace('/\040\040+/', ' ', $message);
+
+        $message = mysqli_real_escape_string($link, $message);
         $sql = "INSERT INTO message (content, sender_id, recipient_id) VALUES
             ('$message', $user_id, $contact_id)";
         get_mysqli_result($link, $sql, false);
@@ -54,19 +57,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$sql = "SELECT u.id, u.login, u.avatar_path, MAX(m.dt_add) FROM message m
-    INNER JOIN user u ON u.id = m.sender_id OR u.id = m.recipient_id
+if (isset($_GET['contact'])) {
+    $contact_id = intval(filter_input(INPUT_GET, 'contact'));
+    update_messages_status($link, $contact_id);
+}
+
+$sql = "SELECT
+    COUNT(DISTINCT m2.id) AS all_messages_count,
+    COUNT(DISTINCT m3.id) AS unread_messages_count,
+    u.id, u.login, u.avatar_path
+    FROM message m
+    LEFT JOIN user u ON u.id = m.sender_id OR u.id = m.recipient_id
+    LEFT JOIN message m2 ON m2.recipient_id = $user_id AND m2.sender_id = u.id
+    LEFT JOIN message m3 ON m3.recipient_id = $user_id AND m3.sender_id = u.id AND m3.status = 0
     WHERE (m.sender_id = $user_id OR m.recipient_id = $user_id) AND u.id != $user_id
     GROUP BY u.id
     ORDER BY MAX(m.dt_add) DESC";
 $contacts = get_mysqli_result($link, $sql);
 
+for ($i = 0; $i < count($contacts); $i++) {
+    $contact_id = $contacts[$i]['id'];
+    $contacts[$i]['preview'] = get_message_preview($link, $contact_id);
+    $contacts[$i]['messages'] = get_contact_messages($link, $contact_id);
+}
+
 if (isset($_GET['contact'])) {
-    $contact_id = intval(filter_input(INPUT_GET, 'contact'));
-    update_messages_status($link, $contact_id);
 
     if (!in_array($contact_id, array_column($contacts, 'id'))) {
-
         if (!add_new_contact($link, $contacts, $contact_id)
             && $contact_id = $_COOKIE['new_contact'] ?? null) {
             add_new_contact($link, $contacts, $contact_id);
@@ -81,17 +98,17 @@ if (isset($_GET['contact'])) {
 }
 
 $page_content = include_template('messages.php', [
-    'inputs' => $form_inputs,
+    'contacts' => $contacts,
     'errors' => $errors,
-    'link' => $link,
-    'contacts' => $contacts
+    'inputs' => $form_inputs
 ]);
 
+$messages_count = get_messages_count($link);
 $layout_content = include_template('layout.php', [
-    'link' => $link,
     'title' => 'readme: личные сообщения',
-    'page_main_class' => 'messages',
-    'page_content' => $page_content
+    'main_modifier' => 'messages',
+    'page_content' => $page_content,
+    'messages_count' => $messages_count
 ]);
 
 print($layout_content);

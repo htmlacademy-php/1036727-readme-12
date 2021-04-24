@@ -25,43 +25,44 @@
                 </div>
                 <div class="post__indicators">
                     <div class="post__buttons">
-                        <a class="post__indicator post__indicator--likes<?= get_likes_indicator_class($link, $post['id']) ?> button" href="/like.php?id=<?= esc($post['id']) ?>" title="Лайк">
+                        <?php $classname = $post['is_like'] ? ' post__indicator--likes-active' : ''; ?>
+                        <a class="post__indicator post__indicator--likes<?= $classname ?> button" href="/like.php?id=<?= esc($post['id']) ?>" title="Лайк">
                             <svg class="post__indicator-icon" width="20" height="17">
                                 <use xlink:href="#icon-heart"></use>
                             </svg>
                             <svg class="post__indicator-icon post__indicator-icon--like-active" width="20" height="17">
                                 <use xlink:href="#icon-heart-active"></use>
                             </svg>
-                            <span><?= get_likes_count($link, $post['id']) ?></span>
+                            <span><?= esc($post['like_count']) ?></span>
                             <span class="visually-hidden">количество лайков</span>
                         </a>
                         <a class="post__indicator post__indicator--comments button" href="#form" title="Комментарии">
                             <svg class="post__indicator-icon" width="19" height="17">
                                 <use xlink:href="#icon-comment"></use>
                             </svg>
-                            <span><?= get_comment_count($link, $post['id']) ?></span>
+                            <span><?= esc($post['comment_count']) ?></span>
                             <span class="visually-hidden">количество комментариев</span>
                         </a>
                         <a class="post__indicator post__indicator--repost button" href="/repost.php?id=<?= esc($post['id']) ?>" title="Репост">
                             <svg class="post__indicator-icon" width="19" height="17">
                                 <use xlink:href="#icon-repost"></use>
                             </svg>
-                            <span><?= get_repost_count($link, $post['id']) ?></span>
+                            <span><?= esc($post['repost_count']) ?></span>
                             <span class="visually-hidden">количество репостов</span>
                         </a>
                     </div>
                     <span class="post__view"><?= get_show_count($post['show_count']) ?></span>
                 </div>
-                <?php if (!empty($hashtags)): ?>
+                <?php if (!empty($post['hashtags'])): ?>
                 <ul class="post__tags">
-                    <?php foreach ($hashtags as $hashtag): ?>
+                    <?php foreach ($post['hashtags'] as $hashtag): ?>
                     <li><a href="/search.php?q=%23<?= esc($hashtag['name']) ?>">#<?= esc($hashtag['name']) ?></a></li>
                     <?php endforeach; ?>
                 </ul>
                 <?php endif; ?>
                 <div class="comments">
                     <?php if (isset($inputs['comment'])): ?>
-                    <?php $style = empty($comments) ? 'border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;' : ''; ?>
+                    <?php $style = empty($post['comments']) ? 'border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;' : ''; ?>
                     <form style="<?= $style ?>" class="comments__form form" id="form" action="/post.php?id=<?= esc($post['id']) ?>" method="post">
                         <div class="comments__my-avatar">
                             <?php if (!empty($_SESSION['user']['avatar_path'])): ?>
@@ -84,10 +85,10 @@
                         <button class="comments__submit button button--green" type="submit">Отправить</button>
                     </form>
                     <?php endif; ?>
-                    <?php if (!empty($comments)): ?>
+                    <?php if (!empty($post['comments'])): ?>
                     <div class="comments__list-wrapper">
                         <ul class="comments__list">
-                            <?php foreach ($comments as $comment): ?>
+                            <?php foreach ($post['comments'] as $comment): ?>
                             <li class="comments__item user">
                                 <a class="user__avatar-link" href="/profile.php?id=<?= esc($comment['author_id']) ?>&tab=posts">
                                     <div class="comments__avatar">
@@ -104,16 +105,15 @@
                                         </a>
                                         <time class="comments__time" datetime="<?= get_datetime_value($comment['dt_add']) ?>"><?= get_relative_time($comment['dt_add']) ?> назад</time>
                                     </div>
-                                    <p class="comments__text"><?= esc($comment['content']) ?></p>
+                                    <p class="comments__text"><?= nl2br(esc($comment['content']), false) ?></p>
                                 </div>
                             </li>
                             <?php endforeach; ?>
                         </ul>
-                        <?php $comment_count = get_comment_count($link, $post['id']); ?>
-                        <?php if ((!isset($_GET['comments']) || $_GET['comments'] !== 'all') && $comment_count > 2): ?>
-                        <a class="comments__more-link" href="/post.php?id=<?= $post['id'] ?>&comments=all">
+                        <?php if ((!isset($_GET['comments']) || $_GET['comments'] !== 'all') && intval($post['comment_count']) > 2): ?>
+                        <a class="comments__more-link" href="/post.php?id=<?= esc($post['id']) ?>&comments=all">
                             <span>Показать все комментарии</span>
-                            <sup class="comments__amount"><?= $comment_count ?></sup>
+                            <sup class="comments__amount"><?= esc($post['comment_count']) ?></sup>
                         </a>
                         <?php endif; ?>
                     </div>
@@ -124,36 +124,37 @@
                 <div class="post-details__user-info user__info">
                     <a class="post-details__avatar-link user__avatar-link" href="/profile.php?id=<?= esc($post['author_id']) ?>&tab=posts">
                         <div class="post-details__avatar user__avatar">
-                            <?php if (!empty($post['avatar_path'])): ?>
+                            <?php if (!empty($post['author']['avatar_path'])): ?>
                             <?php $style = 'width: 60px; height: 60px; object-fit: cover;'; ?>
-                            <img style="<?= $style ?>" class="post-details__picture user__picture" src="uploads/<?= esc($post['avatar_path']) ?>" alt="Аватар пользователя">
+                            <img style="<?= $style ?>" class="post-details__picture user__picture" src="uploads/<?= esc($post['author']['avatar_path']) ?>" alt="Аватар пользователя">
                             <?php endif; ?>
                         </div>
                     </a>
                     <div class="post-details__name-wrapper user__name-wrapper">
                         <a class="post-details__name user__name" href="/profile.php?id=<?= esc($post['author_id']) ?>&tab=posts">
-                            <span><?= esc($post['author']) ?></span>
+                            <span><?= esc($post['author']['login']) ?></span>
                         </a>
-                        <time class="post-details__time user__time" datetime="<?= get_datetime_value($post['dt_reg']) ?>"><?= get_relative_time($post['dt_reg']) ?> на сайте</time>
+                        <time class="post-details__time user__time" datetime="<?= get_datetime_value($post['author']['dt_add']) ?>"><?= get_relative_time($post['author']['dt_add']) ?> на сайте</time>
                     </div>
                 </div>
                 <?php $style = $post['author_id'] === $_SESSION['user']['id'] ? 'margin-bottom: 0;' : ''; ?>
                 <div style="<?= $style ?>" class="post-details__rating user__rating">
                     <p class="post-details__rating-item user__rating-item user__rating-item--subscribers">
-                        <span class="post-details__rating-amount user__rating-amount"><?= get_subscriber_count($link, $post['author_id'], true) ?></span>
-                        <span class="post-details__rating-text user__rating-text"><?= get_subscriber_count($link, $post['author_id']) ?></span>
+                        <?php $subscribers = get_noun_plural_form($post['author']['subscriber_count'], ' подписчик', ' подписчика', ' подписчиков'); ?>
+                        <span class="post-details__rating-amount user__rating-amount"><?= esc($post['author']['subscriber_count']) ?></span>
+                        <span class="post-details__rating-text user__rating-text"><?= $subscribers ?></span>
                     </p>
                     <p class="post-details__rating-item user__rating-item user__rating-item--publications">
-                        <span class="post-details__rating-amount user__rating-amount"><?= get_publication_count($link, $post['author_id'], true) ?></span>
-                        <span class="post-details__rating-text user__rating-text"><?= get_publication_count($link, $post['author_id']) ?></span>
+                        <?php $publications = get_noun_plural_form($post['author']['publication_count'], ' публикация', ' публикации', ' публикаций'); ?>
+                        <span class="post-details__rating-amount user__rating-amount"><?= esc($post['author']['publication_count']) ?></span>
+                        <span class="post-details__rating-text user__rating-text"><?= $publications ?></span>
                     </p>
                 </div>
                 <?php if ($post['author_id'] !== $_SESSION['user']['id']): ?>
                 <div class="post-details__user-buttons user__buttons">
-                    <?php $text_content = get_subscription_status($link, $post['author_id']) ? 'Отписаться' : 'Подписаться'; ?>
-                    <?php $classname = get_subscription_status($link, $post['author_id']) ? 'quartz' : 'main'; ?>
-                    <a class="user__button user__button--subscription button button--<?= $classname ?>" href="/subscription.php?id=<?= esc($post['author_id']) ?>"><?= $text_content ?></a>
-                    <?php if (get_subscription_status($link, $post['author_id'])): ?>
+                    <?php $text_content = $post['author']['is_subscription'] ? 'Отписаться' : 'Подписаться'; ?>
+                    <a class="user__button user__button--subscription button button--main" href="/subscription.php?id=<?= esc($post['author_id']) ?>"><?= $text_content ?></a>
+                    <?php if ($post['author']['is_subscription']): ?>
                     <a class="user__button user__button--writing button button--green" href="/messages.php?contact=<?= esc($post['author_id']) ?>">Сообщение</a>
                     <?php endif; ?>
                 </div>

@@ -12,16 +12,16 @@
                         <?php $style = 'width: 60px; height: 60px; object-fit: cover;'; ?>
                         <img style="<?= $style ?>" class="messages__avatar" src="uploads/<?= esc($contact['avatar_path']) ?>" width="60" height="60" alt="Аватар пользователя">
                         <?php endif; ?>
-                        <?php if ($messages_count = get_messages_count($link, $contact['id'])): ?>
-                        <i class="messages__indicator"><?= $messages_count ?></i>
+                        <?php if (!empty($contact['unread_messages_count'])): ?>
+                        <i class="messages__indicator"><?= $contact['unread_messages_count'] ?></i>
                         <?php endif; ?>
                     </div>
                     <div class="messages__info">
                         <span class="messages__contact-name"><?= esc($contact['login']) ?></span>
                         <div class="messages__preview">
-                            <?php if (!is_new_contact($link, $contact['id'])): ?>
-                            <p class="messages__preview-text"><?= get_message_preview($link, $contact['id']) ?></p>
-                            <time class="messages__preview-time" datetime="<?= get_datetime_value($contact['MAX(m.dt_add)']) ?>"><?= date('M j', strtotime($contact['MAX(m.dt_add)'])) ?></time>
+                            <?php if (!isset($contact['is_new'])): ?>
+                            <p class="messages__preview-text"><?= $contact['preview']['text'] ?></p>
+                            <time class="messages__preview-time" datetime="<?= get_datetime_value($contact['preview']['time']) ?>"><?= date('M j', strtotime($contact['preview']['time'])) ?></time>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -35,10 +35,9 @@
         <?php if (isset($_GET['contact']) && in_array($_GET['contact'], array_column($contacts, 'id'))): ?>
         <div class="messages__chat-wrapper">
             <?php foreach ($contacts as $contact): ?>
-            <?php $messages = get_contact_messages($link, $contact['id']); ?>
             <?php $classname = $_GET['contact'] === $contact['id'] ? ' tabs__content--active' : ''; ?>
             <ul class="messages__list tabs__content<?= $classname ?>">
-                <?php foreach ($messages as $message): ?>
+                <?php foreach ($contact['messages'] as $message): ?>
                 <?php $classname = $message['sender_id'] === $_SESSION['user']['id'] ? ' messages__item--my' : ''; ?>
                 <li class="messages__item<?= $classname ?>">
                     <div class="messages__info-wrapper">
@@ -55,13 +54,13 @@
                             <time class="messages__time" datetime="<?= get_datetime_value($message['dt_add']) ?>"><?= get_relative_time($message['dt_add']) ?> назад</time>
                         </div>
                     </div>
-                    <p class="messages__text"><?= esc($message['content']) ?></p>
+                    <p class="messages__text"><?= nl2br(esc($message['content']), false) ?></p>
                 </li>
                 <?php endforeach; ?>
             </ul>
             <?php endforeach; ?>
         </div>
-        <?php if (is_contact_valid($link)): ?>
+        <?php if ($contact['all_messages_count']): ?>
         <div style="margin-top: auto;" class="comments">
             <?php if (isset($inputs['message'])): ?>
             <form class="comments__form form" action="/messages.php?contact=<?= esc($_GET['contact']) ?>" method="post">

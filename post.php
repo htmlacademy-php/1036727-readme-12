@@ -42,7 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $post_id = validate_post($link, intval($input['post-id']));
-        $comment = mysqli_real_escape_string($link, $input['comment']);
+        $comment = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['comment']);
+        $comment = preg_replace('/\040\040+/', ' ', $comment);
+        $comment = mysqli_real_escape_string($link, $comment);
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
              . "('$comment', $user_id, $post_id)";
         get_mysqli_result($link, $sql, false);
@@ -55,52 +57,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && !isset($_COOKIE['like'])) {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && !isset($_COOKIE['action'])) {
     $sql = "UPDATE post SET show_count = show_count + 1 WHERE id = $post_id";
     get_mysqli_result($link, $sql, false);
-} elseif (isset($_COOKIE['like'])) {
-    setcookie('like', '', time() - 3600);
+} elseif (isset($_COOKIE['action'])) {
+    setcookie('action', '', time() - 3600);
 }
 
 $post_fields = get_post_fields('p.');
-$user_fields = 'u.dt_add AS dt_reg, u.login AS author, u.avatar_path';
-$sql = "SELECT {$post_fields}, {$user_fields}, ct.class_name FROM post p
-    INNER JOIN user u ON u.id = p.author_id
-    INNER JOIN content_type ct ON ct.id = p.content_type_id
-    WHERE p.id = $post_id";
+
+$sql = "SELECT
+    COUNT(DISTINCT p2.id) AS repost_count,
+    COUNT(DISTINCT c.id) AS comment_count,
+    COUNT(DISTINCT pl.id) AS like_count,
+    COUNT(DISTINCT pl2.id) AS is_like,
+    {$post_fields}, ct.class_name
+    FROM post p
+    LEFT JOIN user u ON u.id = p.author_id
+    LEFT JOIN content_type ct ON ct.id = p.content_type_id
+    LEFT JOIN post p2 ON p2.origin_post_id = p.id
+    LEFT JOIN comment c ON c.post_id = p.id
+    LEFT JOIN post_like pl ON pl.post_id = p.id
+    LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = $user_id
+    WHERE p.id = $post_id
+    GROUP BY p.id";
 $post = get_mysqli_result($link, $sql, 'assoc');
 $post['display_mode'] = 'details';
 
-$sql = "SELECT h.id, h.name FROM hashtag h
-    INNER JOIN post_hashtag ph ON ph.hashtag_id = h.id
-    INNER JOIN post p ON p.id = ph.post_id
-    WHERE p.id = $post_id";
-$hashtags = get_mysqli_result($link, $sql);
+$sql = "SELECT
+    COUNT(DISTINCT s.id) AS is_subscription,
+    COUNT(DISTINCT s2.id) AS subscriber_count,
+    COUNT(DISTINCT p2.id) AS publication_count,
+    u.dt_add, u.login, u.avatar_path
+    FROM post p
+    LEFT JOIN user u ON u.id = p.author_id
+    LEFT JOIN post p2 ON p2.author_id = p.author_id
+    LEFT JOIN subscription s ON s.user_id = p.author_id AND s.author_id = $user_id
+    LEFT JOIN subscription s2 ON s2.user_id = p.author_id
+    WHERE p.id = $post_id
+    GROUP BY p.id";
+$post['author'] = get_mysqli_result($link, $sql, 'assoc');
 
-$comments = filter_input(INPUT_GET, 'comments');
-$limit = !$comments || $comments !== 'all' ? ' LIMIT 2' : '';
-
-$comment_fields = 'c.id, c.dt_add, c.content, c.author_id, c.post_id';
-$sql = "SELECT {$comment_fields}, u.login, u.avatar_path FROM comment c
-    INNER JOIN user u ON u.id = c.author_id
-    WHERE post_id = $post_id
-    ORDER BY c.dt_add DESC{$limit}";
-$comments = get_mysqli_result($link, $sql);
+$post['hashtags'] = get_post_hashtags($link, $post_id);
+$post['comments'] = get_post_comments($link, $post_id);
 
 $page_content = include_template('post.php', [
-    'inputs' => $form_inputs,
-    'errors' => $errors,
-    'link' => $link,
     'post' => $post,
-    'hashtags' => $hashtags,
-    'comments' => $comments
+    'errors' => $errors,
+    'inputs' => $form_inputs
 ]);
 
+$messages_count = get_messages_count($link);
 $layout_content = include_template('layout.php', [
-    'link' => $link,
     'title' => 'readme: публикация',
-    'page_main_class' => 'publication',
-    'page_content' => $page_content
+    'main_modifier' => 'publication',
+    'page_content' => $page_content,
+    'messages_count' => $messages_count
 ]);
 
 print($layout_content);

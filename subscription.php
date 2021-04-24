@@ -25,25 +25,28 @@ if (!mysqli_num_rows($result)) {
     $sql = "INSERT INTO subscription (author_id, user_id) VALUES ($user_id, $profile_id)";
 
     if (get_mysqli_result($link, $sql, false)) {
-        $user_fields = 'id, dt_add, email, login, password, avatar_path';
-        $sql = "SELECT $user_fields FROM user WHERE id = $profile_id";
+        $sql = "SELECT email, login FROM user WHERE id = $profile_id";
         $profile = get_mysqli_result($link, $sql, 'assoc');
 
-        $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
-        $transport->setUsername('keks@phpdemo.ru');
-        $transport->setPassword('htmlacademy');
+        try {
+            $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
+            $transport->setUsername('keks@phpdemo.ru');
+            $transport->setPassword('htmlacademy');
 
-        $message = new Swift_Message('У вас новый подписчик');
-        $message->setTo([$profile['email'] => $profile['login']]);
+            $message = new Swift_Message('У вас новый подписчик');
+            $message->setTo([$profile['email'] => $profile['login']]);
 
-        $body = "Здравствуйте, {$profile['login']}. "
-              . "На вас подписался новый пользователь {$_SESSION['user']['login']}. "
-              . "Вот ссылка на его профиль: http://readme.net/profile.php?id={$profile_id}";
-        $message->setBody($body);
-        $message->setFrom('keks@phpdemo.ru', 'Readme');
+            $body = "Здравствуйте, {$profile['login']}. "
+                  . "На вас подписался новый пользователь {$_SESSION['user']['login']}. "
+                  . "Вот ссылка на его профиль: http://readme.net/profile.php?id={$profile_id}";
+            $message->setBody($body);
+            $message->setFrom('keks@phpdemo.ru', 'Readme');
 
-        $mailer = new Swift_Mailer($transport);
-        $mailer->send($message);
+            $mailer = new Swift_Mailer($transport);
+            $mailer->send($message);
+
+        } catch (Swift_TransportException $ex) {}
+
     }
 
 } else {
@@ -52,6 +55,10 @@ if (!mysqli_num_rows($result)) {
 }
 
 $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
+
+if (parse_url($ref, PHP_URL_PATH) === '/post.php') {
+    setcookie('action', 1, strtotime('+30 days'));
+}
 
 header("Location: $ref");
 exit;

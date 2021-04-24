@@ -25,7 +25,7 @@ get_mysqli_result($link, $sql, false);
 $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
 
 if (parse_url($ref, PHP_URL_PATH) === '/post.php') {
-    setcookie('like', 1, strtotime('+30 days'));
+    setcookie('action', 1, strtotime('+30 days'));
 }
 
 header("Location: $ref");

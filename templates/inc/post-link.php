@@ -7,7 +7,7 @@
         </div>
         <div class="post-link__info">
             <h3><?= esc($post['title']) ?></h3>
-            <p><?= esc($post['text_content']) ?></p>
+            <p><?= esc($post['text_content'] ?? '') ?></p>
             <span><?= esc($post['link']) ?></span>
         </div>
         <svg class="post-link__arrow" width="11" height="16">

@@ -47,6 +47,11 @@ if (substr($search, 0, 1) === '#') {
     }
 }
 
+for ($i = 0; $i < count($posts); $i++) {
+    $hashtags = get_post_hashtags($link, $posts[$i]['id']);
+    $posts[$i]['hashtags'] = $hashtags;
+}
+
 $search_ref = $_COOKIE['search_ref'] ?? null;
 $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
 
@@ -57,15 +62,15 @@ if (empty($posts) && is_null($search_ref)) {
 }
 
 $page_content = include_template('search.php', [
-    'posts' => $posts,
-    'link' => $link
+    'posts' => $posts
 ]);
 
+$messages_count = get_messages_count($link);
 $layout_content = include_template('layout.php', [
-    'link' => $link,
     'title' => 'readme: страница результатов поиска',
-    'page_main_class' => 'search-results',
-    'page_content' => $page_content
+    'main_modifier' => 'search-results',
+    'page_content' => $page_content,
+    'messages_count' => $messages_count
 ]);
 
 print($layout_content);

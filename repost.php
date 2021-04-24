@@ -43,26 +43,30 @@ if (mysqli_stmt_execute($stmt)) {
 
     if ($users = get_mysqli_result($link, $sql)) {
 
-        $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
-        $transport->setUsername('keks@phpdemo.ru');
-        $transport->setPassword('htmlacademy');
+        try {
+            $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
+            $transport->setUsername('keks@phpdemo.ru');
+            $transport->setPassword('htmlacademy');
 
-        $message = new Swift_Message();
-        $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
+            $message = new Swift_Message();
+            $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
 
-        $mailer = new Swift_Mailer($transport);
+            $mailer = new Swift_Mailer($transport);
 
-        foreach ($users as $user) {
-            $message->setTo([$user['email'] => $user['login']]);
+            foreach ($users as $user) {
+                $message->setTo([$user['email'] => $user['login']]);
 
-            $body = "Здравствуйте, {$user['login']}. "
-                  . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$post['title']}». "
-                  . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$user_id}";
-            $message->setBody($body);
-            $message->setFrom('keks@phpdemo.ru', 'Readme');
+                $body = "Здравствуйте, {$user['login']}. "
+                      . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$post['title']}». "
+                      . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$user_id}";
+                $message->setBody($body);
+                $message->setFrom('keks@phpdemo.ru', 'Readme');
 
-            $mailer->send($message);
-        }
+                $mailer->send($message);
+            }
+
+        } catch (Swift_TransportException $ex) {}
+
     }
 
     header("Location: /profile.php?id={$user_id}&tab=posts");

@@ -91,14 +91,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_content = include_template('register.php', [
-    'inputs' => $form_inputs,
-    'errors' => $errors
+    'errors' => $errors,
+    'inputs' => $form_inputs
 ]);
 
 $layout_content = include_template('layout.php', [
-    'link' => $link,
     'title' => 'readme: регистрация',
-    'page_main_class' => 'registration',
+    'main_modifier' => 'registration',
     'page_content' => $page_content
 ]);
 

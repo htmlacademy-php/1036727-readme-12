@@ -86,7 +86,7 @@
                                     <li class="header__profile-nav-item">
                                         <a class="header__profile-nav-link" href="/messages.php">
                                             <span class="header__profile-nav-text">Сообщения
-                                                <?php if ($messages_count = get_messages_count($link)): ?>
+                                                <?php if ($messages_count): ?>
                                                 <i class="header__profile-indicator"><?= $messages_count ?></i>
                                                 <?php endif; ?>
                                             </span>
@@ -124,7 +124,7 @@
     </div>
 </header>
 
-<main style="flex-grow: 1;" class="page__main page__main--<?= $page_main_class ?>">
+<main style="flex-grow: 1;" class="page__main page__main--<?= $main_modifier ?>">
     <?= $page_content ?>
 </main>
 
