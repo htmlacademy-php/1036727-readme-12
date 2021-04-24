@@ -7,7 +7,7 @@ INSERT INTO user (email, login, password, avatar_path) VALUES
 ('example2@gmail.com', 'Пётр Дёмин', '$2y$10$SiiKYqvftZ.t9MWw4uVDle7jOQqkyn.T8eWse9DYlQuMR/nAwDm82', '../img/default/userpic-petro.jpg'),
 ('example3@gmail.com', 'Марк Смолов', '$2y$10$SiiKYqvftZ.t9MWw4uVDle7jOQqkyn.T8eWse9DYlQuMR/nAwDm82', '../img/default/userpic-mark.jpg'),
 ('example4@gmail.com', 'Таня Фирсова', '$2y$10$SiiKYqvftZ.t9MWw4uVDle7jOQqkyn.T8eWse9DYlQuMR/nAwDm82', '../img/default/userpic-tanya.jpg'),
-('admin@gmail.com', 'admin', '$2y$10$SiiKYqvftZ.t9MWw4uVDle7jOQqkyn.T8eWse9DYlQuMR/nAwDm82', null);
+('tester@gmail.com', 'tester', '$2y$10$SiiKYqvftZ.t9MWw4uVDle7jOQqkyn.T8eWse9DYlQuMR/nAwDm82', null);
 
 -- --------------------------------------------------------
 
