@@ -8,11 +8,11 @@ if (isset($_SESSION['user'])) {
 }
 
 $input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
-$sql = "SELECT {$input_fields}, it.name AS type, f.name AS form FROM input i "
-     . 'INNER JOIN input_type it ON it.id = i.type_id '
-     . 'INNER JOIN form_input fi ON fi.input_id = i.id '
-     . 'INNER JOIN form f ON f.id = fi.form_id '
-     . "WHERE f.name = 'registration'";
+$sql = "SELECT {$input_fields}, it.name AS type, f.name AS form FROM input i
+    INNER JOIN input_type it ON it.id = i.type_id
+    INNER JOIN form_input fi ON fi.input_id = i.id
+    INNER JOIN form f ON f.id = fi.form_id
+    WHERE f.name = 'registration'";
 
 $form_inputs = get_mysqli_result($link, $sql);
 $input_names = array_column($form_inputs, 'name');

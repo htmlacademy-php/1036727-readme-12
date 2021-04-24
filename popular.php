@@ -95,15 +95,15 @@ $offset = ($current_page - 1) * $page_items;
 
 $post_fields = get_post_fields('p.');
 $user_fields = 'u.login AS author, u.avatar_path';
-$sql = "SELECT COUNT(pl.id), {$post_fields}, {$user_fields}, ct.class_name FROM post p "
-     . 'LEFT JOIN user u ON u.id = p.author_id '
-     . 'LEFT JOIN content_type ct ON ct.id = p.content_type_id '
-     . 'LEFT JOIN post_like pl ON pl.post_id = p.id '
+$sql = "SELECT COUNT(pl.id), {$post_fields}, {$user_fields}, ct.class_name FROM post p
+    LEFT JOIN user u ON u.id = p.author_id
+    LEFT JOIN content_type ct ON ct.id = p.content_type_id
+    LEFT JOIN post_like pl ON pl.post_id = p.id
 
-     . $content_type_filter
+    $content_type_filter
 
-     . 'GROUP BY p.id '
-     . "ORDER BY $sort_filter LIMIT $page_items OFFSET $offset";
+    GROUP BY p.id
+    ORDER BY $sort_filter LIMIT $page_items OFFSET $offset";
 $posts = get_mysqli_result($link, $sql);
 
 $page_content = include_template('popular.php', [

@@ -244,10 +244,10 @@ function get_content_type_id(mysqli $link, string $content_type) : string {
 
 function get_required_fields(mysqli $link, string $form, string $tab = '') : array {
     $input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
-    $sql = "SELECT $input_fields FROM input i "
-         . 'INNER JOIN form_input fi ON fi.input_id = i.id '
-         . 'INNER JOIN form f ON f.id = fi.form_id '
-         . "WHERE f.name = '$form' AND i.required = 1";
+    $sql = "SELECT $input_fields FROM input i
+        INNER JOIN form_input fi ON fi.input_id = i.id
+        INNER JOIN form f ON f.id = fi.form_id
+        WHERE f.name = '$form' AND i.required = 1";
     $sql .= $form === 'adding-post' ? " AND f.modifier = '$tab'" : '';
     $required_fields = get_mysqli_result($link, $sql);
 
@@ -379,30 +379,30 @@ function get_search_sql(string $value, bool $hashtag_mode = false) : string {
     $user_fields = 'u.login AS author, u.avatar_path';
 
     if ($hashtag_mode === true) {
-        $sql = "SELECT {$post_fields}, {$user_fields}, ct.class_name FROM post p "
-             . 'INNER JOIN user u ON u.id = p.author_id '
-             . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
-             . 'INNER JOIN post_hashtag ph ON ph.post_id = p.id '
-             . 'INNER JOIN hashtag h ON h.id = ph.hashtag_id '
-             . "WHERE h.name = '$value' "
-             . 'ORDER BY p.dt_add DESC';
+        $sql = "SELECT {$post_fields}, {$user_fields}, ct.class_name FROM post p
+            INNER JOIN user u ON u.id = p.author_id
+            INNER JOIN content_type ct ON ct.id = p.content_type_id
+            INNER JOIN post_hashtag ph ON ph.post_id = p.id
+            INNER JOIN hashtag h ON h.id = ph.hashtag_id
+            WHERE h.name = '$value'
+            ORDER BY p.dt_add DESC";
     } else {
-        $sql = "SELECT {$post_fields}, {$user_fields}, ct.class_name, "
-             . "MATCH (p.title, p.text_content) AGAINST ('$value') AS score FROM post p "
-             . 'INNER JOIN user u ON u.id = p.author_id '
-             . 'INNER JOIN content_type ct ON ct.id = p.content_type_id '
-             . "WHERE MATCH (p.title, p.text_content) AGAINST ('$value' IN BOOLEAN MODE) "
-             . 'ORDER BY score DESC';
+        $sql = "SELECT {$post_fields}, {$user_fields}, ct.class_name,
+            MATCH (p.title, p.text_content) AGAINST ('$value') AS score FROM post p
+            INNER JOIN user u ON u.id = p.author_id
+            INNER JOIN content_type ct ON ct.id = p.content_type_id
+            WHERE MATCH (p.title, p.text_content) AGAINST ('$value' IN BOOLEAN MODE)
+            ORDER BY score DESC";
     }
 
     return $sql;
 }
 
 function get_post_hashtags(mysqli $link, int $post_id) : array {
-    $sql = 'SELECT h.id, h.name FROM hashtag h '
-         . 'INNER JOIN post_hashtag ph ON ph.hashtag_id = h.id '
-         . 'INNER JOIN post p ON p.id = ph.post_id '
-         . "WHERE p.id = $post_id";
+    $sql = "SELECT h.id, h.name FROM hashtag h
+        INNER JOIN post_hashtag ph ON ph.hashtag_id = h.id
+        INNER JOIN post p ON p.id = ph.post_id
+        WHERE p.id = $post_id";
     $hashtags = get_mysqli_result($link, $sql);
 
     return $hashtags;
@@ -413,10 +413,10 @@ function get_post_comments(mysqli $link, int $post_id) : array {
     $limit = !$comments || $comments !== 'all' ? ' LIMIT 2' : '';
 
     $comment_fields = 'c.id, c.dt_add, c.content, c.author_id, c.post_id';
-    $sql = "SELECT {$comment_fields}, u.login, u.avatar_path FROM comment c "
-     . 'INNER JOIN user u ON u.id = c.author_id '
-     . "WHERE post_id = $post_id "
-     . "ORDER BY c.dt_add DESC{$limit}";
+    $sql = "SELECT {$comment_fields}, u.login, u.avatar_path FROM comment c
+        INNER JOIN user u ON u.id = c.author_id
+        WHERE post_id = $post_id
+        ORDER BY c.dt_add DESC{$limit}";
     $comments = get_mysqli_result($link, $sql);
 
     return $comments;
@@ -425,11 +425,11 @@ function get_post_comments(mysqli $link, int $post_id) : array {
 function get_contact_messages(mysqli $link, int $contact_id) : array {
     $user_id = intval($_SESSION['user']['id']);
     $message_fields = 'm.id, m.dt_add, m.content, m.status, m.sender_id, m.recipient_id';
-    $sql = "SELECT {$message_fields}, u.login AS author, u.avatar_path FROM message m "
-     . "INNER JOIN user u ON u.id = m.sender_id "
-     . "WHERE (m.recipient_id = $user_id AND m.sender_id = $contact_id) "
-     . "OR (m.recipient_id = $contact_id AND m.sender_id = $user_id) "
-     . "ORDER BY m.dt_add";
+    $sql = "SELECT {$message_fields}, u.login AS author, u.avatar_path FROM message m
+        INNER JOIN user u ON u.id = m.sender_id
+        WHERE (m.recipient_id = $user_id AND m.sender_id = $contact_id)
+        OR (m.recipient_id = $contact_id AND m.sender_id = $user_id)
+        ORDER BY m.dt_add";
     $messages = get_mysqli_result($link, $sql);
 
     return $messages;
@@ -437,10 +437,10 @@ function get_contact_messages(mysqli $link, int $contact_id) : array {
 
 function get_message_preview(mysqli $link, int $contact_id) : string {
     $user_id = intval($_SESSION['user']['id']);
-    $sql = 'SELECT content, sender_id FROM message '
-         . "WHERE (recipient_id = $user_id AND sender_id = $contact_id) "
-         . "OR (recipient_id = $contact_id AND sender_id = $user_id) "
-         . 'ORDER BY dt_add DESC LIMIT 1';
+    $sql = "SELECT content, sender_id FROM message
+        WHERE (recipient_id = $user_id AND sender_id = $contact_id)
+        OR (recipient_id = $contact_id AND sender_id = $user_id)
+        ORDER BY dt_add DESC LIMIT 1";
     $message = get_mysqli_result($link, $sql, 'assoc');
     $preview = mb_substr($message['content'], 0, 30);
 
@@ -452,8 +452,8 @@ function get_messages_count(mysqli $link, int $contact_id = null, bool $unread =
     $read_filter = $unread ? ' AND status = 0' : '';
     $contact_filter = isset($contact_id) ? " AND sender_id = $contact_id" : '';
 
-    $sql = 'SELECT COUNT(id) FROM message '
-         . "WHERE recipient_id = {$user_id}{$contact_filter}{$read_filter}";
+    $sql = "SELECT COUNT(id) FROM message
+        WHERE recipient_id = {$user_id}{$contact_filter}{$read_filter}";
     $messages_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
 
     return $messages_count;
@@ -476,9 +476,9 @@ function add_new_contact(mysqli $link, array &$contacts, int $contact_id) : bool
 
 function is_new_contact(mysqli $link, int $contact_id) : bool {
     $user_id = intval($_SESSION['user']['id']);
-    $sql = 'SELECT id FROM message '
-         . "WHERE (recipient_id = $user_id AND sender_id = $contact_id) "
-         . "OR (recipient_id = $contact_id AND sender_id = $user_id)";
+    $sql = "SELECT id FROM message
+        WHERE (recipient_id = $user_id AND sender_id = $contact_id)
+        OR (recipient_id = $contact_id AND sender_id = $user_id)";
     $result = get_mysqli_result($link, $sql, false);
 
     return !boolval(mysqli_num_rows($result));
@@ -486,8 +486,8 @@ function is_new_contact(mysqli $link, int $contact_id) : bool {
 
 function update_messages_status(mysqli $link, int $contact_id) : void {
     $user_id = intval($_SESSION['user']['id']);
-    $sql = 'UPDATE message SET status = 1 '
-         . "WHERE sender_id = $contact_id AND recipient_id = $user_id";
+    $sql = "UPDATE message SET status = 1
+        WHERE sender_id = $contact_id AND recipient_id = $user_id";
     get_mysqli_result($link, $sql, false);
 }
 
@@ -495,18 +495,18 @@ function get_messages_chat_style(array $contacts) : string {
     $style = 'padding-top: 0; border: none;';
 
     if (!empty($contacts)) {
-        $style = 'display: flex; flex-direction: column; align-self: stretch; ';
-        $style .= 'min-height: 343px; margin-bottom: -30px;';
+        $style = 'display: flex; flex-direction: column; align-self: stretch;
+            min-height: 343px; margin-bottom: -30px;';
     }
 
     return $style;
 }
 
 function get_origin_post(mysqli $link, int $post_id) : array {
-    $sql = 'SELECT p.dt_add, u.id AS author_id, u.login AS author, '
-         . 'u.avatar_path FROM post p '
-         . 'INNER JOIN user u ON u.id = p.author_id '
-         . "WHERE p.id = $post_id";
+    $sql = "SELECT p.dt_add, u.id AS author_id, u.login AS author,
+        u.avatar_path FROM post p
+        INNER JOIN user u ON u.id = p.author_id
+        WHERE p.id = $post_id";
     $post = get_mysqli_result($link, $sql, 'assoc');
 
     return $post;

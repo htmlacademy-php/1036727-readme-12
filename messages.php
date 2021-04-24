@@ -14,11 +14,11 @@ if (!isset($_SESSION['user'])) {
 $user_id = intval($_SESSION['user']['id']);
 
 $input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
-$sql = "SELECT {$input_fields}, it.name AS type FROM input i "
-     . 'INNER JOIN input_type it ON it.id = i.type_id '
-     . 'INNER JOIN form_input fi ON fi.input_id = i.id '
-     . 'INNER JOIN form f ON f.id = fi.form_id '
-     . "WHERE f.name = 'messages'";
+$sql = "SELECT {$input_fields}, it.name AS type FROM input i
+    INNER JOIN input_type it ON it.id = i.type_id
+    INNER JOIN form_input fi ON fi.input_id = i.id
+    INNER JOIN form f ON f.id = fi.form_id
+    WHERE f.name = 'messages'";
 
 $form_inputs = get_mysqli_result($link, $sql);
 $input_names = array_column($form_inputs, 'name');
@@ -44,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $message = mysqli_real_escape_string($link, $input['message']);
-        $sql = 'INSERT INTO message (content, sender_id, recipient_id) VALUES '
-             . "('$message', $user_id, $contact_id)";
+        $sql = "INSERT INTO message (content, sender_id, recipient_id) VALUES
+            ('$message', $user_id, $contact_id)";
         get_mysqli_result($link, $sql, false);
         setcookie('new_contact', '', time() - 3600);
 
@@ -54,11 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$sql = 'SELECT u.id, u.login, u.avatar_path, MAX(m.dt_add) FROM message m '
-     . 'INNER JOIN user u ON u.id = m.sender_id OR u.id = m.recipient_id '
-     . "WHERE (m.sender_id = $user_id OR m.recipient_id = $user_id) AND u.id != $user_id "
-     . 'GROUP BY u.id '
-     . 'ORDER BY MAX(m.dt_add) DESC';
+$sql = "SELECT u.id, u.login, u.avatar_path, MAX(m.dt_add) FROM message m
+    INNER JOIN user u ON u.id = m.sender_id OR u.id = m.recipient_id
+    WHERE (m.sender_id = $user_id OR m.recipient_id = $user_id) AND u.id != $user_id
+    GROUP BY u.id
+    ORDER BY MAX(m.dt_add) DESC";
 $contacts = get_mysqli_result($link, $sql);
 
 if (isset($_GET['contact'])) {

@@ -13,13 +13,13 @@ $user_id = intval($_SESSION['user']['id']);
 $post_id = intval(filter_input(INPUT_GET, 'id'));
 $post_id = validate_post($link, $post_id);
 
-$sql = 'SELECT title, text_content, quote_author, image_path, video_path, link, content_type_id '
-     . "FROM post WHERE id = $post_id";
+$sql = "SELECT title, text_content, quote_author, image_path, video_path, link, content_type_id
+    FROM post WHERE id = $post_id";
 $post = get_mysqli_result($link, $sql, 'assoc');
 
-$sql = 'INSERT INTO post (title, text_content, quote_author, image_path, '
-     . 'video_path, link, content_type_id, author_id, is_repost, origin_post_id) VALUES '
-     . '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+$sql = 'INSERT INTO post (title, text_content, quote_author, image_path,
+    video_path, link, content_type_id, author_id, is_repost, origin_post_id) VALUES
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 $stmt_data = $post + [$user_id, 1, $post_id];
 $stmt = db_get_prepare_stmt($link, $sql, $stmt_data);
 
@@ -30,16 +30,16 @@ if (mysqli_stmt_execute($stmt)) {
     if ($hashtags = get_mysqli_result($link, $sql)) {
 
         foreach ($hashtags as $hashtag) {
-            $sql = 'INSERT INTO post_hashtag (hashtag_id, post_id) VALUES '
-                 . "({$hashtag['id']}, {$post['id']})";
+            $sql = "INSERT INTO post_hashtag (hashtag_id, post_id) VALUES
+                ({$hashtag['id']}, {$post['id']})";
             get_mysqli_result($link, $sql, false);
         }
     }
 
     $user_fields = 'u.id, u.dt_add, u.email, u.login, u.password, u.avatar_path';
-    $sql = "SELECT $user_fields FROM user u "
-         . 'INNER JOIN subscription s ON s.author_id = u.id '
-         . "WHERE s.user_id = $user_id";
+    $sql = "SELECT $user_fields FROM user u
+        INNER JOIN subscription s ON s.author_id = u.id
+        WHERE s.user_id = $user_id";
 
     if ($users = get_mysqli_result($link, $sql)) {
 
