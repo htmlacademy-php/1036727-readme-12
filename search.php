@@ -22,10 +22,10 @@ $posts = [];
 
 if (substr($search, 0, 1) === '#') {
     if ($hashtag = substr($search, 1)) {
-        $hashtag = mysqli_real_escape_string($link, $hashtag);
+        $hashtag = mysqli_real_escape_string($con, $hashtag);
         $search_sql = get_search_sql($hashtag, true);
 
-        $posts = get_mysqli_result($link, $search_sql);
+        $posts = get_mysqli_result($con, $search_sql);
     }
 
 } else {
@@ -40,15 +40,15 @@ if (substr($search, 0, 1) === '#') {
     }
 
     if ($request = implode(' ', $search_words)) {
-        $request = mysqli_real_escape_string($link, $request);
+        $request = mysqli_real_escape_string($con, $request);
         $search_sql = get_search_sql($request, false);
 
-        $posts = get_mysqli_result($link, $search_sql);
+        $posts = get_mysqli_result($con, $search_sql);
     }
 }
 
 for ($i = 0; $i < count($posts); $i++) {
-    $hashtags = get_post_hashtags($link, $posts[$i]['id']);
+    $hashtags = get_post_hashtags($con, $posts[$i]['id']);
     $posts[$i]['hashtags'] = $hashtags;
 }
 
@@ -65,7 +65,7 @@ $page_content = include_template('search.php', [
     'posts' => $posts
 ]);
 
-$messages_count = get_messages_count($link);
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: страница результатов поиска',
     'main_modifier' => 'search-results',

@@ -20,14 +20,14 @@ $sql = "SELECT {$input_fields}, it.name AS type FROM input i
     INNER JOIN form f ON f.id = fi.form_id
     WHERE f.name = 'messages'";
 
-$form_inputs = get_mysqli_result($link, $sql);
+$form_inputs = get_mysqli_result($con, $sql);
 $input_names = array_column($form_inputs, 'name');
 $form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'messages');
+    $input = get_post_input($con, 'messages');
 
     if (mb_strlen($input['message']) === 0) {
         $errors['message'][0] = 'Это поле должно быть заполнено';
@@ -35,10 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $contact_id = validate_user($link, intval($input['contact-id']));
+        $contact_id = validate_user($con, intval($input['contact-id']));
 
         if ($contact_id === $user_id
-            || !is_contact_valid($link, $contact_id)) {
+            || !is_contact_valid($con, $contact_id)) {
             http_response_code(500);
             exit;
         }
@@ -46,10 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['message']);
         $message = preg_replace('/\040\040+/', ' ', $message);
 
-        $message = mysqli_real_escape_string($link, $message);
+        $message = mysqli_real_escape_string($con, $message);
         $sql = "INSERT INTO message (content, sender_id, recipient_id) VALUES
             ('$message', $user_id, $contact_id)";
-        get_mysqli_result($link, $sql, false);
+        get_mysqli_result($con, $sql, false);
         setcookie('new_contact', '', time() - 3600);
 
         header("Location: /messages.php?contact={$contact_id}");
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if (isset($_GET['contact'])) {
     $contact_id = intval(filter_input(INPUT_GET, 'contact'));
-    update_messages_status($link, $contact_id);
+    update_messages_status($con, $contact_id);
 }
 
 $sql = "SELECT
@@ -73,28 +73,28 @@ $sql = "SELECT
     WHERE (m.sender_id = $user_id OR m.recipient_id = $user_id) AND u.id != $user_id
     GROUP BY u.id
     ORDER BY MAX(m.dt_add) DESC";
-$contacts = get_mysqli_result($link, $sql);
+$contacts = get_mysqli_result($con, $sql);
 
 for ($i = 0; $i < count($contacts); $i++) {
     $contact_id = $contacts[$i]['id'];
-    $contacts[$i]['preview'] = get_message_preview($link, $contact_id);
-    $contacts[$i]['messages'] = get_contact_messages($link, $contact_id);
+    $contacts[$i]['preview'] = get_message_preview($con, $contact_id);
+    $contacts[$i]['messages'] = get_contact_messages($con, $contact_id);
 }
 
 if (isset($_GET['contact'])) {
 
     if (!in_array($contact_id, array_column($contacts, 'id'))) {
-        if (!add_new_contact($link, $contacts, $contact_id)
+        if (!add_new_contact($con, $contacts, $contact_id)
             && $contact_id = $_COOKIE['new_contact'] ?? null) {
-            add_new_contact($link, $contacts, $contact_id);
+            add_new_contact($con, $contacts, $contact_id);
         }
 
     } elseif ($contact_id = $_COOKIE['new_contact'] ?? null) {
-        add_new_contact($link, $contacts, $contact_id);
+        add_new_contact($con, $contacts, $contact_id);
     }
 
 } elseif ($contact_id = $_COOKIE['new_contact'] ?? null) {
-    add_new_contact($link, $contacts, $contact_id);
+    add_new_contact($con, $contacts, $contact_id);
 }
 
 $page_content = include_template('messages.php', [
@@ -103,7 +103,7 @@ $page_content = include_template('messages.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($link);
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: личные сообщения',
     'main_modifier' => 'messages',

@@ -10,13 +10,13 @@ if (!isset($_SESSION['user'])) {
 $user_id = intval($_SESSION['user']['id']);
 
 $sql = 'SELECT id, type_name, class_name, icon_width, icon_height FROM content_type';
-$content_types = get_mysqli_result($link, $sql);
+$content_types = get_mysqli_result($con, $sql);
 
 $content_type_filter = '';
 if ($content_type = filter_input(INPUT_GET, 'filter')) {
-    $content_type = mysqli_real_escape_string($link, $content_type);
+    $content_type = mysqli_real_escape_string($con, $content_type);
 
-    if (is_content_type_valid($link, $content_type)) {
+    if (is_content_type_valid($con, $content_type)) {
         $content_type_filter = " AND ct.class_name = '$content_type' ";
     }
 }
@@ -41,10 +41,10 @@ $sql = "SELECT
     WHERE s.author_id = {$user_id}{$content_type_filter}
     GROUP BY p.id
     ORDER BY p.dt_add ASC";
-$posts = get_mysqli_result($link, $sql);
+$posts = get_mysqli_result($con, $sql);
 
 for ($i = 0; $i < count($posts); $i++) {
-    $hashtags = get_post_hashtags($link, $posts[$i]['id']);
+    $hashtags = get_post_hashtags($con, $posts[$i]['id']);
     $posts[$i]['hashtags'] = $hashtags;
 }
 
@@ -53,7 +53,7 @@ $page_content = include_template('main.php', [
     'posts' => $posts
 ]);
 
-$messages_count = get_messages_count($link);
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: моя лента',
     'main_modifier' => 'feed',

@@ -11,7 +11,7 @@ if (!isset($_SESSION['user'])) {
 $user_id = intval($_SESSION['user']['id']);
 
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
-$profile_id = validate_user($link, $profile_id);
+$profile_id = validate_user($con, $profile_id);
 
 if ($profile_id === $user_id) {
     http_response_code(500);
@@ -19,14 +19,14 @@ if ($profile_id === $user_id) {
 }
 
 $sql = "SELECT id FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
-$result = get_mysqli_result($link, $sql, false);
+$result = get_mysqli_result($con, $sql, false);
 
 if (!mysqli_num_rows($result)) {
     $sql = "INSERT INTO subscription (author_id, user_id) VALUES ($user_id, $profile_id)";
 
-    if (get_mysqli_result($link, $sql, false)) {
+    if (get_mysqli_result($con, $sql, false)) {
         $sql = "SELECT email, login FROM user WHERE id = $profile_id";
-        $profile = get_mysqli_result($link, $sql, 'assoc');
+        $profile = get_mysqli_result($con, $sql, 'assoc');
 
         try {
             $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
@@ -51,7 +51,7 @@ if (!mysqli_num_rows($result)) {
 
 } else {
     $sql = "DELETE FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
-    get_mysqli_result($link, $sql, false);
+    get_mysqli_result($con, $sql, false);
 }
 
 $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';

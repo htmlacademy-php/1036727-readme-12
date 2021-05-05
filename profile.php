@@ -14,7 +14,7 @@ if (!isset($_SESSION['user'])) {
 $user_id = intval($_SESSION['user']['id']);
 
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
-$profile_id = validate_user($link, $profile_id);
+$profile_id = validate_user($con, $profile_id);
 
 $input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
 $sql = "SELECT {$input_fields}, it.name AS type FROM input i
@@ -23,14 +23,14 @@ $sql = "SELECT {$input_fields}, it.name AS type FROM input i
     INNER JOIN form f ON f.id = fi.form_id
     WHERE f.name = 'comments'";
 
-$form_inputs = get_mysqli_result($link, $sql);
+$form_inputs = get_mysqli_result($con, $sql);
 $input_names = array_column($form_inputs, 'name');
 $form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'comments');
+    $input = get_post_input($con, 'comments');
 
     if (mb_strlen($input['comment']) === 0) {
         $errors['comment'][0] = 'Это поле должно быть заполнено';
@@ -41,13 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $post_id = validate_post($link, intval($input['post-id']));
+        $post_id = validate_post($con, intval($input['post-id']));
         $comment = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['comment']);
         $comment = preg_replace('/\040\040+/', ' ', $comment);
-        $comment = mysqli_real_escape_string($link, $comment);
+        $comment = mysqli_real_escape_string($con, $comment);
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
              . "('$comment', {$_SESSION['user']['id']}, $post_id)";
-        get_mysqli_result($link, $sql, false);
+        get_mysqli_result($con, $sql, false);
         $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
         $ref = preg_replace('%&comments=all%', '', $ref);
 
@@ -67,7 +67,7 @@ $sql = "SELECT
     LEFT JOIN subscription s2 ON s2.user_id = u.id
     WHERE u.id = $profile_id
     GROUP BY u.id";
-$user = get_mysqli_result($link, $sql, 'assoc');
+$user = get_mysqli_result($con, $sql, 'assoc');
 
 $post_fields = get_post_fields('p.');
 
@@ -86,15 +86,15 @@ $sql = "SELECT
     WHERE p.author_id = $profile_id
     GROUP BY p.id
     ORDER BY p.dt_add ASC";
-$posts = get_mysqli_result($link, $sql);
+$posts = get_mysqli_result($con, $sql);
 
 for ($i = 0; $i < count($posts); $i++) {
     $post = $posts[$i];
-    $posts[$i]['hashtags'] = get_post_hashtags($link, $post['id']);
-    $posts[$i]['comments'] = get_post_comments($link, $post['id']);
+    $posts[$i]['hashtags'] = get_post_hashtags($con, $post['id']);
+    $posts[$i]['comments'] = get_post_comments($con, $post['id']);
 
     $is_repost = $post['is_repost'] && $post_id = $post['origin_post_id'];
-    $posts[$i]['origin'] = $is_repost ? get_post($link, $post_id) : [];
+    $posts[$i]['origin'] = $is_repost ? get_post($con, $post_id) : [];
 }
 
 $user_fields = 'u.id AS user_id, u.login AS author, u.avatar_path';
@@ -108,7 +108,7 @@ $sql = "SELECT {$post_fields}, {$user_fields},
     GROUP BY p.id, pl.id, u.id
     HAVING COUNT(pl.id) > 0
     ORDER BY pl.dt_add DESC";
-$likes = get_mysqli_result($link, $sql);
+$likes = get_mysqli_result($con, $sql);
 
 $user_fields = 'u.id, u.dt_add, u.email, u.login, u.password, u.avatar_path';
 $sql = "SELECT
@@ -123,7 +123,7 @@ $sql = "SELECT
     LEFT JOIN subscription s3 ON s3.user_id = u.id
     WHERE s.author_id = $profile_id
     GROUP BY s.id";
-$subscriptions = get_mysqli_result($link, $sql);
+$subscriptions = get_mysqli_result($con, $sql);
 
 $page_content = include_template('profile.php', [
     'user' => $user,
@@ -134,7 +134,7 @@ $page_content = include_template('profile.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($link);
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: профиль',
     'main_modifier' => 'profile',

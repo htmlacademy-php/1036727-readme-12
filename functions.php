@@ -4,10 +4,10 @@ function exceptions_error_handler($severity, $message, $filename, $lineno) {
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
 }
 
-function get_mysqli_result(mysqli $link, string $sql, string $result_type = 'all') {
+function get_mysqli_result(mysqli $con, string $sql, string $result_type = 'all') {
 
-    if (!$result = mysqli_query($link, $sql)) {
-        update_errors_log($link, $sql, 'mysql_errors.txt');
+    if (!$result = mysqli_query($con, $sql)) {
+        update_errors_log($con, $sql, 'mysql_errors.txt');
 
         http_response_code(500);
         exit;
@@ -22,9 +22,9 @@ function get_mysqli_result(mysqli $link, string $sql, string $result_type = 'all
     return $result;
 }
 
-function update_errors_log(mysqli $link, string $sql, string $filename) : void {
+function update_errors_log(mysqli $con, string $sql, string $filename) : void {
     $date = date('d-m-Y H:i:s');
-    $error = mysqli_error($link);
+    $error = mysqli_error($con);
     $data = "$date - $error\n$sql\n\n";
 
     file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
@@ -170,17 +170,17 @@ function get_adding_post_close_url() : string {
     return $url;
 }
 
-function is_content_type_valid(mysqli $link, string $type) : bool {
+function is_content_type_valid(mysqli $con, string $type) : bool {
     $sql = 'SELECT class_name FROM content_type';
-    $content_types = get_mysqli_result($link, $sql);
+    $content_types = get_mysqli_result($con, $sql);
     $class_names = array_column($content_types, 'class_name');
 
     return in_array($type, $class_names);
 }
 
-function validate_content_type(mysqli $link, string $type) : void {
+function validate_content_type(mysqli $con, string $type) : void {
     $sql = 'SELECT class_name FROM content_type';
-    $content_types = get_mysqli_result($link, $sql);
+    $content_types = get_mysqli_result($con, $sql);
     $class_names = array_column($content_types, 'class_name');
 
     if (!in_array($type, $class_names)) {
@@ -189,7 +189,7 @@ function validate_content_type(mysqli $link, string $type) : void {
     }
 }
 
-function get_post_input(mysqli $link, string $form) : array {
+function get_post_input(mysqli $con, string $form) : array {
     $input_names = [
         'adding-post' => [
             'heading',
@@ -226,29 +226,29 @@ function get_post_input(mysqli $link, string $form) : array {
     }
 
     if ($form === 'adding-post') {
-        validate_content_type($link, $input['content-type']);
+        validate_content_type($con, $input['content-type']);
         list($input['text-content'], $input['image-path']) = [null, null];
     }
 
     return $input;
 }
 
-function get_content_type_id(mysqli $link, string $content_type) : string {
-    validate_content_type($link, $content_type);
+function get_content_type_id(mysqli $con, string $content_type) : string {
+    validate_content_type($con, $content_type);
 
     $sql = "SELECT id FROM content_type WHERE class_name = '$content_type'";
-    $content_type_id = get_mysqli_result($link, $sql, 'assoc')['id'];
+    $content_type_id = get_mysqli_result($con, $sql, 'assoc')['id'];
 
     return $content_type_id;
 }
 
-function get_required_fields(mysqli $link, string $form, string $tab = '') : array {
+function get_required_fields(mysqli $con, string $form, string $tab = '') : array {
     $sql = "SELECT i.name FROM input i
         INNER JOIN form_input fi ON fi.input_id = i.id
         INNER JOIN form f ON f.id = fi.form_id
         WHERE f.name = '$form' AND i.required = 1";
     $sql .= $form === 'adding-post' ? " AND f.modifier = '$tab'" : '';
-    $required_fields = get_mysqli_result($link, $sql);
+    $required_fields = get_mysqli_result($con, $sql);
 
     return array_column($required_fields, 'name');
 }
@@ -276,9 +276,9 @@ function get_post_value(string $name) : string {
     return $value;
 }
 
-function validate_post(mysqli $link, int $post_id) : int {
+function validate_post(mysqli $con, int $post_id) : int {
     $sql = "SELECT id FROM post WHERE id = $post_id";
-    $result = get_mysqli_result($link, $sql, false);
+    $result = get_mysqli_result($con, $sql, false);
 
     if (!mysqli_num_rows($result)) {
         http_response_code(404);
@@ -288,9 +288,9 @@ function validate_post(mysqli $link, int $post_id) : int {
     return $post_id;
 }
 
-function validate_user(mysqli $link, int $user_id) : int {
+function validate_user(mysqli $con, int $user_id) : int {
     $sql = "SELECT id FROM user WHERE id = $user_id";
-    $result = get_mysqli_result($link, $sql, false);
+    $result = get_mysqli_result($con, $sql, false);
 
     if (!mysqli_num_rows($result)) {
         http_response_code(404);
@@ -300,17 +300,17 @@ function validate_user(mysqli $link, int $user_id) : int {
     return $user_id;
 }
 
-function is_user_valid(mysqli $link, int $user_id) : bool {
+function is_user_valid(mysqli $con, int $user_id) : bool {
     $sql = "SELECT id FROM user WHERE id = $user_id";
-    $result = get_mysqli_result($link, $sql, false);
+    $result = get_mysqli_result($con, $sql, false);
 
     return boolval(mysqli_num_rows($result));
 }
 
-function get_subscription_status(mysqli $link, int $profile_id) : bool {
+function get_subscription_status(mysqli $con, int $profile_id) : bool {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT id FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
-    $result = get_mysqli_result($link, $sql, false);
+    $result = get_mysqli_result($con, $sql, false);
 
     return boolval(mysqli_num_rows($result));
 }
@@ -367,25 +367,25 @@ function get_search_sql(string $value, bool $hashtag_mode = false) : string {
     return $sql;
 }
 
-function get_messages_count2(mysqli $link, int $contact_id = null, bool $unread = true) : string {
+function get_messages_count2(mysqli $con, int $contact_id = null, bool $unread = true) : string {
     $user_id = intval($_SESSION['user']['id']);
     $read_filter = $unread ? ' AND status = 0' : '';
     $contact_filter = isset($contact_id) ? " AND sender_id = $contact_id" : '';
 
     $sql = "SELECT COUNT(id) FROM message
         WHERE recipient_id = {$user_id}{$contact_filter}{$read_filter}";
-    $messages_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(id)'];
+    $messages_count = get_mysqli_result($con, $sql, 'assoc')['COUNT(id)'];
 
     return $messages_count;
 }
 
-function add_new_contact(mysqli $link, array &$contacts, int $contact_id) : bool {
+function add_new_contact(mysqli $con, array &$contacts, int $contact_id) : bool {
     $user_id = intval($_SESSION['user']['id']);
 
-    if (is_user_valid($link, $contact_id) && $contact_id !== $user_id
-        && get_subscription_status($link, $contact_id)) {
+    if (is_user_valid($con, $contact_id) && $contact_id !== $user_id
+        && get_subscription_status($con, $contact_id)) {
         $sql = "SELECT id, login, avatar_path FROM user WHERE id = $contact_id";
-        $contact = get_mysqli_result($link, $sql, 'assoc');
+        $contact = get_mysqli_result($con, $sql, 'assoc');
         $contact['is_new'] = true;
         array_unshift($contacts, $contact);
 
@@ -395,11 +395,11 @@ function add_new_contact(mysqli $link, array &$contacts, int $contact_id) : bool
     return false;
 }
 
-function update_messages_status(mysqli $link, int $contact_id) : void {
+function update_messages_status(mysqli $con, int $contact_id) : void {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "UPDATE message SET status = 1
         WHERE sender_id = $contact_id AND recipient_id = $user_id";
-    get_mysqli_result($link, $sql, false);
+    get_mysqli_result($con, $sql, false);
 }
 
 function get_messages_chat_style(array $contacts) : string {
@@ -423,15 +423,15 @@ function get_datetime_value(string $date) : string {
     return str_replace(' ', 'T', $datetime);
 }
 
-function is_contact_valid(mysqli $link, int $contact_id = null) : bool {
+function is_contact_valid(mysqli $con, int $contact_id = null) : bool {
     $contact_id = $contact_id ?? $_GET['contact'] ?? null;
 
     if (!isset($contact_id)) {
         return false;
     }
 
-    $is_subscription = get_subscription_status($link, $contact_id);
-    $messages_count = get_messages_count2($link, $contact_id, false);
+    $is_subscription = get_subscription_status($con, $contact_id);
+    $messages_count = get_messages_count2($con, $contact_id, false);
 
     return $is_subscription || $messages_count;
 }
@@ -631,30 +631,30 @@ function delete_file(string $filename) : void {
     }
 }
 
-function validate_hashtag(mysqli $link, string $hashtag, int $post_id) : void {
+function validate_hashtag(mysqli $con, string $hashtag, int $post_id) : void {
     if (!$tag_name = ltrim($hashtag, '#')) {
         return;
     }
 
-    $tag_name = mysqli_real_escape_string($link, $tag_name);
+    $tag_name = mysqli_real_escape_string($con, $tag_name);
     $sql = "SELECT COUNT(*), id FROM hashtag WHERE name = '$tag_name'";
-    $hashtag = get_mysqli_result($link, $sql, 'assoc');
-    mysqli_query($link, 'START TRANSACTION');
+    $hashtag = get_mysqli_result($con, $sql, 'assoc');
+    mysqli_query($con, 'START TRANSACTION');
 
     if ($hashtag['COUNT(*)'] === '0') {
         $sql = "INSERT INTO hashtag SET name = '$tag_name'";
-        $result1 = get_mysqli_result($link, $sql, false);
-        $hashtag_id = mysqli_insert_id($link);
+        $result1 = get_mysqli_result($con, $sql, false);
+        $hashtag_id = mysqli_insert_id($con);
     } else {
         $hashtag_id = $hashtag['id'];
     }
 
     $sql = "INSERT INTO post_hashtag (hashtag_id, post_id) VALUES ($hashtag_id, $post_id)";
-    $result2 = get_mysqli_result($link, $sql, false);
+    $result2 = get_mysqli_result($con, $sql, false);
 
     if (($result1 ?? true) && $result2) {
-        mysqli_query($link, 'COMMIT');
+        mysqli_query($con, 'COMMIT');
     } else {
-        mysqli_query($link, 'ROLLBACK');
+        mysqli_query($con, 'ROLLBACK');
     }
 }

@@ -11,11 +11,11 @@ require_once('db-functions.php');
 $db_config = require_once('config/db.php');
 $db_config = array_values($db_config);
 
-$link = mysqli_connect(...$db_config);
+$con = mysqli_connect(...$db_config);
 
-if (!$link) {
+if (!$con) {
     http_response_code(500);
     exit;
 }
 
-mysqli_set_charset($link, 'utf8');
+mysqli_set_charset($con, 'utf8');

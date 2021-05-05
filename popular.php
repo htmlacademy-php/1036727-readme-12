@@ -14,7 +14,7 @@ if (!isset($_SESSION['user'])) {
 $user_id = intval($_SESSION['user']['id']);
 
 $sql = 'SELECT id, type_name, class_name, icon_width, icon_height FROM content_type';
-$content_types = get_mysqli_result($link, $sql);
+$content_types = get_mysqli_result($con, $sql);
 
 $sort_fields = ['popular', 'likes', 'date'];
 $sort_types = array_fill_keys($sort_fields, 'desc');
@@ -49,9 +49,9 @@ $sort_types[$sort] = $value;
 
 $content_type_filter = '';
 if ($content_type = filter_input(INPUT_GET, 'filter')) {
-    $content_type = mysqli_real_escape_string($link, $content_type);
+    $content_type = mysqli_real_escape_string($con, $content_type);
 
-    if (is_content_type_valid($link, $content_type)) {
+    if (is_content_type_valid($con, $content_type)) {
         $content_type_filter = "WHERE ct.class_name = '$content_type' ";
     }
 }
@@ -83,7 +83,7 @@ $page_items = 6;
 $sql = "SELECT COUNT(p.id) FROM post p
     LEFT JOIN content_type ct ON ct.id = p.content_type_id
     $content_type_filter";
-$items_count = get_mysqli_result($link, $sql, 'assoc')['COUNT(p.id)'];
+$items_count = get_mysqli_result($con, $sql, 'assoc')['COUNT(p.id)'];
 $pages_count = ceil($items_count / $page_items) ?: 1;
 
 if ($current_page <= 0) {
@@ -111,7 +111,7 @@ $sql = "SELECT
     $content_type_filter
     GROUP BY p.id
     ORDER BY $sort_filter LIMIT $page_items OFFSET $offset";
-$posts = get_mysqli_result($link, $sql);
+$posts = get_mysqli_result($con, $sql);
 
 $page_content = include_template('popular.php', [
     'sort_fields' => $sort_fields,
@@ -122,7 +122,7 @@ $page_content = include_template('popular.php', [
     'pages_count' => $pages_count
 ]);
 
-$messages_count = get_messages_count($link);
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: популярное',
     'main_modifier' => 'popular',

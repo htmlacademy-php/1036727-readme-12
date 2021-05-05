@@ -11,28 +11,28 @@ if (!isset($_SESSION['user'])) {
 $user_id = intval($_SESSION['user']['id']);
 
 $post_id = intval(filter_input(INPUT_GET, 'id'));
-$post_id = validate_post($link, $post_id);
+$post_id = validate_post($con, $post_id);
 
 $sql = "SELECT title, text_content, quote_author, image_path, video_path, link, content_type_id
     FROM post WHERE id = $post_id";
-$post = get_mysqli_result($link, $sql, 'assoc');
+$post = get_mysqli_result($con, $sql, 'assoc');
 
 $sql = 'INSERT INTO post (title, text_content, quote_author, image_path,
     video_path, link, content_type_id, author_id, is_repost, origin_post_id) VALUES
     (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 $stmt_data = $post + [$user_id, 1, $post_id];
-$stmt = db_get_prepare_stmt($link, $sql, $stmt_data);
+$stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
 
 if (mysqli_stmt_execute($stmt)) {
-    $post['id'] = mysqli_insert_id($link);
+    $post['id'] = mysqli_insert_id($con);
 
     $sql = "SELECT hashtag_id AS id FROM post_hashtag WHERE post_id = $post_id";
-    if ($hashtags = get_mysqli_result($link, $sql)) {
+    if ($hashtags = get_mysqli_result($con, $sql)) {
 
         foreach ($hashtags as $hashtag) {
             $sql = "INSERT INTO post_hashtag (hashtag_id, post_id) VALUES
                 ({$hashtag['id']}, {$post['id']})";
-            get_mysqli_result($link, $sql, false);
+            get_mysqli_result($con, $sql, false);
         }
     }
 
@@ -41,7 +41,7 @@ if (mysqli_stmt_execute($stmt)) {
         INNER JOIN subscription s ON s.author_id = u.id
         WHERE s.user_id = $user_id";
 
-    if ($users = get_mysqli_result($link, $sql)) {
+    if ($users = get_mysqli_result($con, $sql)) {
 
         try {
             $transport = new Swift_SmtpTransport('phpdemo.ru', 25);

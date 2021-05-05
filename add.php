@@ -13,7 +13,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 $sql = 'SELECT id, type_name, class_name, icon_width, icon_height FROM content_type';
-$content_types = get_mysqli_result($link, $sql);
+$content_types = get_mysqli_result($con, $sql);
 $class_names = array_column($content_types, 'class_name');
 
 $tab = filter_input(INPUT_GET, 'tab') ?? 'photo';
@@ -26,16 +26,16 @@ $sql = "SELECT {$input_fields}, it.name AS type, f.name AS form FROM input i
     INNER JOIN form f ON f.id = fi.form_id
     WHERE f.name = 'adding-post'";
 
-$form_inputs = get_mysqli_result($link, $sql);
+$form_inputs = get_mysqli_result($con, $sql);
 $input_names = array_column($form_inputs, 'name');
 $form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'adding-post');
+    $input = get_post_input($con, 'adding-post');
 
-    $required_fields = get_required_fields($link, 'adding-post', $tab);
+    $required_fields = get_required_fields($con, 'adding-post', $tab);
     foreach ($required_fields as $field) {
         if (mb_strlen($input[$field]) === 0) {
             $errors[$field][0] = 'Это поле должно быть заполнено';
@@ -79,19 +79,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $content_type_id = get_content_type_id($link, $input['content-type']);
+        $content_type_id = get_content_type_id($con, $input['content-type']);
         $sql = 'INSERT INTO post (title, text_content, quote_author, image_path, '
              . 'video_path, link, author_id, content_type_id) VALUES '
              . '(?, ?, ?, ?, ?, ?, ?, ?)';
         $stmt_data = get_stmt_data($input, $content_type_id);
-        $stmt = db_get_prepare_stmt($link, $sql, $stmt_data);
+        $stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
 
         if (mysqli_stmt_execute($stmt)) {
-            $post_id = mysqli_insert_id($link);
+            $post_id = mysqli_insert_id($con);
 
             if ($tags = array_filter(explode(' ', $input['tags']))) {
                 foreach ($tags as $tag_name) {
-                    validate_hashtag($link, $tag_name, $post_id);
+                    validate_hashtag($con, $tag_name, $post_id);
                 }
             }
 
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  . 'INNER JOIN subscription s ON s.author_id = u.id '
                  . "WHERE s.user_id = {$_SESSION['user']['id']}";
 
-            if ($users = get_mysqli_result($link, $sql)) {
+            if ($users = get_mysqli_result($con, $sql)) {
 
                 try {
                     $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
@@ -151,7 +151,7 @@ $page_content = include_template('add.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($link);
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: добавление публикации',
     'main_modifier' => 'adding-post',

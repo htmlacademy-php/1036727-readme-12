@@ -10,13 +10,13 @@ if (isset($_SESSION['user'])) {
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'login');
+    $input = get_post_input($con, 'login');
 
     if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = 'E-mail введён некорректно';
     }
 
-    $required_fields = get_required_fields($link, 'login');
+    $required_fields = get_required_fields($con, 'login');
     foreach ($required_fields as $field) {
         if (mb_strlen($input[$field]) === 0) {
             $errors[$field] = 'Это поле должно быть заполнено';
@@ -24,11 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $email = mysqli_real_escape_string($link, $input['email']);
+        $email = mysqli_real_escape_string($con, $input['email']);
 
         $user_fields = 'id, dt_add, email, login, password, avatar_path';
         $sql = "SELECT $user_fields FROM user WHERE email = '$email';";
-        $user = get_mysqli_result($link, $sql, 'assoc');
+        $user = get_mysqli_result($con, $sql, 'assoc');
 
         if ($user && password_verify($input['password'], $user['password'])) {
             $_SESSION['user'] = $user;

@@ -14,7 +14,7 @@ if (!isset($_SESSION['user'])) {
 $user_id = intval($_SESSION['user']['id']);
 
 $post_id = intval(filter_input(INPUT_GET, 'id'));
-$post_id = validate_post($link, $post_id);
+$post_id = validate_post($con, $post_id);
 
 $input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
 $sql = "SELECT {$input_fields}, it.name AS type FROM input i
@@ -23,14 +23,14 @@ $sql = "SELECT {$input_fields}, it.name AS type FROM input i
     INNER JOIN form f ON f.id = fi.form_id
     WHERE f.name = 'comments'";
 
-$form_inputs = get_mysqli_result($link, $sql);
+$form_inputs = get_mysqli_result($con, $sql);
 $input_names = array_column($form_inputs, 'name');
 $form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'comments');
+    $input = get_post_input($con, 'comments');
 
     if (mb_strlen($input['comment']) === 0) {
         $errors['comment'][0] = 'Это поле должно быть заполнено';
@@ -41,16 +41,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $post_id = validate_post($link, intval($input['post-id']));
+        $post_id = validate_post($con, intval($input['post-id']));
         $comment = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['comment']);
         $comment = preg_replace('/\040\040+/', ' ', $comment);
-        $comment = mysqli_real_escape_string($link, $comment);
+        $comment = mysqli_real_escape_string($con, $comment);
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
              . "('$comment', $user_id, $post_id)";
-        get_mysqli_result($link, $sql, false);
+        get_mysqli_result($con, $sql, false);
 
         $sql = "SELECT author_id FROM post WHERE id = $post_id";
-        $author_id = get_mysqli_result($link, $sql, 'assoc')['author_id'];
+        $author_id = get_mysqli_result($con, $sql, 'assoc')['author_id'];
 
         header("Location: /profile.php?id={$author_id}&tab=posts");
         exit;
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' && !isset($_COOKIE['action'])) {
     $sql = "UPDATE post SET show_count = show_count + 1 WHERE id = $post_id";
-    get_mysqli_result($link, $sql, false);
+    get_mysqli_result($con, $sql, false);
 } elseif (isset($_COOKIE['action'])) {
     setcookie('action', '', time() - 3600);
 }
@@ -81,7 +81,7 @@ $sql = "SELECT
     LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = $user_id
     WHERE p.id = $post_id
     GROUP BY p.id";
-$post = get_mysqli_result($link, $sql, 'assoc');
+$post = get_mysqli_result($con, $sql, 'assoc');
 $post['display_mode'] = 'details';
 
 $sql = "SELECT
@@ -96,10 +96,10 @@ $sql = "SELECT
     LEFT JOIN subscription s2 ON s2.user_id = p.author_id
     WHERE p.id = $post_id
     GROUP BY p.id";
-$post['author'] = get_mysqli_result($link, $sql, 'assoc');
+$post['author'] = get_mysqli_result($con, $sql, 'assoc');
 
-$post['hashtags'] = get_post_hashtags($link, $post_id);
-$post['comments'] = get_post_comments($link, $post_id);
+$post['hashtags'] = get_post_hashtags($con, $post_id);
+$post['comments'] = get_post_comments($con, $post_id);
 
 $page_content = include_template('post.php', [
     'post' => $post,
@@ -107,7 +107,7 @@ $page_content = include_template('post.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($link);
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: публикация',
     'main_modifier' => 'publication',

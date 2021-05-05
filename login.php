@@ -14,21 +14,21 @@ $sql = "SELECT {$input_fields}, it.name AS type, f.name AS form FROM input i
     INNER JOIN form f ON f.id = fi.form_id
     WHERE f.name = 'login'";
 
-$form_inputs = get_mysqli_result($link, $sql);
+$form_inputs = get_mysqli_result($con, $sql);
 $input_names = array_column($form_inputs, 'name');
 $form_inputs = array_combine($input_names, $form_inputs);
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'login');
+    $input = get_post_input($con, 'login');
 
     if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
         $errors['email'][0] = 'E-mail введён некорректно';
         $errors['email'][1] = 'Электронная почта';
     }
 
-    $required_fields = get_required_fields($link, 'login');
+    $required_fields = get_required_fields($con, 'login');
     foreach ($required_fields as $field) {
         if (mb_strlen($input[$field]) === 0) {
             $errors[$field][0] = 'Это поле должно быть заполнено';
@@ -37,11 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $email = mysqli_real_escape_string($link, $input['email']);
+        $email = mysqli_real_escape_string($con, $input['email']);
 
         $user_fields = 'id, dt_add, email, login, password, avatar_path';
         $sql = "SELECT $user_fields FROM user WHERE email = '$email';";
-        $user = get_mysqli_result($link, $sql, 'assoc');
+        $user = get_mysqli_result($con, $sql, 'assoc');
 
         if ($user && password_verify($input['password'], $user['password'])) {
             $_SESSION['user'] = $user;
