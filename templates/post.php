@@ -8,19 +8,19 @@
                 <?php $style = $post['class_name'] === 'text' ? 'border-bottom: 1px solid #dee5fc;' : ''; ?>
                 <div style="<?= $style ?>" class="post__main">
                     <?php if ($post['class_name'] === 'quote'): ?>
-                    <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
+                        <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
 
                     <?php elseif ($post['class_name'] === 'link'): ?>
-                    <?= include_template('inc/post-link.php', ['post' => $post]) ?>
+                        <?= include_template('inc/post-link.php', ['post' => $post]) ?>
 
                     <?php elseif ($post['class_name'] === 'photo'): ?>
-                    <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
+                        <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
 
                     <?php elseif ($post['class_name'] === 'video'): ?>
-                    <?= include_template('inc/post-video.php', ['post' => $post]) ?>
+                        <?= include_template('inc/post-video.php', ['post' => $post]) ?>
 
                     <?php elseif ($post['class_name'] === 'text'): ?>
-                    <?= include_template('inc/post-text.php', ['post' => $post]) ?>
+                        <?= include_template('inc/post-text.php', ['post' => $post]) ?>
                     <?php endif; ?>
                 </div>
                 <div class="post__indicators">
@@ -51,72 +51,72 @@
                             <span class="visually-hidden">количество репостов</span>
                         </a>
                     </div>
-                    <span class="post__view"><?= get_show_count($post['show_count']) ?></span>
+                    <span class="post__view"><?= $post['show_count'] . get_noun_plural_form($post['show_count'], ' просмотр', ' просмотра', ' просмотров') ?></span>
                 </div>
                 <?php if (!empty($post['hashtags'])): ?>
-                <ul class="post__tags">
-                    <?php foreach ($post['hashtags'] as $hashtag): ?>
-                    <li><a href="/search.php?q=%23<?= esc($hashtag['name']) ?>">#<?= esc($hashtag['name']) ?></a></li>
-                    <?php endforeach; ?>
-                </ul>
+                    <ul class="post__tags">
+                        <?php foreach ($post['hashtags'] as $hashtag): ?>
+                            <li><a href="/search.php?q=%23<?= esc($hashtag['name']) ?>">#<?= esc($hashtag['name']) ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
                 <?php endif; ?>
                 <div class="comments">
                     <?php if (isset($inputs['comment'])): ?>
-                    <?php $style = empty($post['comments']) ? 'border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;' : ''; ?>
-                    <form style="<?= $style ?>" class="comments__form form" id="form" action="/post.php?id=<?= esc($post['id']) ?>" method="post">
-                        <div class="comments__my-avatar">
-                            <?php if (!empty($_SESSION['user']['avatar_path'])): ?>
-                            <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
-                            <img style="<?= $style ?>" class="comments__picture" src="uploads/<?= esc($_SESSION['user']['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
-                            <?php endif; ?>
-                        </div>
-                        <?php $input = $inputs['comment'] ?>
-                        <?php $classname = isset($errors[$input['name']][0]) ? ' form__input-section--error' : ''; ?>
-                        <div class="form__input-section<?= $classname ?>">
-                            <textarea class="comments__textarea form__textarea form__input" name="<?= esc($input['name']) ?>" placeholder="<?= esc($input['placeholder']) ?>"><?= esc(get_post_value($input['name'])) ?></textarea>
-                            <label class="visually-hidden"><?= esc($input['label']) ?></label>
-                            <button class="form__error-button button" type="button">!</button>
-                            <div class="form__error-text">
-                                <h3 class="form__error-title"><?= esc($input['label']) ?></h3>
-                                <p class="form__error-desc"><?= esc($errors[$input['name']][0] ?? '') ?></p>
+                        <?php $style = empty($post['comments']) ? 'border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;' : ''; ?>
+                        <form style="<?= $style ?>" class="comments__form form" id="form" action="/post.php?id=<?= esc($post['id']) ?>" method="post">
+                            <div class="comments__my-avatar">
+                                <?php if (!empty($_SESSION['user']['avatar_path'])): ?>
+                                    <img style="width: 40px; height: 40px; object-fit: cover;"
+                                        class="comments__picture" src="uploads/<?= esc($_SESSION['user']['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
+                                <?php endif; ?>
                             </div>
-                        </div>
-                        <input type="hidden" name="post-id" value="<?= esc($post['id']) ?>">
-                        <button class="comments__submit button button--green" type="submit">Отправить</button>
-                    </form>
+                            <?php $input = $inputs['comment'] ?>
+                            <?php $classname = isset($errors[$input['name']][0]) ? ' form__input-section--error' : ''; ?>
+                            <div class="form__input-section<?= $classname ?>">
+                                <textarea class="comments__textarea form__textarea form__input" name="<?= esc($input['name']) ?>" placeholder="<?= esc($input['placeholder']) ?>"><?= esc(get_post_value($input['name'])) ?></textarea>
+                                <label class="visually-hidden"><?= esc($input['label']) ?></label>
+                                <button class="form__error-button button" type="button">!</button>
+                                <div class="form__error-text">
+                                    <h3 class="form__error-title"><?= esc($input['label']) ?></h3>
+                                    <p class="form__error-desc"><?= esc($errors[$input['name']][0] ?? '') ?></p>
+                                </div>
+                            </div>
+                            <input type="hidden" name="post-id" value="<?= esc($post['id']) ?>">
+                            <button class="comments__submit button button--green" type="submit">Отправить</button>
+                        </form>
                     <?php endif; ?>
                     <?php if (!empty($post['comments'])): ?>
-                    <div class="comments__list-wrapper">
-                        <ul class="comments__list">
-                            <?php foreach ($post['comments'] as $comment): ?>
-                            <li class="comments__item user">
-                                <a class="user__avatar-link" href="/profile.php?id=<?= esc($comment['author_id']) ?>&tab=posts">
-                                    <div class="comments__avatar">
-                                        <?php if (!empty($comment['avatar_path'])): ?>
-                                        <?php $style = 'width: 40px; height: 40px; object-fit: cover;'; ?>
-                                        <img style="<?= $style ?>" class="comments__picture" src="uploads/<?= esc($comment['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
-                                        <?php endif; ?>
-                                    </div>
-                                </a>
-                                <div class="comments__info">
-                                    <div class="comments__name-wrapper">
-                                        <a class="comments__user-name" href="/profile.php?id=<?= esc($comment['author_id']) ?>&tab=posts">
-                                            <span><?= esc($comment['login']) ?></span>
+                        <div class="comments__list-wrapper">
+                            <ul class="comments__list">
+                                <?php foreach ($post['comments'] as $comment): ?>
+                                    <li class="comments__item user">
+                                        <a class="user__avatar-link" href="/profile.php?id=<?= esc($comment['author_id']) ?>&tab=posts">
+                                            <div class="comments__avatar">
+                                                <?php if (!empty($comment['avatar_path'])): ?>
+                                                    <img style="width: 40px; height: 40px; object-fit: cover;"
+                                                        class="comments__picture" src="uploads/<?= esc($comment['avatar_path']) ?>" width="40" height="40" alt="Аватар пользователя">
+                                                <?php endif; ?>
+                                            </div>
                                         </a>
-                                        <time class="comments__time" datetime="<?= get_datetime_value($comment['dt_add']) ?>"><?= get_relative_time($comment['dt_add']) ?> назад</time>
-                                    </div>
-                                    <p class="comments__text"><?= nl2br(esc($comment['content']), false) ?></p>
-                                </div>
-                            </li>
-                            <?php endforeach; ?>
-                        </ul>
-                        <?php if ((!isset($_GET['comments']) || $_GET['comments'] !== 'all') && intval($post['comment_count']) > 2): ?>
-                        <a class="comments__more-link" href="/post.php?id=<?= esc($post['id']) ?>&comments=all">
-                            <span>Показать все комментарии</span>
-                            <sup class="comments__amount"><?= esc($post['comment_count']) ?></sup>
-                        </a>
-                        <?php endif; ?>
-                    </div>
+                                        <div class="comments__info">
+                                            <div class="comments__name-wrapper">
+                                                <a class="comments__user-name" href="/profile.php?id=<?= esc($comment['author_id']) ?>&tab=posts">
+                                                    <span><?= esc($comment['login']) ?></span>
+                                                </a>
+                                                <time class="comments__time" datetime="<?= get_datetime_value($comment['dt_add']) ?>"><?= get_relative_time($comment['dt_add']) ?> назад</time>
+                                            </div>
+                                            <p class="comments__text"><?= nl2br(esc($comment['content']), false) ?></p>
+                                        </div>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                            <?php if ((!isset($_GET['comments']) || $_GET['comments'] !== 'all') && intval($post['comment_count']) > 2): ?>
+                                <a class="comments__more-link" href="/post.php?id=<?= esc($post['id']) ?>&comments=all">
+                                    <span>Показать все комментарии</span>
+                                    <sup class="comments__amount"><?= esc($post['comment_count']) ?></sup>
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -125,8 +125,8 @@
                     <a class="post-details__avatar-link user__avatar-link" href="/profile.php?id=<?= esc($post['author_id']) ?>&tab=posts">
                         <div class="post-details__avatar user__avatar">
                             <?php if (!empty($post['author']['avatar_path'])): ?>
-                            <?php $style = 'width: 60px; height: 60px; object-fit: cover;'; ?>
-                            <img style="<?= $style ?>" class="post-details__picture user__picture" src="uploads/<?= esc($post['author']['avatar_path']) ?>" alt="Аватар пользователя">
+                                <img style="width: 60px; height: 60px; object-fit: cover;"
+                                    class="post-details__picture user__picture" src="uploads/<?= esc($post['author']['avatar_path']) ?>" alt="Аватар пользователя">
                             <?php endif; ?>
                         </div>
                     </a>
@@ -151,13 +151,13 @@
                     </p>
                 </div>
                 <?php if ($post['author_id'] !== $_SESSION['user']['id']): ?>
-                <div class="post-details__user-buttons user__buttons">
-                    <?php $text_content = $post['author']['is_subscription'] ? 'Отписаться' : 'Подписаться'; ?>
-                    <a class="user__button user__button--subscription button button--main" href="/subscription.php?id=<?= esc($post['author_id']) ?>"><?= $text_content ?></a>
-                    <?php if ($post['author']['is_subscription']): ?>
-                    <a class="user__button user__button--writing button button--green" href="/messages.php?contact=<?= esc($post['author_id']) ?>">Сообщение</a>
-                    <?php endif; ?>
-                </div>
+                    <div class="post-details__user-buttons user__buttons">
+                        <?php $text_content = $post['author']['is_subscription'] ? 'Отписаться' : 'Подписаться'; ?>
+                        <a class="user__button user__button--subscription button button--main" href="/subscription.php?id=<?= esc($post['author_id']) ?>"><?= $text_content ?></a>
+                        <?php if ($post['author']['is_subscription']): ?>
+                            <a class="user__button user__button--writing button button--green" href="/messages.php?contact=<?= esc($post['author_id']) ?>">Сообщение</a>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>

@@ -13,21 +13,12 @@ if (!isset($_SESSION['user'])) {
 
 $user_id = intval($_SESSION['user']['id']);
 
-$input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
-$sql = "SELECT {$input_fields}, it.name AS type FROM input i
-    INNER JOIN input_type it ON it.id = i.type_id
-    INNER JOIN form_input fi ON fi.input_id = i.id
-    INNER JOIN form f ON f.id = fi.form_id
-    WHERE f.name = 'messages'";
-
-$form_inputs = get_mysqli_result($con, $sql);
-$input_names = array_column($form_inputs, 'name');
-$form_inputs = array_combine($input_names, $form_inputs);
+$form_inputs = get_form_inputs($con, 'messages');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($con, 'messages');
+    $input = get_post_input('messages');
 
     if (mb_strlen($input['message']) === 0) {
         $errors['message'][0] = 'Это поле должно быть заполнено';
@@ -37,20 +28,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         $contact_id = validate_user($con, intval($input['contact-id']));
 
-        if ($contact_id === $user_id
-            || !is_contact_valid($con, $contact_id)) {
+        if (!is_contact_valid($con, $contact_id)) {
             http_response_code(500);
             exit;
         }
 
         $message = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['message']);
         $message = preg_replace('/\040\040+/', ' ', $message);
-
         $message = mysqli_real_escape_string($con, $message);
         $sql = "INSERT INTO message (content, sender_id, recipient_id) VALUES
             ('$message', $user_id, $contact_id)";
         get_mysqli_result($con, $sql, false);
-        setcookie('new_contact', '', time() - 3600);
+
+        if (($_COOKIE['new_contact'] ?? null) == $contact_id) {
+            setcookie('new_contact', '', time() - 3600);
+        }
 
         header("Location: /messages.php?contact={$contact_id}");
         exit;
@@ -63,22 +55,20 @@ if (isset($_GET['contact'])) {
 }
 
 $sql = "SELECT
-    COUNT(DISTINCT m2.id) AS all_messages_count,
-    COUNT(DISTINCT m3.id) AS unread_messages_count,
+    COUNT(DISTINCT m2.id) AS unread_messages_count,
     u.id, u.login, u.avatar_path
     FROM message m
     LEFT JOIN user u ON u.id = m.sender_id OR u.id = m.recipient_id
-    LEFT JOIN message m2 ON m2.recipient_id = $user_id AND m2.sender_id = u.id
-    LEFT JOIN message m3 ON m3.recipient_id = $user_id AND m3.sender_id = u.id AND m3.status = 0
+    LEFT JOIN message m2 ON m2.recipient_id = $user_id AND m2.sender_id = u.id AND m2.status = 0
     WHERE (m.sender_id = $user_id OR m.recipient_id = $user_id) AND u.id != $user_id
     GROUP BY u.id
     ORDER BY MAX(m.dt_add) DESC";
 $contacts = get_mysqli_result($con, $sql);
 
 for ($i = 0; $i < count($contacts); $i++) {
-    $contact_id = $contacts[$i]['id'];
-    $contacts[$i]['preview'] = get_message_preview($con, $contact_id);
-    $contacts[$i]['messages'] = get_contact_messages($con, $contact_id);
+    $contact_id2 = $contacts[$i]['id'];
+    $contacts[$i]['preview'] = get_message_preview($con, $contact_id2);
+    $contacts[$i]['messages'] = get_contact_messages($con, $contact_id2);
 }
 
 if (isset($_GET['contact'])) {

@@ -16,21 +16,12 @@ $user_id = intval($_SESSION['user']['id']);
 $post_id = intval(filter_input(INPUT_GET, 'id'));
 $post_id = validate_post($con, $post_id);
 
-$input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
-$sql = "SELECT {$input_fields}, it.name AS type FROM input i
-    INNER JOIN input_type it ON it.id = i.type_id
-    INNER JOIN form_input fi ON fi.input_id = i.id
-    INNER JOIN form f ON f.id = fi.form_id
-    WHERE f.name = 'comments'";
-
-$form_inputs = get_mysqli_result($con, $sql);
-$input_names = array_column($form_inputs, 'name');
-$form_inputs = array_combine($input_names, $form_inputs);
+$form_inputs = get_form_inputs($con, 'comments');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($con, 'comments');
+    $input = get_post_input('comments');
 
     if (mb_strlen($input['comment']) === 0) {
         $errors['comment'][0] = 'Это поле должно быть заполнено';

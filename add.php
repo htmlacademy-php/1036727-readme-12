@@ -12,28 +12,28 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$sql = 'SELECT id, type_name, class_name, icon_width, icon_height FROM content_type';
-$content_types = get_mysqli_result($con, $sql);
+$user_id = intval($_SESSION['user']['id']);
+
+$content_types = get_content_types($con);
 $class_names = array_column($content_types, 'class_name');
+$content_types = array_combine($class_names, $content_types);
 
 $tab = filter_input(INPUT_GET, 'tab') ?? 'photo';
 $tab = in_array($tab, $class_names) ? $tab : 'photo';
 
-$input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
-$sql = "SELECT {$input_fields}, it.name AS type, f.name AS form FROM input i
-    INNER JOIN input_type it ON it.id = i.type_id
-    INNER JOIN form_input fi ON fi.input_id = i.id
-    INNER JOIN form f ON f.id = fi.form_id
-    WHERE f.name = 'adding-post'";
-
-$form_inputs = get_mysqli_result($con, $sql);
-$input_names = array_column($form_inputs, 'name');
-$form_inputs = array_combine($input_names, $form_inputs);
+$form_inputs = get_form_inputs($con, 'adding-post');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($con, 'adding-post');
+    $input = get_post_input('adding-post');
+
+    if (!is_content_type_valid($con, $input['content-type'])) {
+        http_response_code(500);
+        exit;
+    }
+
+    list($input['text-content'], $input['image-path']) = [null, null];
 
     $required_fields = get_required_fields($con, 'adding-post', $tab);
     foreach ($required_fields as $field) {
@@ -79,11 +79,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $content_type_id = get_content_type_id($con, $input['content-type']);
-        $sql = 'INSERT INTO post (title, text_content, quote_author, image_path, '
-             . 'video_path, link, author_id, content_type_id) VALUES '
-             . '(?, ?, ?, ?, ?, ?, ?, ?)';
-        $stmt_data = get_stmt_data($input, $content_type_id);
+        $post_fields = get_post_fields('', 'insert');
+        $content_type = $content_types[$input['content-type']];
+        $sql = "INSERT INTO post ($post_fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt_data = get_stmt_data($input, 'adding-post');
+        $stmt_data += [$user_id, 0, null, $content_type['id']];
         $stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
 
         if (mysqli_stmt_execute($stmt)) {
@@ -95,12 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            $user_fields = 'u.id, u.dt_add, u.email, u.login, u.password, u.avatar_path';
-            $sql = "SELECT $user_fields FROM user u "
-                 . 'INNER JOIN subscription s ON s.author_id = u.id '
-                 . "WHERE s.user_id = {$_SESSION['user']['id']}";
-
-            if ($users = get_mysqli_result($con, $sql)) {
+            if ($subscribers = get_subscribers($con)) {
 
                 try {
                     $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
@@ -112,10 +108,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $mailer = new Swift_Mailer($transport);
 
-                    foreach ($users as $user) {
-                        $message->setTo([$user['email'] => $user['login']]);
+                    foreach ($subscribers as $subscriber) {
+                        $message->setTo([$subscriber['email'] => $subscriber['login']]);
 
-                        $body = "Здравствуйте, {$user['login']}. "
+                        $body = "Здравствуйте, {$subscriber['login']}. "
                               . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
                               . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
                         $message->setBody($body);

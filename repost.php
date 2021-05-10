@@ -13,15 +13,15 @@ $user_id = intval($_SESSION['user']['id']);
 $post_id = intval(filter_input(INPUT_GET, 'id'));
 $post_id = validate_post($con, $post_id);
 
-$sql = "SELECT title, text_content, quote_author, image_path, video_path, link, content_type_id
-    FROM post WHERE id = $post_id";
+$post_fields = get_post_fields('', 'insert');
+$sql = "SELECT $post_fields FROM post WHERE id = $post_id";
 $post = get_mysqli_result($con, $sql, 'assoc');
+$post['author_id'] = $user_id;
+$post['is_repost'] = true;
+$post['origin_post_id'] = $post_id;
 
-$sql = 'INSERT INTO post (title, text_content, quote_author, image_path,
-    video_path, link, content_type_id, author_id, is_repost, origin_post_id) VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-$stmt_data = $post + [$user_id, 1, $post_id];
-$stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
+$sql = "INSERT INTO post ($post_fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$stmt = db_get_prepare_stmt($con, $sql, $post);
 
 if (mysqli_stmt_execute($stmt)) {
     $post['id'] = mysqli_insert_id($con);
@@ -36,12 +36,7 @@ if (mysqli_stmt_execute($stmt)) {
         }
     }
 
-    $user_fields = 'u.id, u.dt_add, u.email, u.login, u.password, u.avatar_path';
-    $sql = "SELECT $user_fields FROM user u
-        INNER JOIN subscription s ON s.author_id = u.id
-        WHERE s.user_id = $user_id";
-
-    if ($users = get_mysqli_result($con, $sql)) {
+    if ($subscribers = get_subscribers($con)) {
 
         try {
             $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
@@ -53,10 +48,10 @@ if (mysqli_stmt_execute($stmt)) {
 
             $mailer = new Swift_Mailer($transport);
 
-            foreach ($users as $user) {
-                $message->setTo([$user['email'] => $user['login']]);
+            foreach ($subscribers as $subscriber) {
+                $message->setTo([$subscriber['email'] => $subscriber['login']]);
 
-                $body = "Здравствуйте, {$user['login']}. "
+                $body = "Здравствуйте, {$subscriber['login']}. "
                       . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$post['title']}». "
                       . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$user_id}";
                 $message->setBody($body);

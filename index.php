@@ -10,7 +10,7 @@ if (isset($_SESSION['user'])) {
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($con, 'login');
+    $input = get_post_input('login');
 
     if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
         $errors['email'] = 'E-mail введён некорректно';

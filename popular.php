@@ -13,8 +13,7 @@ if (!isset($_SESSION['user'])) {
 
 $user_id = intval($_SESSION['user']['id']);
 
-$sql = 'SELECT id, type_name, class_name, icon_width, icon_height FROM content_type';
-$content_types = get_mysqli_result($con, $sql);
+$content_types = get_content_types($con);
 
 $sort_fields = ['popular', 'likes', 'date'];
 $sort_types = array_fill_keys($sort_fields, 'desc');

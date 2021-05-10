@@ -7,21 +7,12 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
-$input_fields = 'i.id, i.label, i.name, i.placeholder, i.required';
-$sql = "SELECT {$input_fields}, it.name AS type, f.name AS form FROM input i
-    INNER JOIN input_type it ON it.id = i.type_id
-    INNER JOIN form_input fi ON fi.input_id = i.id
-    INNER JOIN form f ON f.id = fi.form_id
-    WHERE f.name = 'registration'";
-
-$form_inputs = get_mysqli_result($con, $sql);
-$input_names = array_column($form_inputs, 'name');
-$form_inputs = array_combine($input_names, $form_inputs);
+$form_inputs = get_form_inputs($con, 'registration');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($con, 'registration');
+    $input = get_post_input('registration');
     $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
     $required_fields = get_required_fields($con, 'registration');
