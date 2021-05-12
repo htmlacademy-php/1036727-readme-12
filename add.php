@@ -12,29 +12,30 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$sql = 'SELECT id, type_name, class_name, icon_width, icon_height FROM content_type';
-$content_types = get_mysqli_result($link, $sql);
+$user_id = intval($_SESSION['user']['id']);
+
+$content_types = get_content_types($con);
 $class_names = array_column($content_types, 'class_name');
+$content_types = array_combine($class_names, $content_types);
 
 $tab = filter_input(INPUT_GET, 'tab') ?? 'photo';
 $tab = in_array($tab, $class_names) ? $tab : 'photo';
 
-$input_fields = 'i.id, i.label, i.type, i.name, i.placeholder, i.required';
-$sql = "SELECT {$input_fields}, f.name AS form FROM input i "
-     . 'INNER JOIN form_input fi ON fi.input_id = i.id '
-     . 'INNER JOIN form f ON f.id = fi.form_id '
-     . "WHERE f.name = 'adding-post'";
-
-$form_inputs = get_mysqli_result($link, $sql);
-$input_names = array_column($form_inputs, 'name');
-$form_inputs = array_combine($input_names, $form_inputs);
+$form_inputs = get_form_inputs($con, 'adding-post');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'adding-post');
+    $input = get_post_input('adding-post');
 
-    $required_fields = get_required_fields($link, 'adding-post', $tab);
+    if (!is_content_type_valid($con, $input['content-type'])) {
+        http_response_code(500);
+        exit;
+    }
+
+    list($input['text-content'], $input['image-path']) = [null, null];
+
+    $required_fields = get_required_fields($con, 'adding-post', $tab);
     foreach ($required_fields as $field) {
         if (mb_strlen($input[$field]) === 0) {
             $errors[$field][0] = 'Это поле должно быть заполнено';
@@ -61,10 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
     } elseif ($input['content-type'] === 'text') {
-        $input['text-content'] = $input['post-text'];
+        $content = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['post-text']);
+        $input['text-content'] = preg_replace('/\040\040+/', ' ', $content);
 
     } elseif ($input['content-type'] === 'quote') {
-        $input['text-content'] = $input['cite-text'];
+        $content = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['cite-text']);
+        $input['text-content'] = preg_replace('/\040\040+/', ' ', $content);
 
     } elseif ($input['content-type'] === 'link') {
         if (filter_var($input['post-link'], FILTER_VALIDATE_URL)) {
@@ -76,49 +79,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $content_type_id = get_content_type_id($link, $input['content-type']);
-        $sql = 'INSERT INTO post (title, text_content, quote_author, image_path, '
-             . 'video_path, link, author_id, content_type_id) VALUES '
-             . '(?, ?, ?, ?, ?, ?, ?, ?)';
-        $stmt_data = get_stmt_data($input, $content_type_id);
-        $stmt = db_get_prepare_stmt($link, $sql, $stmt_data);
+        $post_fields = get_post_fields('', 'insert');
+        $content_type = $content_types[$input['content-type']];
+        $sql = "INSERT INTO post ($post_fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        $stmt_data = get_stmt_data($input, 'adding-post');
+        $stmt_data += [$user_id, 0, null, $content_type['id']];
+        $stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
 
         if (mysqli_stmt_execute($stmt)) {
-            $post_id = mysqli_insert_id($link);
+            $post_id = mysqli_insert_id($con);
 
             if ($tags = array_filter(explode(' ', $input['tags']))) {
                 foreach ($tags as $tag_name) {
-                    validate_hashtag($link, $tag_name, $post_id);
+                    validate_hashtag($con, $tag_name, $post_id);
                 }
             }
 
-            $user_fields = 'u.id, u.dt_add, u.email, u.login, u.password, u.avatar_path';
-            $sql = "SELECT $user_fields FROM user u "
-                 . 'INNER JOIN subscription s ON s.author_id = u.id '
-                 . "WHERE s.user_id = {$_SESSION['user']['id']}";
+            if ($subscribers = get_subscribers($con)) {
 
-            if ($users = get_mysqli_result($link, $sql)) {
+                try {
+                    $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
+                    $transport->setUsername('keks@phpdemo.ru');
+                    $transport->setPassword('htmlacademy');
 
-                $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
-                $transport->setUsername('keks@phpdemo.ru');
-                $transport->setPassword('htmlacademy');
+                    $message = new Swift_Message();
+                    $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
 
-                $message = new Swift_Message();
-                $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
+                    $mailer = new Swift_Mailer($transport);
 
-                $mailer = new Swift_Mailer($transport);
+                    foreach ($subscribers as $subscriber) {
+                        $message->setTo([$subscriber['email'] => $subscriber['login']]);
 
-                foreach ($users as $user) {
-                    $message->setTo([$user['email'] => $user['login']]);
+                        $body = "Здравствуйте, {$subscriber['login']}. "
+                              . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
+                              . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
+                        $message->setBody($body);
+                        $message->setFrom('keks@phpdemo.ru', 'Readme');
 
-                    $body = "Здравствуйте, {$user['login']}. "
-                          . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
-                          . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
-                    $message->setBody($body);
-                    $message->setFrom('keks@phpdemo.ru', 'Readme');
+                        $mailer->send($message);
+                    }
 
-                    $mailer->send($message);
-                }
+                } catch (Swift_TransportException $ex) {}
+
             }
 
             header("Location: /post.php?id={$post_id}");
@@ -144,11 +147,12 @@ $page_content = include_template('add.php', [
     'inputs' => $form_inputs
 ]);
 
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
-    'link' => $link,
     'title' => 'readme: добавление публикации',
-    'page_main_class' => 'adding-post',
-    'page_content' => $page_content
+    'main_modifier' => 'adding-post',
+    'page_content' => $page_content,
+    'messages_count' => $messages_count
 ]);
 
 print($layout_content);

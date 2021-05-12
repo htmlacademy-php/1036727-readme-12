@@ -11,23 +11,17 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+$user_id = intval($_SESSION['user']['id']);
+
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
-$profile_id = validate_user($link, $profile_id);
+$profile_id = validate_user($con, $profile_id);
 
-$input_fields = 'i.id, i.label, i.type, i.name, i.placeholder, i.required';
-$sql = "SELECT $input_fields FROM input i "
-     . 'INNER JOIN form_input fi ON fi.input_id = i.id '
-     . 'INNER JOIN form f ON f.id = fi.form_id '
-     . "WHERE f.name = 'comments'";
-
-$form_inputs = get_mysqli_result($link, $sql);
-$input_names = array_column($form_inputs, 'name');
-$form_inputs = array_combine($input_names, $form_inputs);
+$form_inputs = get_form_inputs($con, 'comments');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'comments');
+    $input = get_post_input('comments');
 
     if (mb_strlen($input['comment']) === 0) {
         $errors['comment'][0] = 'Это поле должно быть заполнено';
@@ -38,68 +32,105 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $post_id = validate_post($link, intval($input['post-id']));
-        $comment = mysqli_real_escape_string($link, $input['comment']);
+        $post_id = validate_post($con, intval($input['post-id']));
+        $comment = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['comment']);
+        $comment = preg_replace('/\040\040+/', ' ', $comment);
+        $comment = mysqli_real_escape_string($con, $comment);
         $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
              . "('$comment', {$_SESSION['user']['id']}, $post_id)";
-        get_mysqli_result($link, $sql, false);
+        get_mysqli_result($con, $sql, false);
         $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
-        $ref = preg_replace('%&show=all%', '', $ref);
+        $ref = preg_replace('%&comments=all%', '', $ref);
 
         header("Location: $ref");
         exit;
     }
 }
 
-$user_fields = 'id, dt_add, email, login, password, avatar_path';
-$sql = "SELECT $user_fields FROM user WHERE id = $profile_id";
-$user = get_mysqli_result($link, $sql, 'assoc');
+$sql = "SELECT
+    COUNT(DISTINCT s.id) AS is_subscription,
+    COUNT(DISTINCT s2.id) AS subscriber_count,
+    COUNT(DISTINCT p.id) AS publication_count,
+    u.id, u.dt_add, u.login, u.avatar_path
+    FROM user u
+    LEFT JOIN post p ON p.author_id = u.id
+    LEFT JOIN subscription s ON s.user_id = u.id AND s.author_id = $user_id
+    LEFT JOIN subscription s2 ON s2.user_id = u.id
+    WHERE u.id = $profile_id
+    GROUP BY u.id";
+$user = get_mysqli_result($con, $sql, 'assoc');
 
 $post_fields = get_post_fields('p.');
-$sql = "SELECT {$post_fields}, COUNT(c.id), ct.class_name FROM post p "
-     . 'LEFT JOIN content_type ct ON ct.id = p.content_type_id '
-     . 'LEFT JOIN comment c ON c.post_id = p.id '
-     . "WHERE p.author_id = $profile_id "
-     . 'GROUP BY p.id '
-     . 'ORDER BY p.dt_add ASC';
-$posts = get_mysqli_result($link, $sql);
 
-$user_fields2 = 'u.id AS user_id, u.login AS author, u.avatar_path';
-$sql = "SELECT {$post_fields}, {$user_fields2}, "
-     . 'ct.type_name, ct.class_name, pl.dt_add FROM post p '
-     . 'LEFT JOIN content_type ct ON ct.id = p.content_type_id '
-     . 'LEFT JOIN post_like pl ON pl.post_id = p.id '
-     . 'LEFT JOIN user u ON u.id = pl.author_id '
-     . "WHERE p.author_id = $profile_id "
-     . 'GROUP BY p.id, pl.id, u.id '
-     . 'HAVING COUNT(pl.id) > 0 '
-     . 'ORDER BY pl.dt_add DESC';
-$likes = get_mysqli_result($link, $sql);
+$sql = "SELECT
+    COUNT(DISTINCT p2.id) AS repost_count,
+    COUNT(DISTINCT c.id) AS comment_count,
+    COUNT(DISTINCT pl.id) AS like_count,
+    COUNT(DISTINCT pl2.id) AS is_like,
+    {$post_fields}, ct.class_name
+    FROM post p
+    LEFT JOIN content_type ct ON ct.id = p.content_type_id
+    LEFT JOIN post p2 ON p2.origin_post_id = p.id
+    LEFT JOIN comment c ON c.post_id = p.id
+    LEFT JOIN post_like pl ON pl.post_id = p.id
+    LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = $user_id
+    WHERE p.author_id = $profile_id
+    GROUP BY p.id
+    ORDER BY p.dt_add ASC";
+$posts = get_mysqli_result($con, $sql);
 
-$user_fields = explode(', ', $user_fields);
-array_walk($user_fields, 'add_prefix', 'u.');
-$user_fields = implode(', ', $user_fields);
+for ($i = 0; $i < count($posts); $i++) {
+    $post = $posts[$i];
+    $posts[$i]['hashtags'] = get_post_hashtags($con, $post['id']);
+    $posts[$i]['comments'] = get_post_comments($con, $post['id']);
 
-$sql = "SELECT {$user_fields} FROM subscription s "
-     . 'INNER JOIN user u ON u.id = s.user_id '
-     . "WHERE s.author_id = $profile_id";
-$subscriptions = get_mysqli_result($link, $sql);
+    $is_repost = $post['is_repost'] && $post_id = $post['origin_post_id'];
+    $posts[$i]['origin'] = $is_repost ? get_post($con, $post_id) : [];
+}
+
+$user_fields = 'u.id AS user_id, u.login AS author, u.avatar_path';
+$sql = "SELECT {$post_fields}, {$user_fields},
+    ct.type_name, ct.class_name, pl.dt_add
+    FROM post p
+    LEFT JOIN content_type ct ON ct.id = p.content_type_id
+    LEFT JOIN post_like pl ON pl.post_id = p.id
+    LEFT JOIN user u ON u.id = pl.author_id
+    WHERE p.author_id = $profile_id
+    GROUP BY p.id, pl.id, u.id
+    HAVING COUNT(pl.id) > 0
+    ORDER BY pl.dt_add DESC";
+$likes = get_mysqli_result($con, $sql);
+
+$user_fields = 'u.id, u.dt_add, u.email, u.login, u.password, u.avatar_path';
+$sql = "SELECT
+    COUNT(DISTINCT s2.id) AS is_subscription,
+    COUNT(DISTINCT s3.id) AS subscriber_count,
+    COUNT(DISTINCT p.id) AS publication_count,
+    {$user_fields}
+    FROM subscription s
+    LEFT JOIN user u ON u.id = s.user_id
+    LEFT JOIN post p ON p.author_id = u.id
+    LEFT JOIN subscription s2 ON s2.user_id = u.id AND s2.author_id = $user_id
+    LEFT JOIN subscription s3 ON s3.user_id = u.id
+    WHERE s.author_id = $profile_id
+    GROUP BY s.id";
+$subscriptions = get_mysqli_result($con, $sql);
 
 $page_content = include_template('profile.php', [
-    'subscriptions' => $subscriptions,
+    'user' => $user,
     'posts' => $posts,
     'likes' => $likes,
-    'link' => $link,
-    'user' => $user,
-    'inputs' => $form_inputs,
-    'errors' => $errors
+    'subscriptions' => $subscriptions,
+    'errors' => $errors,
+    'inputs' => $form_inputs
 ]);
 
+$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
-    'link' => $link,
     'title' => 'readme: профиль',
-    'page_main_class' => 'profile',
-    'page_content' => $page_content
+    'main_modifier' => 'profile',
+    'page_content' => $page_content,
+    'messages_count' => $messages_count
 ]);
 
 print($layout_content);

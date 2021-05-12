@@ -7,23 +7,15 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
-$input_fields = 'i.id, i.label, i.type, i.name, i.placeholder, i.required';
-$sql = "SELECT {$input_fields}, f.name AS form FROM input i "
-     . 'INNER JOIN form_input fi ON fi.input_id = i.id '
-     . 'INNER JOIN form f ON f.id = fi.form_id '
-     . "WHERE f.name = 'registration'";
-
-$form_inputs = get_mysqli_result($link, $sql);
-$input_names = array_column($form_inputs, 'name');
-$form_inputs = array_combine($input_names, $form_inputs);
+$form_inputs = get_form_inputs($con, 'registration');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input($link, 'registration');
+    $input = get_post_input('registration');
     $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
-    $required_fields = get_required_fields($link, 'registration');
+    $required_fields = get_required_fields($con, 'registration');
     foreach ($required_fields as $field) {
         if (mb_strlen($input[$field]) === 0) {
             $errors[$field][0] = 'Это поле должно быть заполнено';
@@ -35,9 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['email'][0] = 'E-mail введён некорректно';
         $errors['email'][1] = 'Электронная почта';
     } else {
-        $email = mysqli_real_escape_string($link, $input['email']);
+        $email = mysqli_real_escape_string($con, $input['email']);
         $sql = "SELECT id FROM user WHERE email = '$email';";
-        $result = mysqli_query($link, $sql);
+        $result = mysqli_query($con, $sql);
         if (mysqli_num_rows($result) > 0) {
             $errors['email'][0] = 'Пользователь с этим email уже зарегистрирован';
             $errors['email'][1] = 'Электронная почта';
@@ -73,12 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $login = mysqli_real_escape_string($link, $input['login']);
+        $login = mysqli_real_escape_string($con, $input['login']);
         $avatar = $input['avatar'] ? "'{$input['avatar']}'" : 'null';
 
         $sql = 'INSERT INTO user (email, login, password, avatar_path) VALUES '
              . "('$email', '$login', '$password', $avatar)";
-        get_mysqli_result($link, $sql, false);
+        get_mysqli_result($con, $sql, false);
 
         if ($input['avatar']) {
             move_uploaded_file($file_path, 'uploads/' . $file_name);
@@ -90,14 +82,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_content = include_template('register.php', [
-    'inputs' => $form_inputs,
-    'errors' => $errors
+    'errors' => $errors,
+    'inputs' => $form_inputs
 ]);
 
 $layout_content = include_template('layout.php', [
-    'link' => $link,
     'title' => 'readme: регистрация',
-    'page_main_class' => 'registration',
+    'main_modifier' => 'registration',
     'page_content' => $page_content
 ]);
 

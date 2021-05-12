@@ -27,6 +27,20 @@ CREATE TABLE user (
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы content_type
+--
+
+CREATE TABLE content_type (
+	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	type_name VARCHAR(128) NOT NULL,
+	class_name VARCHAR(128) NOT NULL,
+	icon_width INT UNSIGNED NOT NULL,
+	icon_height INT UNSIGNED NOT NULL
+);
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы post
 --
 
@@ -142,20 +156,6 @@ CREATE TABLE post_hashtag (
 -- --------------------------------------------------------
 
 --
--- Структура таблицы content_type
---
-
-CREATE TABLE content_type (
-	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	type_name VARCHAR(128) NOT NULL,
-	class_name VARCHAR(128) NOT NULL,
-	icon_width INT UNSIGNED NOT NULL,
-	icon_height INT UNSIGNED NOT NULL
-);
-
--- --------------------------------------------------------
-
---
 -- Структура таблицы form
 --
 
@@ -163,6 +163,33 @@ CREATE TABLE form (
 	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 	name VARCHAR(128) NOT NULL,
 	modifier VARCHAR(128)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы input_type
+--
+
+CREATE TABLE input_type (
+	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR(128) NOT NULL
+);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы input
+--
+
+CREATE TABLE input (
+	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	label VARCHAR(128),
+	name VARCHAR(128) NOT NULL,
+	placeholder VARCHAR(128),
+	required BOOLEAN,
+	type_id INT UNSIGNED NOT NULL,
+	FOREIGN KEY (type_id) REFERENCES input_type(id)
 );
 
 -- --------------------------------------------------------
@@ -177,21 +204,6 @@ CREATE TABLE form_input (
 	input_id INT UNSIGNED NOT NULL,
 	FOREIGN KEY (form_id) REFERENCES form(id),
 	FOREIGN KEY (input_id) REFERENCES input(id)
-);
-
--- --------------------------------------------------------
-
---
--- Структура таблицы input
---
-
-CREATE TABLE input (
-	id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	label VARCHAR(128),
-	type VARCHAR(128),
-	name VARCHAR(128) NOT NULL,
-	placeholder VARCHAR(128),
-	required BOOLEAN
 );
 
 -- --------------------------------------------------------
