@@ -47,12 +47,11 @@ if (isset($_COOKIE['sort']) && isset($_COOKIE['dir']) && $_COOKIE['request_uri']
 $sort_types[$sort] = $value;
 
 $content_type_filter = '';
-if ($content_type = filter_input(INPUT_GET, 'filter')) {
-    $content_type = mysqli_real_escape_string($con, $content_type);
+$content_type = filter_input(INPUT_GET, 'filter')
+$content_type = mysqli_real_escape_string($con, $content_type);
 
-    if (is_content_type_valid($con, $content_type)) {
-        $content_type_filter = "WHERE ct.class_name = '$content_type' ";
-    }
+if (is_content_type_valid($con, $content_type)) {
+    $content_type_filter = "WHERE ct.class_name = '$content_type' ";
 }
 
 $sort_filter = 'p.show_count DESC';
@@ -93,24 +92,8 @@ if ($current_page <= 0) {
 
 $offset = ($current_page - 1) * $page_items;
 
-$post_fields = get_post_fields('p.');
-$user_fields = 'u.login AS author, u.avatar_path';
-
-$sql = "SELECT
-    COUNT(DISTINCT c.id) AS comment_count,
-    COUNT(DISTINCT pl.id) AS like_count,
-    COUNT(DISTINCT pl2.id) AS is_like,
-    {$post_fields}, {$user_fields}, ct.class_name
-    FROM post p
-    LEFT JOIN user u ON u.id = p.author_id
-    LEFT JOIN content_type ct ON ct.id = p.content_type_id
-    LEFT JOIN comment c ON c.post_id = p.id
-    LEFT JOIN post_like pl ON pl.post_id = p.id
-    LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = $user_id
-    $content_type_filter
-    GROUP BY p.id
-    ORDER BY $sort_filter LIMIT $page_items OFFSET $offset";
-$posts = get_mysqli_result($con, $sql);
+$data = [$content_type_filter, $sort_filter, $offset];
+$posts = get_popular_posts($con, ...$data);
 
 $page_content = include_template('popular.php', [
     'sort_fields' => $sort_fields,

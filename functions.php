@@ -82,9 +82,7 @@ function get_post_value(string $name) : string {
 }
 
 function esc(string $str) : string {
-    $text = htmlspecialchars($str);
-
-    return $text;
+    return htmlspecialchars($str);
 }
 
 function add_prefix(&$item, $key, $prefix) {

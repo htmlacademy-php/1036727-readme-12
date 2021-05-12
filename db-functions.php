@@ -68,11 +68,15 @@ function get_post(mysqli $con, int $post_id) : array {
     return $post;
 }
 
-function validate_post(mysqli $con, int $post_id) : int {
+function is_post_valid(mysqli $con, int $post_id) : int {
     $sql = "SELECT id FROM post WHERE id = $post_id";
     $result = get_mysqli_result($con, $sql, false);
 
-    if (!mysqli_num_rows($result)) {
+    return boolval(mysqli_num_rows($result));
+}
+
+function validate_post(mysqli $con, int $post_id) : int {
+    if (!is_post_valid($con, $post_id)) {
         http_response_code(404);
         exit;
     }
@@ -163,7 +167,7 @@ function is_contact_valid(mysqli $con, int $contact_id) : bool {
         HAVING COUNT(s.id) > 0 OR COUNT(m.id) > 0";
     $contact = get_mysqli_result($con, $sql, false);
 
-    return mysqli_num_rows($contact);
+    return boolval(mysqli_num_rows($contact));
 }
 
 function add_new_contact(mysqli $con, array &$contacts, int $contact_id) : bool {
@@ -177,7 +181,6 @@ function add_new_contact(mysqli $con, array &$contacts, int $contact_id) : bool 
 
     if ($contact) {
         array_unshift($contacts, $contact);
-
         return setcookie('new_contact', $contact_id);
     }
 
@@ -249,4 +252,174 @@ function validate_hashtag(mysqli $con, string $hashtag, int $post_id) : void {
     } else {
         mysqli_query($con, 'ROLLBACK');
     }
+}
+
+function get_feed_posts(mysqli $con, string $filter) : array {
+    $user_id = intval($_SESSION['user']['id']);
+    $post_fields = get_post_fields('p.');
+    $sql = "SELECT
+        COUNT(DISTINCT p2.id) AS repost_count,
+        COUNT(DISTINCT c.id) AS comment_count,
+        COUNT(DISTINCT pl.id) AS like_count,
+        COUNT(DISTINCT pl2.id) AS is_like,
+        {$post_fields}, u.login AS author, u.avatar_path, ct.class_name
+        FROM post p
+        LEFT JOIN user u ON u.id = p.author_id
+        LEFT JOIN content_type ct ON ct.id = p.content_type_id
+        LEFT JOIN post p2 ON p2.origin_post_id = p.id
+        LEFT JOIN comment c ON c.post_id = p.id
+        LEFT JOIN post_like pl ON pl.post_id = p.id
+        LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = $user_id
+        LEFT JOIN subscription s ON s.user_id = p.author_id
+        WHERE s.author_id = {$user_id}{$filter}
+        GROUP BY p.id
+        ORDER BY p.dt_add ASC";
+    $posts = get_mysqli_result($con, $sql);
+
+    for ($i = 0; $i < count($posts); $i++) {
+        $hashtags = get_post_hashtags($con, $posts[$i]['id']);
+        $posts[$i]['hashtags'] = $hashtags;
+    }
+
+    return $posts;
+}
+
+function get_user_by_email(mysqli $con, string $email) : array {
+    $user_fields = 'id, dt_add, email, login, password, avatar_path';
+    $sql = "SELECT $user_fields FROM user WHERE email = '$email';";
+    $user = get_mysqli_result($con, $sql, 'assoc');
+
+    return $user;
+}
+
+function get_contacts(mysqli $con) : array {
+    $user_id = intval($_SESSION['user']['id']);
+    $sql = "SELECT
+        COUNT(DISTINCT m2.id) AS unread_messages_count,
+        u.id, u.login, u.avatar_path
+        FROM message m
+        LEFT JOIN user u ON u.id = m.sender_id OR u.id = m.recipient_id
+        LEFT JOIN message m2 ON m2.recipient_id = $user_id AND m2.sender_id = u.id AND m2.status = 0
+        WHERE (m.sender_id = $user_id OR m.recipient_id = $user_id) AND u.id != $user_id
+        GROUP BY u.id
+        ORDER BY MAX(m.dt_add) DESC";
+    $contacts = get_mysqli_result($con, $sql);
+
+    for ($i = 0; $i < count($contacts); $i++) {
+        $contact_id = $contacts[$i]['id'];
+        $contacts[$i]['preview'] = get_message_preview($con, $contact_id);
+        $contacts[$i]['messages'] = get_contact_messages($con, $contact_id);
+    }
+
+    return $contacts;
+}
+
+function get_popular_posts(mysqli $con, string $filter1, string $filter2, int $offset) : array {
+    $user_id = intval($_SESSION['user']['id']);
+    $post_fields = get_post_fields('p.');
+    $sql = "SELECT
+        COUNT(DISTINCT c.id) AS comment_count,
+        COUNT(DISTINCT pl.id) AS like_count,
+        COUNT(DISTINCT pl2.id) AS is_like,
+        {$post_fields}, u.login AS author, u.avatar_path, ct.class_name
+        FROM post p
+        LEFT JOIN user u ON u.id = p.author_id
+        LEFT JOIN content_type ct ON ct.id = p.content_type_id
+        LEFT JOIN comment c ON c.post_id = p.id
+        LEFT JOIN post_like pl ON pl.post_id = p.id
+        LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = $user_id
+        $filter1
+        GROUP BY p.id
+        ORDER BY $filter2 LIMIT 6 OFFSET $offset";
+    $posts = get_mysqli_result($con, $sql);
+
+    return $posts;
+}
+
+function get_user_profile(mysqli $con, int $profile_id) : array {
+    $user_id = intval($_SESSION['user']['id']);
+    $sql = "SELECT
+        COUNT(DISTINCT s.id) AS is_subscription,
+        COUNT(DISTINCT s2.id) AS subscriber_count,
+        COUNT(DISTINCT p.id) AS publication_count,
+        u.id, u.dt_add, u.login, u.avatar_path
+        FROM user u
+        LEFT JOIN post p ON p.author_id = u.id
+        LEFT JOIN subscription s ON s.user_id = u.id AND s.author_id = $user_id
+        LEFT JOIN subscription s2 ON s2.user_id = u.id
+        WHERE u.id = $profile_id
+        GROUP BY u.id";
+    $user = get_mysqli_result($con, $sql, 'assoc');
+
+    return $user;
+}
+
+function get_profile_posts(mysqli $con, int $profile_id) : array {
+    $user_id = intval($_SESSION['user']['id']);
+    $post_fields = get_post_fields('p.');
+    $sql = "SELECT
+        COUNT(DISTINCT p2.id) AS repost_count,
+        COUNT(DISTINCT c.id) AS comment_count,
+        COUNT(DISTINCT pl.id) AS like_count,
+        COUNT(DISTINCT pl2.id) AS is_like,
+        {$post_fields}, ct.class_name
+        FROM post p
+        LEFT JOIN content_type ct ON ct.id = p.content_type_id
+        LEFT JOIN post p2 ON p2.origin_post_id = p.id
+        LEFT JOIN comment c ON c.post_id = p.id
+        LEFT JOIN post_like pl ON pl.post_id = p.id
+        LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = $user_id
+        WHERE p.author_id = $profile_id
+        GROUP BY p.id
+        ORDER BY p.dt_add ASC";
+    $posts = get_mysqli_result($con, $sql);
+
+    for ($i = 0; $i < count($posts); $i++) {
+        $post = $posts[$i];
+        $posts[$i]['hashtags'] = get_post_hashtags($con, $post['id']);
+        $posts[$i]['comments'] = get_post_comments($con, $post['id']);
+
+        $is_repost = $post['is_repost'] && $post_id = $post['origin_post_id'];
+        $posts[$i]['origin'] = $is_repost ? get_post($con, $post_id) : [];
+    }
+
+    return $posts;
+}
+
+function get_profile_likes(mysqli $con, int $profile_id) : array {
+    $post_fields = get_post_fields('p.');
+    $user_fields = 'u.id AS user_id, u.login AS author, u.avatar_path';
+    $sql = "SELECT {$post_fields}, {$user_fields},
+        ct.type_name, ct.class_name, pl.dt_add
+        FROM post p
+        LEFT JOIN content_type ct ON ct.id = p.content_type_id
+        LEFT JOIN post_like pl ON pl.post_id = p.id
+        LEFT JOIN user u ON u.id = pl.author_id
+        WHERE p.author_id = $profile_id
+        GROUP BY p.id, pl.id, u.id
+        HAVING COUNT(pl.id) > 0
+        ORDER BY pl.dt_add DESC";
+    $likes = get_mysqli_result($con, $sql);
+
+    return $likes;
+}
+
+function get_profile_subscriptions(mysqli $con, int $profile_id) : array {
+    $user_id = intval($_SESSION['user']['id']);
+    $user_fields = 'u.id, u.dt_add, u.login, u.avatar_path';
+    $sql = "SELECT
+        COUNT(DISTINCT s2.id) AS is_subscription,
+        COUNT(DISTINCT s3.id) AS subscriber_count,
+        COUNT(DISTINCT p.id) AS publication_count,
+        {$user_fields}
+        FROM subscription s
+        LEFT JOIN user u ON u.id = s.user_id
+        LEFT JOIN post p ON p.author_id = u.id
+        LEFT JOIN subscription s2 ON s2.user_id = u.id AND s2.author_id = $user_id
+        LEFT JOIN subscription s3 ON s3.user_id = u.id
+        WHERE s.author_id = $profile_id
+        GROUP BY s.id";
+    $subscriptions = get_mysqli_result($con, $sql);
+
+    return $subscriptions;
 }

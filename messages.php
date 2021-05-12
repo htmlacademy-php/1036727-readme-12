@@ -54,22 +54,7 @@ if (isset($_GET['contact'])) {
     update_messages_status($con, $contact_id);
 }
 
-$sql = "SELECT
-    COUNT(DISTINCT m2.id) AS unread_messages_count,
-    u.id, u.login, u.avatar_path
-    FROM message m
-    LEFT JOIN user u ON u.id = m.sender_id OR u.id = m.recipient_id
-    LEFT JOIN message m2 ON m2.recipient_id = $user_id AND m2.sender_id = u.id AND m2.status = 0
-    WHERE (m.sender_id = $user_id OR m.recipient_id = $user_id) AND u.id != $user_id
-    GROUP BY u.id
-    ORDER BY MAX(m.dt_add) DESC";
-$contacts = get_mysqli_result($con, $sql);
-
-for ($i = 0; $i < count($contacts); $i++) {
-    $contact_id2 = $contacts[$i]['id'];
-    $contacts[$i]['preview'] = get_message_preview($con, $contact_id2);
-    $contacts[$i]['messages'] = get_contact_messages($con, $contact_id2);
-}
+$contacts = get_contacts($con);
 
 if (isset($_GET['contact'])) {
 

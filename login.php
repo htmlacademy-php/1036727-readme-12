@@ -29,10 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $email = mysqli_real_escape_string($con, $input['email']);
-
-        $user_fields = 'id, dt_add, email, login, password, avatar_path';
-        $sql = "SELECT $user_fields FROM user WHERE email = '$email';";
-        $user = get_mysqli_result($con, $sql, 'assoc');
+        $user = get_user_by_email($con, $email);
 
         if ($user && password_verify($input['password'], $user['password'])) {
             $_SESSION['user'] = $user;
