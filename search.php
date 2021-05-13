@@ -68,7 +68,7 @@ if (substr($search, 0, 1) === '#') {
             COUNT(DISTINCT c.id) AS comment_count,
             COUNT(DISTINCT pl.id) AS like_count,
             COUNT(DISTINCT pl2.id) AS is_like,
-            MATCH (p.title, p.text_content) AGAINST ('$request') AS score,
+            MATCH (p.title, p.text_content) AGAINST ('$query') AS score,
             {$post_fields}, {$user_fields}, ct.class_name
             FROM post p
             LEFT JOIN user u ON u.id = p.author_id

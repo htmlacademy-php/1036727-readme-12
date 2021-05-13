@@ -16,7 +16,7 @@ function get_mysqli_result(mysqli $con, string $sql, string $result_type = 'all'
     return $result;
 }
 
-function update_errors_log(mysqli $con, string $sql, string $filename) : void {
+function update_errors_log(mysqli $con, string $sql, string $filename): void {
     $date = date('d-m-Y H:i:s');
     $error = mysqli_error($con);
     $data = "$date - $error\n$sql\n\n";
@@ -24,14 +24,14 @@ function update_errors_log(mysqli $con, string $sql, string $filename) : void {
     file_put_contents($filename, $data, FILE_APPEND | LOCK_EX);
 }
 
-function is_user_valid(mysqli $con, int $user_id) : bool {
+function is_user_valid(mysqli $con, int $user_id): bool {
     $sql = "SELECT id FROM user WHERE id = $user_id";
     $result = get_mysqli_result($con, $sql, false);
 
     return boolval(mysqli_num_rows($result));
 }
 
-function validate_user(mysqli $con, int $user_id) : int {
+function validate_user(mysqli $con, int $user_id): int {
     if (!is_user_valid($con, $user_id)) {
         http_response_code(404);
         exit;
@@ -40,7 +40,7 @@ function validate_user(mysqli $con, int $user_id) : int {
     return $user_id;
 }
 
-function get_content_types(mysqli $con) : array {
+function get_content_types(mysqli $con): array {
     $sql = 'SELECT
         id, type_name, class_name, icon_width, icon_height
         FROM content_type';
@@ -49,7 +49,7 @@ function get_content_types(mysqli $con) : array {
     return $content_types;
 }
 
-function is_content_type_valid(mysqli $con, string $type) : bool {
+function is_content_type_valid(mysqli $con, string $type): bool {
     $sql = 'SELECT class_name FROM content_type';
     $content_types = get_mysqli_result($con, $sql);
     $class_names = array_column($content_types, 'class_name');
@@ -57,7 +57,7 @@ function is_content_type_valid(mysqli $con, string $type) : bool {
     return in_array($type, $class_names);
 }
 
-function get_post(mysqli $con, int $post_id) : array {
+function get_post(mysqli $con, int $post_id): array {
     $sql = "SELECT
         p.dt_add, p.author_id, u.login AS author, u.avatar_path
         FROM post p
@@ -68,14 +68,14 @@ function get_post(mysqli $con, int $post_id) : array {
     return $post;
 }
 
-function is_post_valid(mysqli $con, int $post_id) : int {
+function is_post_valid(mysqli $con, int $post_id): int {
     $sql = "SELECT id FROM post WHERE id = $post_id";
     $result = get_mysqli_result($con, $sql, false);
 
     return boolval(mysqli_num_rows($result));
 }
 
-function validate_post(mysqli $con, int $post_id) : int {
+function validate_post(mysqli $con, int $post_id): int {
     if (!is_post_valid($con, $post_id)) {
         http_response_code(404);
         exit;
@@ -84,7 +84,7 @@ function validate_post(mysqli $con, int $post_id) : int {
     return $post_id;
 }
 
-function get_post_comments(mysqli $con, int $post_id) : array {
+function get_post_comments(mysqli $con, int $post_id): array {
     $comments = filter_input(INPUT_GET, 'comments');
     $limit = !$comments || $comments !== 'all' ? ' LIMIT 2' : '';
 
@@ -100,7 +100,7 @@ function get_post_comments(mysqli $con, int $post_id) : array {
     return $comments;
 }
 
-function get_subscribers(mysqli $con) : array {
+function get_subscribers(mysqli $con): array {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT u.email, u.login
         FROM user u
@@ -111,7 +111,7 @@ function get_subscribers(mysqli $con) : array {
     return $subscribers;
 }
 
-function get_messages_count(mysqli $con, int $contact_id = null) : string {
+function get_messages_count(mysqli $con, int $contact_id = null): string {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT COUNT(id) FROM message WHERE recipient_id = $user_id";
     $sql .= $contact_id ? " AND sender_id = $contact_id" : ' AND status = 0';
@@ -120,7 +120,7 @@ function get_messages_count(mysqli $con, int $contact_id = null) : string {
     return $messages_count;
 }
 
-function get_message_preview(mysqli $con, int $contact_id) : array {
+function get_message_preview(mysqli $con, int $contact_id): array {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT
         dt_add, content, sender_id
@@ -135,7 +135,7 @@ function get_message_preview(mysqli $con, int $contact_id) : array {
     return ['text' => $preview, 'time' => $message['dt_add']];
 }
 
-function get_contact_messages(mysqli $con, int $contact_id) : array {
+function get_contact_messages(mysqli $con, int $contact_id): array {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT
         m.id, m.dt_add, m.content, m.status, m.sender_id, m.recipient_id,
@@ -150,14 +150,14 @@ function get_contact_messages(mysqli $con, int $contact_id) : array {
     return $messages;
 }
 
-function update_messages_status(mysqli $con, int $contact_id) : void {
+function update_messages_status(mysqli $con, int $contact_id): void {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "UPDATE message SET status = 1
         WHERE sender_id = $contact_id AND recipient_id = $user_id";
     get_mysqli_result($con, $sql, false);
 }
 
-function is_contact_valid(mysqli $con, int $contact_id) : bool {
+function is_contact_valid(mysqli $con, int $contact_id): bool {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT u.id
         FROM user u
@@ -170,7 +170,7 @@ function is_contact_valid(mysqli $con, int $contact_id) : bool {
     return boolval(mysqli_num_rows($contact));
 }
 
-function add_new_contact(mysqli $con, array &$contacts, int $contact_id) : bool {
+function add_new_contact(mysqli $con, array &$contacts, int $contact_id): bool {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT u.id, u.login, u.avatar_path
         FROM user u
@@ -187,7 +187,7 @@ function add_new_contact(mysqli $con, array &$contacts, int $contact_id) : bool 
     return false;
 }
 
-function get_post_hashtags(mysqli $con, int $post_id) : array {
+function get_post_hashtags(mysqli $con, int $post_id): array {
     $sql = "SELECT h.name
         FROM hashtag h
         INNER JOIN post_hashtag ph ON ph.hashtag_id = h.id
@@ -198,7 +198,7 @@ function get_post_hashtags(mysqli $con, int $post_id) : array {
     return $hashtags;
 }
 
-function get_form_inputs(mysqli $con, string $form) : array {
+function get_form_inputs(mysqli $con, string $form): array {
     $sql = "SELECT
         i.id, i.label, i.name, i.placeholder, i.required,
         it.name AS type, f.name AS form
@@ -214,7 +214,7 @@ function get_form_inputs(mysqli $con, string $form) : array {
     return $form_inputs;
 }
 
-function get_required_fields(mysqli $con, string $form, string $tab = '') : array {
+function get_required_fields(mysqli $con, string $form, string $tab = ''): array {
     $sql = "SELECT i.name
         FROM input i
         INNER JOIN form_input fi ON fi.input_id = i.id
@@ -226,7 +226,7 @@ function get_required_fields(mysqli $con, string $form, string $tab = '') : arra
     return array_column($required_fields, 'name');
 }
 
-function validate_hashtag(mysqli $con, string $hashtag, int $post_id) : void {
+function validate_hashtag(mysqli $con, string $hashtag, int $post_id): void {
     if (!$tag_name = ltrim($hashtag, '#')) {
         return;
     }
@@ -254,7 +254,7 @@ function validate_hashtag(mysqli $con, string $hashtag, int $post_id) : void {
     }
 }
 
-function get_feed_posts(mysqli $con, string $filter) : array {
+function get_feed_posts(mysqli $con, string $filter): array {
     $user_id = intval($_SESSION['user']['id']);
     $post_fields = get_post_fields('p.');
     $sql = "SELECT
@@ -284,7 +284,7 @@ function get_feed_posts(mysqli $con, string $filter) : array {
     return $posts;
 }
 
-function get_user_by_email(mysqli $con, string $email) : array {
+function get_user_by_email(mysqli $con, string $email): array {
     $user_fields = 'id, dt_add, email, login, password, avatar_path';
     $sql = "SELECT $user_fields FROM user WHERE email = '$email';";
     $user = get_mysqli_result($con, $sql, 'assoc');
@@ -292,7 +292,7 @@ function get_user_by_email(mysqli $con, string $email) : array {
     return $user;
 }
 
-function get_contacts(mysqli $con) : array {
+function get_contacts(mysqli $con): array {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT
         COUNT(DISTINCT m2.id) AS unread_messages_count,
@@ -314,7 +314,16 @@ function get_contacts(mysqli $con) : array {
     return $contacts;
 }
 
-function get_popular_posts(mysqli $con, string $filter1, string $filter2, int $offset) : array {
+function get_items_count(mysqli $con, string $filter): string {
+    $sql = "SELECT COUNT(p.id) FROM post p
+        LEFT JOIN content_type ct ON ct.id = p.content_type_id
+        $content_type_filter";
+    $items_count = get_mysqli_result($con, $sql, 'assoc')['COUNT(p.id)'];
+
+    return $items_count;
+}
+
+function get_popular_posts(mysqli $con, string $filter1, string $filter2, int $offset): array {
     $user_id = intval($_SESSION['user']['id']);
     $post_fields = get_post_fields('p.');
     $sql = "SELECT
@@ -336,7 +345,7 @@ function get_popular_posts(mysqli $con, string $filter1, string $filter2, int $o
     return $posts;
 }
 
-function get_user_profile(mysqli $con, int $profile_id) : array {
+function get_user_profile(mysqli $con, int $profile_id): array {
     $user_id = intval($_SESSION['user']['id']);
     $sql = "SELECT
         COUNT(DISTINCT s.id) AS is_subscription,
@@ -354,7 +363,7 @@ function get_user_profile(mysqli $con, int $profile_id) : array {
     return $user;
 }
 
-function get_profile_posts(mysqli $con, int $profile_id) : array {
+function get_profile_posts(mysqli $con, int $profile_id): array {
     $user_id = intval($_SESSION['user']['id']);
     $post_fields = get_post_fields('p.');
     $sql = "SELECT
@@ -386,7 +395,7 @@ function get_profile_posts(mysqli $con, int $profile_id) : array {
     return $posts;
 }
 
-function get_profile_likes(mysqli $con, int $profile_id) : array {
+function get_profile_likes(mysqli $con, int $profile_id): array {
     $post_fields = get_post_fields('p.');
     $user_fields = 'u.id AS user_id, u.login AS author, u.avatar_path';
     $sql = "SELECT {$post_fields}, {$user_fields},
@@ -404,14 +413,13 @@ function get_profile_likes(mysqli $con, int $profile_id) : array {
     return $likes;
 }
 
-function get_profile_subscriptions(mysqli $con, int $profile_id) : array {
+function get_profile_subscriptions(mysqli $con, int $profile_id): array {
     $user_id = intval($_SESSION['user']['id']);
-    $user_fields = 'u.id, u.dt_add, u.login, u.avatar_path';
     $sql = "SELECT
         COUNT(DISTINCT s2.id) AS is_subscription,
         COUNT(DISTINCT s3.id) AS subscriber_count,
         COUNT(DISTINCT p.id) AS publication_count,
-        {$user_fields}
+        u.id, u.dt_add, u.login, u.avatar_path
         FROM subscription s
         LEFT JOIN user u ON u.id = s.user_id
         LEFT JOIN post p ON p.author_id = u.id

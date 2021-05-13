@@ -47,7 +47,7 @@ if (isset($_COOKIE['sort']) && isset($_COOKIE['dir']) && $_COOKIE['request_uri']
 $sort_types[$sort] = $value;
 
 $content_type_filter = '';
-$content_type = filter_input(INPUT_GET, 'filter')
+$content_type = filter_input(INPUT_GET, 'filter');
 $content_type = mysqli_real_escape_string($con, $content_type);
 
 if (is_content_type_valid($con, $content_type)) {
@@ -78,10 +78,7 @@ if (isset($_GET['sort']) && isset($_GET['dir'])) {
 $current_page = intval(filter_input(INPUT_GET, 'page') ?? 1);
 $page_items = 6;
 
-$sql = "SELECT COUNT(p.id) FROM post p
-    LEFT JOIN content_type ct ON ct.id = p.content_type_id
-    $content_type_filter";
-$items_count = get_mysqli_result($con, $sql, 'assoc')['COUNT(p.id)'];
+$items_count = get_items_count($con, $content_type_filter);
 $pages_count = ceil($items_count / $page_items) ?: 1;
 
 if ($current_page <= 0) {

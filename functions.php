@@ -4,7 +4,7 @@ function exceptions_error_handler($severity, $message, $filename, $lineno) {
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
 }
 
-function crop_text_content(string $text, int $post_id, string $style = '', int $num_letters = 300) : string {
+function crop_text_content(string $text, int $post_id, string $style = '', int $num_letters = 300): string {
     $style = $style ? " style=\"{$style}\"" : '';
     $text_length = mb_strlen($text);
 
@@ -36,7 +36,7 @@ function crop_text_content(string $text, int $post_id, string $style = '', int $
     return $result;
 }
 
-function get_post_input(string $form) : array {
+function get_post_input(string $form): array {
     $input_names = [
         'adding-post' => [
             'heading',
@@ -44,10 +44,12 @@ function get_post_input(string $form) : array {
             'video-url',
             'post-text',
             'cite-text',
+            'text-content',
             'quote-author',
             'post-link',
             'tags',
             'file-photo',
+            'image-path',
             'content-type'
         ],
         'registration' => [
@@ -63,8 +65,7 @@ function get_post_input(string $form) : array {
     ];
 
     if (!isset($input_names[$form])) {
-        http_response_code(500);
-        exit;
+        return [];
     }
 
     foreach ($input_names[$form] as $name) {
@@ -75,13 +76,13 @@ function get_post_input(string $form) : array {
     return $input;
 }
 
-function get_post_value(string $name) : string {
+function get_post_value(string $name): string {
     $value = filter_input(INPUT_POST, $name) ?? '';
 
     return $value;
 }
 
-function esc(string $str) : string {
+function esc(string $str): string {
     return htmlspecialchars($str);
 }
 
@@ -89,7 +90,7 @@ function add_prefix(&$item, $key, $prefix) {
     $item = $prefix . $item;
 }
 
-function get_post_fields(string $prefix, string $mode = 'select') : string {
+function get_post_fields(string $prefix, string $mode = 'select'): string {
     $post_fields = [
         'select' => [
             'id',
@@ -124,7 +125,7 @@ function get_post_fields(string $prefix, string $mode = 'select') : string {
     return implode(', ', $post_fields[$mode]);
 }
 
-function get_stmt_data(array $input, string $form) : array {
+function get_stmt_data(array $input, string $form): array {
     $input_keys = [
         'adding-post' => [
             'heading',
@@ -137,18 +138,20 @@ function get_stmt_data(array $input, string $form) : array {
     ];
 
     if (!isset($input_keys[$form])) {
-        http_response_code(500);
-        exit;
+        return [];
     }
 
     foreach ($input_keys[$form] as $key) {
+        if (!array_key_exists($key, $input)) {
+            return [];
+        }
         $stmt_data[$key] = $input[$key];
     }
 
     return $stmt_data;
 }
 
-function get_relative_time(string $date) : string {
+function get_relative_time(string $date): string {
 
     if (!strtotime($date)) {
         return '';
@@ -175,7 +178,7 @@ function get_relative_time(string $date) : string {
         $weeks = floor($ts_diff / 604800);
         $relative_time = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель');
 
-    } elseif ($ts_diff >= 3024000) {
+    } else {
         $dt_diff = date_diff(date_create($date), date_create('now'));
         $months = date_interval_format($dt_diff, '%m');
         $relative_time = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев');
@@ -184,7 +187,7 @@ function get_relative_time(string $date) : string {
     return $relative_time;
 }
 
-function get_datetime_value(string $date) : string {
+function get_datetime_value(string $date): string {
     if ($ts = strtotime($date)) {
         $datetime = date('Y-m-d H:i', $ts);
         $datetime = str_replace(' ', 'T', $datetime);
@@ -193,7 +196,7 @@ function get_datetime_value(string $date) : string {
     return $datetime ?? '';
 }
 
-function get_time_title(string $date) : string {
+function get_time_title(string $date): string {
     if ($ts = strtotime($date)) {
         $title = date('d.m.Y H:i', $ts);
     }
@@ -201,7 +204,7 @@ function get_time_title(string $date) : string {
     return $title ?? '';
 }
 
-function get_sorting_link_class(string $field) : string {
+function get_sorting_link_class(string $field): string {
     if (isset($_GET['sort']) && $_GET['sort'] === $field) {
         $classname = ' sorting__link--active';
         if (isset($_GET['dir']) && $_GET['dir'] === 'asc') {
@@ -212,7 +215,7 @@ function get_sorting_link_class(string $field) : string {
     return $classname ?? '';
 }
 
-function get_sorting_link_url(string $field, array $types) : string {
+function get_sorting_link_url(string $field, array $types): string {
     if ($filter = filter_input(INPUT_GET, 'filter')) {
         $parameters['filter'] = $filter;
     }
@@ -227,7 +230,7 @@ function get_sorting_link_url(string $field, array $types) : string {
     return $url;
 }
 
-function get_page_link_url(int $current_page, bool $next) : string {
+function get_page_link_url(int $current_page, bool $next): string {
     $parameters['filter'] = filter_input(INPUT_GET, 'filter');
     $parameters['sort'] = filter_input(INPUT_GET, 'sort');
     $parameters['dir'] = filter_input(INPUT_GET, 'dir');
@@ -244,7 +247,7 @@ function get_page_link_url(int $current_page, bool $next) : string {
     return $url;
 }
 
-function get_adding_post_close_url() : string {
+function get_adding_post_close_url(): string {
     $url = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
     if (parse_url($url, PHP_URL_PATH) === '/add.php') {
         $url = $_COOKIE['add_ref'] ?? $url;
@@ -253,7 +256,7 @@ function get_adding_post_close_url() : string {
     return $url;
 }
 
-function validate_input_file_photo(array &$errors, array &$input) : void {
+function validate_input_file_photo(array &$errors, array &$input): void {
     $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -276,7 +279,7 @@ function validate_input_file_photo(array &$errors, array &$input) : void {
     }
 }
 
-function validate_input_image_url(array &$errors, array &$input) : void {
+function validate_input_image_url(array &$errors, array &$input): void {
     $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -311,14 +314,14 @@ function validate_input_image_url(array &$errors, array &$input) : void {
     restore_error_handler();
 }
 
-function validate_input_video_url(array &$errors, array &$input) : void {
+function validate_input_video_url(array &$errors, array &$input): void {
     if (strpos($input['video-url'], 'youtube.com/watch?v=') === false) {
         $errors['video-url'][0] = 'Некорректный url-адрес';
         $errors['video-url'][1] = 'Ссылка youtube';
     }
 }
 
-function validate_link_info(array &$input) : void {
+function validate_link_info(array &$input): void {
     set_error_handler('exceptions_error_handler');
 
     try {
@@ -362,7 +365,7 @@ function cmp($a, $b) {
     return ($a > $b) ? -1 : 1;
 }
 
-function get_icon_url(string $url) : string {
+function get_icon_url(string $url): string {
     $url = parse_url($url, PHP_URL_HOST);
     $url = "https://favicongrabber.com/api/grab/{$url}?pretty=true";
 
@@ -390,7 +393,7 @@ function get_icon_url(string $url) : string {
     return $response[0]['src'] ?? '';
 }
 
-function validate_icon_file(array &$input) : void {
+function validate_icon_file(array &$input): void {
     $icon_url = get_icon_url($input['post-link']);
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -412,12 +415,12 @@ function validate_icon_file(array &$input) : void {
     restore_error_handler();
 }
 
-function validate_input_post_link(array &$input) : void {
+function validate_input_post_link(array &$input): void {
     validate_link_info($input);
     validate_icon_file($input);
 }
 
-function delete_file(string $filename) : void {
+function delete_file(string $filename): void {
     if (file_exists($filename)) {
         unlink($filename);
     }

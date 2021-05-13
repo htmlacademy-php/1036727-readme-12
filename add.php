@@ -28,111 +28,107 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input('adding-post');
 
-    if (!is_content_type_valid($con, $input['content-type'])) {
-        http_response_code(500);
-        exit;
-    }
+    if ($input && is_content_type_valid($con, $input['content-type'])) {
 
-    list($input['text-content'], $input['image-path']) = [null, null];
-
-    $required_fields = get_required_fields($con, 'adding-post', $tab);
-    foreach ($required_fields as $field) {
-        if (mb_strlen($input[$field]) === 0) {
-            $errors[$field][0] = 'Это поле должно быть заполнено';
-            $errors[$field][1] = $form_inputs[$field]['label'];
-        }
-    }
-
-    if ($input['content-type'] === 'photo') {
-        if (!empty($_FILES['file-photo']['name'])) {
-            validate_input_file_photo($errors, $input);
-        } elseif (filter_var($input['image-url'], FILTER_VALIDATE_URL)) {
-            validate_input_image_url($errors, $input);
-        } else {
-            $errors['file-photo'][0] = 'Вы не загрузили файл';
-            $errors['file-photo'][1] = 'Изображение';
+        $required_fields = get_required_fields($con, 'adding-post', $tab);
+        foreach ($required_fields as $field) {
+            if (mb_strlen($input[$field]) === 0) {
+                $errors[$field][0] = 'Это поле должно быть заполнено';
+                $errors[$field][1] = $form_inputs[$field]['label'];
+            }
         }
 
-    } elseif ($input['content-type'] === 'video') {
-        if (filter_var($input['video-url'], FILTER_VALIDATE_URL)) {
-            validate_input_video_url($errors, $input);
-        } else {
-            $errors['video-url'][0] = 'Некорректный url-адрес';
-            $errors['video-url'][1] = 'Ссылка youtube';
-        }
-
-    } elseif ($input['content-type'] === 'text') {
-        $content = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['post-text']);
-        $input['text-content'] = preg_replace('/\040\040+/', ' ', $content);
-
-    } elseif ($input['content-type'] === 'quote') {
-        $content = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['cite-text']);
-        $input['text-content'] = preg_replace('/\040\040+/', ' ', $content);
-
-    } elseif ($input['content-type'] === 'link') {
-        if (filter_var($input['post-link'], FILTER_VALIDATE_URL)) {
-            validate_input_post_link($input);
-        } else {
-            $errors['post-link'][0] = 'Некорректный url-адрес';
-            $errors['post-link'][1] = 'Ссылка';
-        }
-    }
-
-    if (empty($errors)) {
-        $post_fields = get_post_fields('', 'insert');
-        $content_type = $content_types[$input['content-type']];
-        $sql = "INSERT INTO post ($post_fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        $stmt_data = get_stmt_data($input, 'adding-post');
-        $stmt_data += [$user_id, 0, null, $content_type['id']];
-        $stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
-
-        if (mysqli_stmt_execute($stmt)) {
-            $post_id = mysqli_insert_id($con);
-
-            if ($tags = array_filter(explode(' ', $input['tags']))) {
-                foreach ($tags as $tag_name) {
-                    validate_hashtag($con, $tag_name, $post_id);
-                }
+        if ($input['content-type'] === 'photo') {
+            if (!empty($_FILES['file-photo']['name'])) {
+                validate_input_file_photo($errors, $input);
+            } elseif (filter_var($input['image-url'], FILTER_VALIDATE_URL)) {
+                validate_input_image_url($errors, $input);
+            } else {
+                $errors['file-photo'][0] = 'Вы не загрузили файл';
+                $errors['file-photo'][1] = 'Изображение';
             }
 
-            if ($subscribers = get_subscribers($con)) {
+        } elseif ($input['content-type'] === 'video') {
+            if (filter_var($input['video-url'], FILTER_VALIDATE_URL)) {
+                validate_input_video_url($errors, $input);
+            } else {
+                $errors['video-url'][0] = 'Некорректный url-адрес';
+                $errors['video-url'][1] = 'Ссылка youtube';
+            }
 
-                try {
-                    $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
-                    $transport->setUsername('keks@phpdemo.ru');
-                    $transport->setPassword('htmlacademy');
+        } elseif ($input['content-type'] === 'text') {
+            $content = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['post-text']);
+            $input['text-content'] = preg_replace('/\040\040+/', ' ', $content);
 
-                    $message = new Swift_Message();
-                    $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
+        } elseif ($input['content-type'] === 'quote') {
+            $content = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['cite-text']);
+            $input['text-content'] = preg_replace('/\040\040+/', ' ', $content);
 
-                    $mailer = new Swift_Mailer($transport);
+        } elseif ($input['content-type'] === 'link') {
+            if (filter_var($input['post-link'], FILTER_VALIDATE_URL)) {
+                validate_input_post_link($input);
+            } else {
+                $errors['post-link'][0] = 'Некорректный url-адрес';
+                $errors['post-link'][1] = 'Ссылка';
+            }
+        }
 
-                    foreach ($subscribers as $subscriber) {
-                        $message->setTo([$subscriber['email'] => $subscriber['login']]);
+        if (empty($errors)) {
+            $post_fields = get_post_fields('', 'insert');
+            $content_type = $content_types[$input['content-type']];
+            $sql = "INSERT INTO post ($post_fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-                        $body = "Здравствуйте, {$subscriber['login']}. "
-                              . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
-                              . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
-                        $message->setBody($body);
-                        $message->setFrom('keks@phpdemo.ru', 'Readme');
+            $stmt_data = get_stmt_data($input, 'adding-post');
+            $stmt_data += [$user_id, 0, null, $content_type['id']];
+            $stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
 
-                        $mailer->send($message);
+            if (mysqli_stmt_execute($stmt)) {
+                $post_id = mysqli_insert_id($con);
+
+                if ($tags = array_filter(explode(' ', $input['tags']))) {
+                    foreach ($tags as $tag_name) {
+                        validate_hashtag($con, $tag_name, $post_id);
                     }
+                }
 
-                } catch (Swift_TransportException $ex) {}
+                if ($subscribers = get_subscribers($con)) {
 
+                    try {
+                        $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
+                        $transport->setUsername('keks@phpdemo.ru');
+                        $transport->setPassword('htmlacademy');
+
+                        $message = new Swift_Message();
+                        $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
+
+                        $mailer = new Swift_Mailer($transport);
+
+                        foreach ($subscribers as $subscriber) {
+                            $message->setTo([$subscriber['email'] => $subscriber['login']]);
+
+                            $body = "Здравствуйте, {$subscriber['login']}. "
+                                  . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
+                                  . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
+                            $message->setBody($body);
+                            $message->setFrom('keks@phpdemo.ru', 'Readme');
+
+                            $mailer->send($message);
+                        }
+
+                    } catch (Swift_TransportException $ex) {}
+
+                }
+
+                header("Location: /post.php?id={$post_id}");
+                exit;
             }
 
-            header("Location: /post.php?id={$post_id}");
+            http_response_code(500);
             exit;
+
+        } elseif (isset($input['image-path'])) {
+            delete_file($input['image-path']);
         }
-
-        http_response_code(500);
-        exit;
-
-    } elseif (isset($input['image-path'])) {
-        delete_file($input['image-path']);
     }
 }
 
