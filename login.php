@@ -14,22 +14,8 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input('login');
 
-    if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors['email'][0] = 'E-mail введён некорректно';
-        $errors['email'][1] = 'Электронная почта';
-    }
-
-    $required_fields = get_required_fields($con, 'login');
-    foreach ($required_fields as $field) {
-        if (mb_strlen($input[$field]) === 0) {
-            $errors[$field][0] = 'Это поле должно быть заполнено';
-            $errors[$field][1] = $form_inputs[$field]['label'];
-        }
-    }
-
-    if (empty($errors)) {
-        $email = mysqli_real_escape_string($con, $input['email']);
-        $user = get_user_by_email($con, $email);
+    if (!$errors = validate_form($con, 'login', $input)) {
+        $user = get_user_by_email($con, $input['email']);
 
         if ($user && password_verify($input['password'], $user['password'])) {
             $_SESSION['user'] = $user;

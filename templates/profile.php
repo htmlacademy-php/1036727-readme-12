@@ -83,7 +83,7 @@
                                     </div>
                                 <?php endif; ?>
                                 <?php $style = $post['class_name'] === 'text' ? 'padding: 29px 40px 26px;' : ''; ?>
-                                <h2 style="<?= $style . ($post['is_repost'] ? ' padding-top: 4px;' : '') ?>"><a href="/post.php?id=<?= esc($post['id']) ?>"><?= esc($post['title']) ?></a></h2>
+                                <h2 style="<?= $style . ($post['is_repost'] ? ' padding-top: 4px;' : '') ?>"><a href="/post.php?id=<?= esc($post['id']) ?>&comments=2"><?= esc($post['title']) ?></a></h2>
                             </header>
                             <?php $style = !$post['is_repost'] && !$post['comments'] ? ($post['hashtags'] ? 'min-height: 67px;' : 'min-height: 110px;') : ''; ?>
                             <div style="<?= $style ?>" class="post__main">
@@ -138,7 +138,7 @@
                                 <?php endif; ?>
                             </footer>
                             <?php if (!empty($post['comments'])): ?>
-                                <?php if (isset($_GET['article']) && $_GET['article'] === $post['id']): ?>
+                                <?php if (isset($_GET['article']) && $_GET['article'] == $post['id']): ?>
                                     <div class="comments">
                                         <div style="padding-bottom: 11px;" class="comments__list-wrapper">
                                             <ul class="comments__list">
@@ -164,8 +164,8 @@
                                                     </li>
                                                 <?php endforeach; ?>
                                             </ul>
-                                            <?php if ((!isset($_GET['comments']) || $_GET['comments'] !== 'all') && intval($post['comment_count']) > 2): ?>
-                                                <?php $url = "/profile.php?id={$user['id']}&tab=posts&article={$post['id']}&comments=all"; ?>
+                                            <?php if (isset($_GET['comments']) && intval($post['comment_count']) > 2): ?>
+                                                <?php $url = "/profile.php?id={$user['id']}&tab=posts&article={$post['id']}"; ?>
                                                 <a style="display: inline-block; margin-bottom: 32px;" class="comments__more-link" href="<?= esc($url) ?>">
                                                     <span>Показать все комментарии</span>
                                                     <sup class="comments__amount"><?= esc($post['comment_count']) ?></sup>
@@ -200,7 +200,7 @@
                                 <?php else: ?>
                                     <div class="comments">
                                         <?php $style = !$post['hashtags'] ? 'margin-top: 4px;' : ''; ?>
-                                        <?php $url = "/profile.php?id={$user['id']}&tab=posts&article={$post['id']}"; ?>
+                                        <?php $url = "/profile.php?id={$user['id']}&tab=posts&article={$post['id']}&comments=2"; ?>
                                         <a style="<?= $style ?>" class="comments__button button" href="<?= esc($url) ?>">Показать комментарии</a>
                                     </div>
                                 <?php endif; ?>

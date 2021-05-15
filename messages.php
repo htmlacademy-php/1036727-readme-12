@@ -11,8 +11,6 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$user_id = intval($_SESSION['user']['id']);
-
 $form_inputs = get_form_inputs($con, 'messages');
 
 $errors = [];
@@ -35,10 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $message = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['message']);
         $message = preg_replace('/\040\040+/', ' ', $message);
-        $message = mysqli_real_escape_string($con, $message);
-        $sql = "INSERT INTO message (content, sender_id, recipient_id) VALUES
-            ('$message', $user_id, $contact_id)";
-        get_mysqli_result($con, $sql, false);
+        $stmt_data = [$message, $_SESSION['user']['id'], $contact_id];
+        insert_message($con, $stmt_data);
 
         if (($_COOKIE['new_contact'] ?? null) == $contact_id) {
             setcookie('new_contact', '', time() - 3600);
@@ -78,7 +74,7 @@ $page_content = include_template('messages.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($con);
+$messages_count = get_message_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: личные сообщения',
     'main_modifier' => 'messages',

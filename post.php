@@ -35,13 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $post_id = validate_post($con, intval($input['post-id']));
         $comment = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['comment']);
         $comment = preg_replace('/\040\040+/', ' ', $comment);
-        $comment = mysqli_real_escape_string($con, $comment);
-        $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
-             . "('$comment', $user_id, $post_id)";
-        get_mysqli_result($con, $sql, false);
-
-        $sql = "SELECT author_id FROM post WHERE id = $post_id";
-        $author_id = get_mysqli_result($con, $sql, 'assoc')['author_id'];
+        $stmt_data = [$comment, $_SESSION['user']['id'], $post_id];
+        insert_comment($con, $stmt_data);
+        $author_id = get_post_author_id($con, $post_id);
 
         header("Location: /profile.php?id={$author_id}&tab=posts");
         exit;
@@ -49,46 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' && !isset($_COOKIE['action'])) {
-    $sql = "UPDATE post SET show_count = show_count + 1 WHERE id = $post_id";
-    get_mysqli_result($con, $sql, false);
+    update_post_show_count($con, $post_id);
 } elseif (isset($_COOKIE['action'])) {
     setcookie('action', '', time() - 3600);
 }
 
-$post_fields = get_post_fields('p.');
-
-$sql = "SELECT
-    COUNT(DISTINCT p2.id) AS repost_count,
-    COUNT(DISTINCT c.id) AS comment_count,
-    COUNT(DISTINCT pl.id) AS like_count,
-    COUNT(DISTINCT pl2.id) AS is_like,
-    {$post_fields}, ct.class_name
-    FROM post p
-    LEFT JOIN user u ON u.id = p.author_id
-    LEFT JOIN content_type ct ON ct.id = p.content_type_id
-    LEFT JOIN post p2 ON p2.origin_post_id = p.id
-    LEFT JOIN comment c ON c.post_id = p.id
-    LEFT JOIN post_like pl ON pl.post_id = p.id
-    LEFT JOIN post_like pl2 ON pl2.post_id = p.id AND pl2.author_id = $user_id
-    WHERE p.id = $post_id
-    GROUP BY p.id";
-$post = get_mysqli_result($con, $sql, 'assoc');
-$post['display_mode'] = 'details';
-
-$sql = "SELECT
-    COUNT(DISTINCT s.id) AS is_subscription,
-    COUNT(DISTINCT s2.id) AS subscriber_count,
-    COUNT(DISTINCT p2.id) AS publication_count,
-    u.dt_add, u.login, u.avatar_path
-    FROM post p
-    LEFT JOIN user u ON u.id = p.author_id
-    LEFT JOIN post p2 ON p2.author_id = p.author_id
-    LEFT JOIN subscription s ON s.user_id = p.author_id AND s.author_id = $user_id
-    LEFT JOIN subscription s2 ON s2.user_id = p.author_id
-    WHERE p.id = $post_id
-    GROUP BY p.id";
-$post['author'] = get_mysqli_result($con, $sql, 'assoc');
-
+$post = get_post_details($con, $post_id);
+$post['author'] = get_post_author($con, $post_id);
 $post['hashtags'] = get_post_hashtags($con, $post_id);
 $post['comments'] = get_post_comments($con, $post_id);
 
@@ -98,7 +61,7 @@ $page_content = include_template('post.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($con);
+$messages_count = get_message_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: публикация',
     'main_modifier' => 'publication',

@@ -57,7 +57,7 @@ function get_post_input(string $form): array {
             'login',
             'password',
             'password-repeat',
-            'avatar'
+            'avatar-path'
         ],
         'login' => ['email', 'password'],
         'comments' => ['comment', 'post-id'],
@@ -134,6 +134,12 @@ function get_stmt_data(array $input, string $form): array {
             'image-path',
             'video-url',
             'post-link'
+        ],
+        'registration' => [
+            'email',
+            'login',
+            'password',
+            'avatar-path'
         ]
     ];
 

@@ -74,56 +74,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errors)) {
-            $post_fields = get_post_fields('', 'insert');
             $content_type = $content_types[$input['content-type']];
-            $sql = "INSERT INTO post ($post_fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
             $stmt_data = get_stmt_data($input, 'adding-post');
             $stmt_data += [$user_id, 0, null, $content_type['id']];
-            $stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
+            $post_id = insert_post($con, $stmt_data);
 
-            if (mysqli_stmt_execute($stmt)) {
-                $post_id = mysqli_insert_id($con);
-
-                if ($tags = array_filter(explode(' ', $input['tags']))) {
-                    foreach ($tags as $tag_name) {
-                        validate_hashtag($con, $tag_name, $post_id);
-                    }
+            if ($tags = array_filter(explode(' ', $input['tags']))) {
+                foreach ($tags as $tag_name) {
+                    validate_hashtag($con, $tag_name, $post_id);
                 }
-
-                if ($subscribers = get_subscribers($con)) {
-
-                    try {
-                        $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
-                        $transport->setUsername('keks@phpdemo.ru');
-                        $transport->setPassword('htmlacademy');
-
-                        $message = new Swift_Message();
-                        $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
-
-                        $mailer = new Swift_Mailer($transport);
-
-                        foreach ($subscribers as $subscriber) {
-                            $message->setTo([$subscriber['email'] => $subscriber['login']]);
-
-                            $body = "Здравствуйте, {$subscriber['login']}. "
-                                  . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
-                                  . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
-                            $message->setBody($body);
-                            $message->setFrom('keks@phpdemo.ru', 'Readme');
-
-                            $mailer->send($message);
-                        }
-
-                    } catch (Swift_TransportException $ex) {}
-
-                }
-
-                header("Location: /post.php?id={$post_id}");
-                exit;
             }
 
-            http_response_code(500);
+            if ($subscribers = get_subscribers($con)) {
+
+                try {
+                    $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
+                    $transport->setUsername('keks@phpdemo.ru');
+                    $transport->setPassword('htmlacademy');
+
+                    $message = new Swift_Message();
+                    $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
+
+                    $mailer = new Swift_Mailer($transport);
+
+                    foreach ($subscribers as $subscriber) {
+                        $message->setTo([$subscriber['email'] => $subscriber['login']]);
+
+                        $body = "Здравствуйте, {$subscriber['login']}. "
+                              . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
+                              . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
+                        $message->setBody($body);
+                        $message->setFrom('keks@phpdemo.ru', 'Readme');
+
+                        $mailer->send($message);
+                    }
+
+                } catch (Swift_TransportException $ex) {}
+
+            }
+
+            header("Location: /post.php?id={$post_id}");
             exit;
 
         } elseif (isset($input['image-path'])) {
@@ -143,7 +133,7 @@ $page_content = include_template('add.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($con);
+$messages_count = get_message_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: добавление публикации',
     'main_modifier' => 'adding-post',

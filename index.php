@@ -24,8 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $email = mysqli_real_escape_string($con, $input['email']);
-        $user = get_user_by_email($con, $email);
+        $user = get_user_by_email($con, $input['email']);
 
         if ($user && password_verify($input['password'], $user['password'])) {
             $_SESSION['user'] = $user;

@@ -111,7 +111,7 @@
                                 <?php endforeach; ?>
                             </ul>
                             <?php if ((!isset($_GET['comments']) || $_GET['comments'] !== 'all') && intval($post['comment_count']) > 2): ?>
-                                <a class="comments__more-link" href="/post.php?id=<?= esc($post['id']) ?>&comments=all">
+                                <a class="comments__more-link" href="/post.php?id=<?= esc($post['id']) ?>">
                                     <span>Показать все комментарии</span>
                                     <sup class="comments__amount"><?= esc($post['comment_count']) ?></sup>
                                 </a>

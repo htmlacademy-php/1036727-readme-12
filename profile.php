@@ -11,8 +11,6 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$user_id = intval($_SESSION['user']['id']);
-
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
 $profile_id = validate_user($con, $profile_id);
 
@@ -35,10 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $post_id = validate_post($con, intval($input['post-id']));
         $comment = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['comment']);
         $comment = preg_replace('/\040\040+/', ' ', $comment);
-        $comment = mysqli_real_escape_string($con, $comment);
-        $sql = 'INSERT INTO comment (content, author_id, post_id) VALUES '
-             . "('$comment', {$_SESSION['user']['id']}, $post_id)";
-        get_mysqli_result($con, $sql, false);
+        $stmt_data = [$comment, $_SESSION['user']['id'], $post_id];
+        insert_comment($con, $stmt_data);
         $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
         $ref = preg_replace('%&comments=all%', '', $ref);
 
@@ -61,7 +57,7 @@ $page_content = include_template('profile.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($con);
+$messages_count = get_message_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: профиль',
     'main_modifier' => 'profile',

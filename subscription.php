@@ -9,7 +9,6 @@ if (!isset($_SESSION['user'])) {
 }
 
 $user_id = intval($_SESSION['user']['id']);
-
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
 $profile_id = validate_user($con, $profile_id);
 
@@ -18,44 +17,34 @@ if ($profile_id === $user_id) {
     exit;
 }
 
-$sql = "SELECT id FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
-$result = get_mysqli_result($con, $sql, false);
+if (!is_subscription($con, $profile_id)) {
+    insert_subscription($con, $profile_id);
+    $profile = get_subscription($con, $profile_id);
 
-if (!mysqli_num_rows($result)) {
-    $sql = "INSERT INTO subscription (author_id, user_id) VALUES ($user_id, $profile_id)";
+    try {
+        $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
+        $transport->setUsername('keks@phpdemo.ru');
+        $transport->setPassword('htmlacademy');
 
-    if (get_mysqli_result($con, $sql, false)) {
-        $sql = "SELECT email, login FROM user WHERE id = $profile_id";
-        $profile = get_mysqli_result($con, $sql, 'assoc');
+        $message = new Swift_Message('У вас новый подписчик');
+        $message->setTo([$profile['email'] => $profile['login']]);
 
-        try {
-            $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
-            $transport->setUsername('keks@phpdemo.ru');
-            $transport->setPassword('htmlacademy');
+        $body = "Здравствуйте, {$profile['login']}. "
+              . "На вас подписался новый пользователь {$_SESSION['user']['login']}. "
+              . "Вот ссылка на его профиль: http://readme.net/profile.php?id={$profile_id}";
+        $message->setBody($body);
+        $message->setFrom('keks@phpdemo.ru', 'Readme');
 
-            $message = new Swift_Message('У вас новый подписчик');
-            $message->setTo([$profile['email'] => $profile['login']]);
+        $mailer = new Swift_Mailer($transport);
+        $mailer->send($message);
 
-            $body = "Здравствуйте, {$profile['login']}. "
-                  . "На вас подписался новый пользователь {$_SESSION['user']['login']}. "
-                  . "Вот ссылка на его профиль: http://readme.net/profile.php?id={$profile_id}";
-            $message->setBody($body);
-            $message->setFrom('keks@phpdemo.ru', 'Readme');
-
-            $mailer = new Swift_Mailer($transport);
-            $mailer->send($message);
-
-        } catch (Swift_TransportException $ex) {}
-
-    }
+    } catch (Swift_TransportException $ex) {}
 
 } else {
-    $sql = "DELETE FROM subscription WHERE author_id = $user_id AND user_id = $profile_id";
-    get_mysqli_result($con, $sql, false);
+    delete_subscription($con, $profile_id);
 }
 
 $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
-
 if (parse_url($ref, PHP_URL_PATH) === '/post.php') {
     setcookie('action', 1, strtotime('+30 days'));
 }

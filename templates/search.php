@@ -29,7 +29,7 @@
                             </header>
                             <div style="min-height: 141px;" class="post__main">
                                 <?php if (in_array($post['class_name'], ['photo', 'text'])): ?>
-                                    <h2><a href="/post.php?id=<?= esc($post['id']) ?>"><?= esc($post['title']) ?></a></h2>
+                                    <h2><a href="/post.php?id=<?= esc($post['id']) ?>&comments=2"><?= esc($post['title']) ?></a></h2>
                                 <?php endif; ?>
 
                                 <?php $post['display_mode'] = 'feed'; ?>
