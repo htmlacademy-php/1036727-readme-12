@@ -7,13 +7,14 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+$user_id = $_SESSION['user']['id'];
 $post_id = intval(filter_input(INPUT_GET, 'id'));
-$post_id = validate_post($con, $post_id);
+$post_id = Database::getInstance()->validatePost($post_id);
 
-if (!is_post_like($con, $post_id)) {
-    insert_post_like($con, $post_id);
+if (!Database::getInstance()->isPostLike([$post_id, $user_id])) {
+    Database::getInstance()->insertPostLike([$post_id, $user_id]);
 } else {
-    delete_post_like($con, $post_id);
+    Database::getInstance()->deletePostLike([$post_id, $user_id]);
 }
 
 $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';

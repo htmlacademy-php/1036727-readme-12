@@ -11,9 +11,9 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$user_id = intval($_SESSION['user']['id']);
+$user_id = $_SESSION['user']['id'];
 
-$content_types = get_content_types($con);
+$content_types = Database::getInstance()->getContentTypes();
 
 $sort_fields = ['popular', 'likes', 'date'];
 $sort_types = array_fill_keys($sort_fields, 'desc');
@@ -47,7 +47,7 @@ if (isset($_COOKIE['sort']) && isset($_COOKIE['dir']) && $_COOKIE['request_uri']
 $sort_types[$sort] = $value;
 
 $order = 'p.show_count DESC';
-if (isset($_GET['sort']) && isset($_GET['dir'])) {
+if (isset($_GET['sort'], $_GET['dir'])) {
 
     switch ($_GET['sort']) {
         case 'popular':
@@ -70,8 +70,8 @@ if (isset($_GET['sort']) && isset($_GET['dir'])) {
 $current_page = intval(filter_input(INPUT_GET, 'page') ?? 1);
 $page_items = 6;
 
-$ctype = filter_input(INPUT_GET, 'filter') ?? '';
-$items_count = get_items_count($con, $ctype);
+$content_type = filter_input(INPUT_GET, 'filter') ?? '';
+$items_count = Database::getInstance()->getItemsCount($content_type);
 $pages_count = ceil($items_count / $page_items) ?: 1;
 
 if ($current_page <= 0) {
@@ -82,8 +82,10 @@ if ($current_page <= 0) {
 
 $offset = ($current_page - 1) * $page_items;
 
-$stmt_data = [$user_id, $page_items, $offset];
-$posts = get_popular_posts($con, $stmt_data, $ctype, $order);
+$stmt_data = [$user_id, $content_type, $page_items, $offset];
+$posts = Database::getInstance()->getPopularPosts($stmt_data, $order);
+
+$message_count = Database::getInstance()->getMessageCount();
 
 $page_content = include_template('popular.php', [
     'sort_fields' => $sort_fields,
@@ -94,12 +96,11 @@ $page_content = include_template('popular.php', [
     'pages_count' => $pages_count
 ]);
 
-$messages_count = get_message_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: популярное',
     'main_modifier' => 'popular',
     'page_content' => $page_content,
-    'messages_count' => $messages_count
+    'messages_count' => $message_count
 ]);
 
 print($layout_content);

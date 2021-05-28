@@ -18,13 +18,11 @@ if (!$search = trim(filter_input(INPUT_GET, 'q'))) {
     exit;
 }
 
-$user_id = intval($_SESSION['user']['id']);
-
 $posts = [];
 
 if (substr($search, 0, 1) === '#') {
     if ($hashtag = substr($search, 1)) {
-        $posts = get_posts_by_hashtag($con, $hashtag);
+        $posts = Database::getInstance()->getPostsByHashtag($hashtag);
     }
 
 } else {
@@ -39,7 +37,7 @@ if (substr($search, 0, 1) === '#') {
     }
 
     if ($query = implode(' ', $search_words)) {
-        $posts = get_posts_by_query_string($con, $query);
+        $posts = Database::getInstance()->getPostsByQueryString($query);
     }
 }
 
@@ -52,16 +50,17 @@ if (empty($posts) && is_null($search_ref)) {
     setcookie('search_ref', '', time() - 3600);
 }
 
+$message_count = Database::getInstance()->getMessageCount();
+
 $page_content = include_template('search.php', [
     'posts' => $posts
 ]);
 
-$messages_count = get_message_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: страница результатов поиска',
     'main_modifier' => 'search-results',
     'page_content' => $page_content,
-    'messages_count' => $messages_count
+    'messages_count' => $message_count
 ]);
 
 print($layout_content);

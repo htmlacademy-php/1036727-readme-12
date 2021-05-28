@@ -10,28 +10,28 @@ if (!isset($_SESSION['user'])) {
 
 $user_id = intval($_SESSION['user']['id']);
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
-$profile_id = validate_user($con, $profile_id);
+$profile_id = Database::getInstance()->validateUser($profile_id);
 
 if ($profile_id === $user_id) {
     http_response_code(500);
     exit;
 }
 
-if (!is_subscription($con, $profile_id)) {
-    insert_subscription($con, $profile_id);
-    $profile = get_subscription($con, $profile_id);
+if (!Database::getInstance()->isSubscription([$user_id, $profile_id])) {
+    Database::getInstance()->insertSubscription([$user_id, $profile_id]);
+    $subscriber = Database::getInstance()->getSubscription($profile_id);
 
     try {
-        $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
-        $transport->setUsername('keks@phpdemo.ru');
-        $transport->setPassword('htmlacademy');
+        $smtp_config = require_once('config/smtp.php');
+        $transport = new Swift_SmtpTransport($smtp_config['host'], $smtp_config['port']);
+        $transport->setUsername($smtp_config['username']);
+        $transport->setPassword($smtp_config['password']);
 
         $message = new Swift_Message('У вас новый подписчик');
-        $message->setTo([$profile['email'] => $profile['login']]);
-
-        $body = "Здравствуйте, {$profile['login']}. "
-              . "На вас подписался новый пользователь {$_SESSION['user']['login']}. "
-              . "Вот ссылка на его профиль: http://readme.net/profile.php?id={$profile_id}";
+        $message->setTo([$subscriber['email'] => $subscriber['login']]);
+        $body = include_template('templates/subscriber-notice.php', [
+            'recipient' => $subscriber
+        ]);
         $message->setBody($body);
         $message->setFrom('keks@phpdemo.ru', 'Readme');
 
@@ -41,7 +41,7 @@ if (!is_subscription($con, $profile_id)) {
     } catch (Swift_TransportException $ex) {}
 
 } else {
-    delete_subscription($con, $profile_id);
+    Database::getInstance()->deleteSubscription([$user_id, $profile_id]);
 }
 
 $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';

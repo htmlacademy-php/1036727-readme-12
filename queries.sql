@@ -74,10 +74,10 @@ INSERT INTO input_type (name) VALUES
 INSERT INTO input (label, name, placeholder, required, type_id) VALUES
 ('Электронная почта', 'email', 'Укажите эл.почту', 1, 1),
 ('Логин', 'login', 'Укажите логин', 1, 1),
-('Пароль', 'password', 'Придумайте пароль', 1, 2),
-('Повтор пароля', 'password-repeat', 'Повторите пароль', 1, 2),
+('Пароль', 'passwd', 'Придумайте пароль', 1, 2),
+('Повтор пароля', 'passwd-repeat', 'Повторите пароль', 1, 2),
 (null, 'avatar', null, null, 4),
-('Пароль', 'password', 'Введите пароль', 1, 2),
+('Пароль', 'passwd', 'Введите пароль', 1, 2),
 ('Заголовок', 'heading', 'Введите заголовок', 1, 1),
 ('Ссылка из интернета', 'image-url', 'Введите ссылку', 0, 1),
 (null, 'file-photo', null, null, 4),

@@ -3,7 +3,7 @@
 </div>
 <section class="registration container">
     <h2 class="visually-hidden">Форма регистрации</h2>
-    <?php $keys = ['email', 'login', 'password', 'password-repeat', 'avatar']; ?>
+    <?php $keys = ['email', 'login', 'passwd', 'passwd-repeat', 'avatar']; ?>
     <?php if (!array_diff_key(array_flip($keys), $inputs)): ?>
         <form class="registration__form form" action="/register.php" method="post" enctype="multipart/form-data">
             <div class="form__text-inputs-wrapper">
@@ -14,10 +14,10 @@
                     <?php $data = ['errors' => $errors, 'input' => $inputs['login']]; ?>
                     <?= include_template('inc/input-text.php', $data) ?>
 
-                    <?php $data = ['errors' => $errors, 'input' => $inputs['password']]; ?>
+                    <?php $data = ['errors' => $errors, 'input' => $inputs['passwd']]; ?>
                     <?= include_template('inc/input-text.php', $data) ?>
 
-                    <?php $data = ['errors' => $errors, 'input' => $inputs['password-repeat']]; ?>
+                    <?php $data = ['errors' => $errors, 'input' => $inputs['passwd-repeat']]; ?>
                     <?= include_template('inc/input-text.php', $data) ?>
                 </div>
                 <?php if (!empty($errors)): ?>

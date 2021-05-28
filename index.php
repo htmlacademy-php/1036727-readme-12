@@ -12,21 +12,10 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input('login');
 
-    if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = 'E-mail введён некорректно';
-    }
+    if (!$errors = validate_form('login', $input)) {
+        $user = Database::getInstance()->getUserByEmail($input['email']);
 
-    $required_fields = get_required_fields($con, 'login');
-    foreach ($required_fields as $field) {
-        if (mb_strlen($input[$field]) === 0) {
-            $errors[$field] = 'Это поле должно быть заполнено';
-        }
-    }
-
-    if (empty($errors)) {
-        $user = get_user_by_email($con, $input['email']);
-
-        if ($user && password_verify($input['password'], $user['password'])) {
+        if ($user && password_verify($input['passwd'], $user['password'])) {
             $_SESSION['user'] = $user;
             $url = $_COOKIE['login_ref'] ?? '/feed.php';
             setcookie('login_ref', '', time() - 3600);
@@ -35,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
 
         } else {
-            $errors['email'] = 'Вы ввели неверный email/пароль';
-            $errors['password'] = 'Вы ввели неверный email/пароль';
+            $errors['email'][0] = 'Вы ввели неверный email/пароль';
+            $errors['passwd'][0] = 'Вы ввели неверный email/пароль';
         }
     }
 }

@@ -7,17 +7,17 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
-$form_inputs = get_form_inputs($con, 'login');
+$form_inputs = Database::getInstance()->getFormInputs('login');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input('login');
 
-    if (!$errors = validate_form($con, 'login', $input)) {
-        $user = get_user_by_email($con, $input['email']);
+    if (!$errors = validate_form('login', $input)) {
+        $user = Database::getInstance()->getUserByEmail($input['email']);
 
-        if ($user && password_verify($input['password'], $user['password'])) {
+        if ($user && password_verify($input['passwd'], $user['password'])) {
             $_SESSION['user'] = $user;
             $url = $_COOKIE['login_ref'] ?? '/feed.php';
             setcookie('login_ref', '', time() - 3600);
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         } else {
             $errors['email'] = ['Вы ввели неверный email/пароль', 'Электронная почта'];
-            $errors['password'] = ['Вы ввели неверный email/пароль', 'Пароль'];
+            $errors['passwd'] = ['Вы ввели неверный email/пароль', 'Пароль'];
         }
     }
 }

@@ -11,30 +11,20 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$form_inputs = get_form_inputs($con, 'messages');
+$user_id = $_SESSION['user']['id'];
+
+$form_inputs = Database::getInstance()->getFormInputs('messages');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input('messages');
 
-    if (mb_strlen($input['message']) === 0) {
-        $errors['message'][0] = 'Это поле должно быть заполнено';
-        $errors['message'][1] = $form_inputs['message']['label'];
-    }
-
-    if (empty($errors)) {
-        $contact_id = validate_user($con, intval($input['contact-id']));
-
-        if (!is_contact_valid($con, $contact_id)) {
-            http_response_code(500);
-            exit;
-        }
-
-        $message = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['message']);
-        $message = preg_replace('/\040\040+/', ' ', $message);
-        $stmt_data = [$message, $_SESSION['user']['id'], $contact_id];
-        insert_message($con, $stmt_data);
+    if (!$errors = validate_form('messages', $input)) {
+        $contact_id = $input['contact-id'];
+        $message = cut_out_extra_spaces($input['message']);
+        $stmt_data = [$message, $user_id, $contact_id];
+        Database::getInstance()->insertMessage($stmt_data);
 
         if (($_COOKIE['new_contact'] ?? null) == $contact_id) {
             setcookie('new_contact', '', time() - 3600);
@@ -47,26 +37,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if (isset($_GET['contact'])) {
     $contact_id = intval(filter_input(INPUT_GET, 'contact'));
-    update_messages_status($con, $contact_id);
+    Database::getInstance()->updateMessagesStatus($contact_id);
 }
 
-$contacts = get_contacts($con);
+$contacts = Database::getInstance()->getContacts();
 
 if (isset($_GET['contact'])) {
 
     if (!in_array($contact_id, array_column($contacts, 'id'))) {
-        if (!add_new_contact($con, $contacts, $contact_id)
+        if (!Database::getInstance()->addNewContact($contacts, $contact_id)
             && $contact_id = $_COOKIE['new_contact'] ?? null) {
-            add_new_contact($con, $contacts, $contact_id);
+            Database::getInstance()->addNewContact($contacts, $contact_id);
         }
 
     } elseif ($contact_id = $_COOKIE['new_contact'] ?? null) {
-        add_new_contact($con, $contacts, $contact_id);
+        Database::getInstance()->addNewContact($contacts, $contact_id);
     }
 
 } elseif ($contact_id = $_COOKIE['new_contact'] ?? null) {
-    add_new_contact($con, $contacts, $contact_id);
+    Database::getInstance()->addNewContact($contacts, $contact_id);
 }
+
+$message_count = Database::getInstance()->getMessageCount();
 
 $page_content = include_template('messages.php', [
     'contacts' => $contacts,
@@ -74,12 +66,11 @@ $page_content = include_template('messages.php', [
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_message_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: личные сообщения',
     'main_modifier' => 'messages',
     'page_content' => $page_content,
-    'messages_count' => $messages_count
+    'messages_count' => $message_count
 ]);
 
 print($layout_content);
