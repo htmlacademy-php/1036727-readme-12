@@ -7,15 +7,16 @@ ini_set('error_reporting', E_ALL);
 
 require_once('helpers.php');
 require_once('functions.php');
-require_once('db-functions.php');
-$db_config = require_once('config/db.php');
-$db_config = array_values($db_config);
+require_once('validation.php');
+require_once('classes/QueryBuilder.php');
+require_once('classes/Database.php');
 
-$con = mysqli_connect(...$db_config);
+define('ACCEPT_MIME_TYPES', ['image/jpeg', 'image/png', 'image/gif']);
+define('BYTES_PER_MEGABYTE', 1048576);
 
-if (!$con) {
-    http_response_code(500);
-    exit;
-}
-
-mysqli_set_charset($con, 'utf8');
+define('SECONDS_PER_MINUTE', 60);
+define('SECONDS_PER_HOUR', SECONDS_PER_MINUTE * 60);
+define('SECONDS_PER_DAY', SECONDS_PER_HOUR * 24);
+define('SECONDS_PER_WEEK', SECONDS_PER_DAY * 7);
+define('SECONDS_PER_MONTH', SECONDS_PER_DAY * 30);
+define('SECONDS_PER_YEAR', SECONDS_PER_MONTH * 12);

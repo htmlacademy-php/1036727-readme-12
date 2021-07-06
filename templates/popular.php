@@ -66,7 +66,7 @@
             <article class="popular__post post post-<?= esc($post['class_name']) ?>">
                 <header class="post__header">
                     <h2 style="padding-bottom: 24px;">
-                        <a href="/post.php?id=<?= esc($post['id']) ?>"><?= esc($post['title']) ?></a>
+                        <a href="/post.php?id=<?= esc($post['id']) ?>&comments=2"><?= esc($post['title']) ?></a>
                     </h2>
                 </header>
                 <div class="post__main">

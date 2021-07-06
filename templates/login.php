@@ -3,7 +3,7 @@
 </div>
 <section class="login container">
     <h2 class="visually-hidden">Форма авторизации</h2>
-    <?php $keys = ['email', 'password']; ?>
+    <?php $keys = ['email', 'passwd']; ?>
     <?php if (!array_diff_key(array_flip($keys), $inputs)): ?>
         <form style="padding-bottom: 2px;" class="login__form form" action="/login.php" method="post">
             <div class="form__text-inputs-wrapper">
@@ -11,7 +11,7 @@
                     <?php $data = ['errors' => $errors, 'input' => $inputs['email']]; ?>
                     <?= include_template('inc/input-text.php', $data) ?>
 
-                    <?php $data = ['errors' => $errors, 'input' => $inputs['password']]; ?>
+                    <?php $data = ['errors' => $errors, 'input' => $inputs['passwd']]; ?>
                     <?= include_template('inc/input-text.php', $data) ?>
                 </div>
                 <?php if (!empty($errors)): ?>

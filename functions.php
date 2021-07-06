@@ -4,7 +4,7 @@ function exceptions_error_handler($severity, $message, $filename, $lineno) {
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
 }
 
-function crop_text_content(string $text, int $post_id, string $style = '', int $num_letters = 300) : string {
+function crop_text_content(string $text, int $post_id, string $style = '', int $num_letters = 300): string {
     $style = $style ? " style=\"{$style}\"" : '';
     $text_length = mb_strlen($text);
 
@@ -36,7 +36,7 @@ function crop_text_content(string $text, int $post_id, string $style = '', int $
     return $result;
 }
 
-function get_post_input(string $form) : array {
+function get_post_input(string $form): array {
     $input_names = [
         'adding-post' => [
             'heading',
@@ -44,27 +44,28 @@ function get_post_input(string $form) : array {
             'video-url',
             'post-text',
             'cite-text',
+            'text-content',
             'quote-author',
             'post-link',
             'tags',
             'file-photo',
+            'image-path',
             'content-type'
         ],
         'registration' => [
             'email',
             'login',
-            'password',
-            'password-repeat',
-            'avatar'
+            'passwd',
+            'passwd-repeat',
+            'avatar-path'
         ],
-        'login' => ['email', 'password'],
+        'login' => ['email', 'passwd'],
         'comments' => ['comment', 'post-id'],
         'messages' => ['message', 'contact-id']
     ];
 
     if (!isset($input_names[$form])) {
-        http_response_code(500);
-        exit;
+        return [];
     }
 
     foreach ($input_names[$form] as $name) {
@@ -75,23 +76,7 @@ function get_post_input(string $form) : array {
     return $input;
 }
 
-function get_post_value(string $name) : string {
-    $value = filter_input(INPUT_POST, $name) ?? '';
-
-    return $value;
-}
-
-function esc(string $str) : string {
-    $text = htmlspecialchars($str);
-
-    return $text;
-}
-
-function add_prefix(&$item, $key, $prefix) {
-    $item = $prefix . $item;
-}
-
-function get_post_fields(string $prefix, string $mode = 'select') : string {
+function get_post_fields(string $mode = 'select'): array {
     $post_fields = [
         'select' => [
             'id',
@@ -121,12 +106,11 @@ function get_post_fields(string $prefix, string $mode = 'select') : string {
             'content_type_id'
         ]
     ];
-    array_walk($post_fields[$mode], 'add_prefix', $prefix);
 
-    return implode(', ', $post_fields[$mode]);
+    return $post_fields[$mode] ?? [];
 }
 
-function get_stmt_data(array $input, string $form) : array {
+function get_stmt_data(array $input, string $form): array {
     $input_keys = [
         'adding-post' => [
             'heading',
@@ -135,58 +119,63 @@ function get_stmt_data(array $input, string $form) : array {
             'image-path',
             'video-url',
             'post-link'
+        ],
+        'registration' => [
+            'email',
+            'login',
+            'passwd',
+            'avatar-path'
         ]
     ];
 
     if (!isset($input_keys[$form])) {
-        http_response_code(500);
-        exit;
+        return [];
     }
 
     foreach ($input_keys[$form] as $key) {
+        if (!array_key_exists($key, $input)) {
+            return [];
+        }
         $stmt_data[$key] = $input[$key];
     }
 
     return $stmt_data;
 }
 
-function get_relative_time(string $date) : string {
+function get_relative_time(string $date): string {
 
     if (!strtotime($date)) {
         return '';
     }
 
+    $array = [
+        [SECONDS_PER_MINUTE, 1, 'секунда', 'секунды', 'секунд'],
+        [SECONDS_PER_HOUR, SECONDS_PER_MINUTE, 'минута', 'минуты', 'минут'],
+        [SECONDS_PER_DAY, SECONDS_PER_HOUR, 'час', 'часа', 'часов'],
+        [SECONDS_PER_WEEK, SECONDS_PER_DAY, 'день', 'дня', 'дней'],
+        [SECONDS_PER_MONTH, SECONDS_PER_WEEK, 'неделя', 'недели', 'недель'],
+        [SECONDS_PER_YEAR, SECONDS_PER_DAY * 30, 'месяц', 'месяца', 'месяцев'],
+        [PHP_INT_MAX, SECONDS_PER_YEAR, 'год', 'года', 'лет']
+    ];
+
     $ts_diff = time() - strtotime($date);
 
-    if ($ts_diff < 60) {
-        $relative_time = "$ts_diff " . get_noun_plural_form($ts_diff, 'секунда', 'секунды', 'секунд');
+    $i = 0;
+    do {
+        $time = floor($ts_diff / $array[$i][1]);
+        $relative_time = "$time " . get_noun_plural_form($time, $array[$i][2], $array[$i][3], $array[$i][4]);
+        $i++;
 
-    } elseif ($ts_diff < 3600) {
-        $minutes = floor($ts_diff / 60);
-        $relative_time = "$minutes " . get_noun_plural_form($minutes, 'минута', 'минуты', 'минут');
+        if ($ts_diff < $array[$i - 1][0]) {
+            break;
+        }
 
-    } elseif ($ts_diff < 86400) {
-        $hours = floor($ts_diff / 3600);
-        $relative_time = "$hours " . get_noun_plural_form($hours, 'час', 'часа', 'часов');
-
-    } elseif ($ts_diff < 604800) {
-        $days = floor($ts_diff / 86400);
-        $relative_time = "$days " . get_noun_plural_form($days, 'день', 'дня', 'дней');
-
-    } elseif ($ts_diff < 3024000) {
-        $weeks = floor($ts_diff / 604800);
-        $relative_time = "$weeks " . get_noun_plural_form($weeks, 'неделя', 'недели', 'недель');
-
-    } elseif ($ts_diff >= 3024000) {
-        $dt_diff = date_diff(date_create($date), date_create('now'));
-        $months = date_interval_format($dt_diff, '%m');
-        $relative_time = "$months " . get_noun_plural_form($months, 'месяц', 'месяца', 'месяцев');
-    }
+    } while ($i < count($array));
 
     return $relative_time;
 }
 
-function get_datetime_value(string $date) : string {
+function get_datetime_value(string $date): string {
     if ($ts = strtotime($date)) {
         $datetime = date('Y-m-d H:i', $ts);
         $datetime = str_replace(' ', 'T', $datetime);
@@ -195,7 +184,7 @@ function get_datetime_value(string $date) : string {
     return $datetime ?? '';
 }
 
-function get_time_title(string $date) : string {
+function get_time_title(string $date): string {
     if ($ts = strtotime($date)) {
         $title = date('d.m.Y H:i', $ts);
     }
@@ -203,7 +192,7 @@ function get_time_title(string $date) : string {
     return $title ?? '';
 }
 
-function get_sorting_link_class(string $field) : string {
+function get_sorting_link_class(string $field): string {
     if (isset($_GET['sort']) && $_GET['sort'] === $field) {
         $classname = ' sorting__link--active';
         if (isset($_GET['dir']) && $_GET['dir'] === 'asc') {
@@ -214,7 +203,7 @@ function get_sorting_link_class(string $field) : string {
     return $classname ?? '';
 }
 
-function get_sorting_link_url(string $field, array $types) : string {
+function get_sorting_link_url(string $field, array $types): string {
     if ($filter = filter_input(INPUT_GET, 'filter')) {
         $parameters['filter'] = $filter;
     }
@@ -229,7 +218,7 @@ function get_sorting_link_url(string $field, array $types) : string {
     return $url;
 }
 
-function get_page_link_url(int $current_page, bool $next) : string {
+function get_page_link_url(int $current_page, bool $next): string {
     $parameters['filter'] = filter_input(INPUT_GET, 'filter');
     $parameters['sort'] = filter_input(INPUT_GET, 'sort');
     $parameters['dir'] = filter_input(INPUT_GET, 'dir');
@@ -246,7 +235,7 @@ function get_page_link_url(int $current_page, bool $next) : string {
     return $url;
 }
 
-function get_adding_post_close_url() : string {
+function get_adding_post_close_url(): string {
     $url = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
     if (parse_url($url, PHP_URL_PATH) === '/add.php') {
         $url = $_COOKIE['add_ref'] ?? $url;
@@ -255,72 +244,7 @@ function get_adding_post_close_url() : string {
     return $url;
 }
 
-function validate_input_file_photo(array &$errors, array &$input) : void {
-    $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
-
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $file_path = $_FILES['file-photo']['tmp_name'];
-    $file_size = $_FILES['file-photo']['size'];
-    $file_type = finfo_file($finfo, $file_path);
-
-    if (!in_array($file_type, $mime_types)) {
-        $errors['file-photo'][0] = 'Неверный MIME-тип файла';
-        $errors['file-photo'][1] = 'Изображение';
-    } elseif ($file_size > 1000000) {
-        $errors['file-photo'][0] = 'Максимальный размер файла: 1Мб';
-        $errors['file-photo'][1] = 'Изображение';
-    } else {
-        $file_name = uniqid();
-        $file_extension = explode('/', $file_type);
-        $file_name .= ".{$file_extension[1]}";
-        move_uploaded_file($file_path, 'uploads/' . $file_name);
-        $input['image-path'] = $file_name;
-    }
-}
-
-function validate_input_image_url(array &$errors, array &$input) : void {
-    $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
-
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $file_name = uniqid();
-    $file_path = "uploads/{$file_name}.jpeg";
-
-    set_error_handler('exceptions_error_handler');
-    try {
-        $content = file_get_contents($input['image-url']);
-        file_put_contents($file_path, $content);
-        $file_type = finfo_file($finfo, $file_path);
-
-        if (!in_array($file_type, $mime_types)) {
-            unlink($file_path);
-            $errors['file-photo'][0] = 'Неверный MIME-тип файла';
-            $errors['file-photo'][1] = 'Изображение';
-        } elseif (filesize($file_path) > 1000000) {
-            unlink($file_path);
-            $errors['file-photo'][0] = 'Максимальный размер файла: 1Мб';
-            $errors['file-photo'][1] = 'Изображение';
-        } else {
-            $file_extension = explode('/', $file_type);
-            $file_name .= ".{$file_extension[1]}";
-            rename($file_path, 'uploads/' . $file_name);
-            $input['image-path'] = $file_name;
-        }
-
-    } catch (ErrorException $ex) {
-        $errors['file-photo'][0] = 'Вы не загрузили файл';
-        $errors['file-photo'][1] = 'Изображение';
-    }
-    restore_error_handler();
-}
-
-function validate_input_video_url(array &$errors, array &$input) : void {
-    if (strpos($input['video-url'], 'youtube.com/watch?v=') === false) {
-        $errors['video-url'][0] = 'Некорректный url-адрес';
-        $errors['video-url'][1] = 'Ссылка youtube';
-    }
-}
-
-function validate_link_info(array &$input) : void {
+function validate_link_info(array &$input): void {
     set_error_handler('exceptions_error_handler');
 
     try {
@@ -364,7 +288,7 @@ function cmp($a, $b) {
     return ($a > $b) ? -1 : 1;
 }
 
-function get_icon_url(string $url) : string {
+function get_icon_url(string $url): string {
     $url = parse_url($url, PHP_URL_HOST);
     $url = "https://favicongrabber.com/api/grab/{$url}?pretty=true";
 
@@ -392,7 +316,7 @@ function get_icon_url(string $url) : string {
     return $response[0]['src'] ?? '';
 }
 
-function validate_icon_file(array &$input) : void {
+function validate_icon_file(array &$input): void {
     $icon_url = get_icon_url($input['post-link']);
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -414,13 +338,99 @@ function validate_icon_file(array &$input) : void {
     restore_error_handler();
 }
 
-function validate_input_post_link(array &$input) : void {
+function validate_input_post_link(array &$input): void {
     validate_link_info($input);
     validate_icon_file($input);
 }
 
-function delete_file(string $filename) : void {
-    if (file_exists($filename)) {
-        unlink($filename);
+function upload_avatar_file() {
+    if (!empty($_FILES['avatar']['name'])) {
+        $file_path = $_FILES['avatar']['tmp_name'];
+        $file_type = mime_content_type($file_path);
+        $file_extension = explode('/', $file_type);
+        $file_name = uniqid() . ".{$file_extension[1]}";
+        move_uploaded_file($file_path, "uploads/$file_name");
     }
+
+    return $file_name ?? null;
+}
+
+function upload_image_file(array $input, array &$errors) {
+    if (!empty($_FILES['file-photo']['name'])) {
+        $file_path = $_FILES['file-photo']['tmp_name'];
+        $file_type = mime_content_type($file_path);
+        $file_extension = explode('/', $file_type);
+        $file_name = uniqid() . ".{$file_extension[1]}";
+        move_uploaded_file($file_path, "uploads/$file_name");
+
+    } elseif (isset($input['image-url'])) {
+        set_error_handler('exceptions_error_handler');
+        try {
+            $temp_file = tmpfile();
+            $content = file_get_contents($input['image-url']);
+            fwrite($temp_file, $content);
+            $file_path = stream_get_meta_data($temp_file)['uri'];
+            $file_type = mime_content_type($file_path);
+            fclose($temp_file);
+
+            $file_extension = explode('/', $file_type);
+            $file_name = uniqid() . ".{$file_extension[1]}";
+            file_put_contents('uploads/' . $file_name, $content);
+
+        } catch (ErrorException $ex) {
+            $errors['file-photo'][0] = 'Вы не загрузили файл';
+            $errors['file-photo'][1] = 'Изображение';
+        }
+        restore_error_handler();
+    }
+
+    return $file_name ?? null;
+}
+
+function send_post_notifications(array $recipients, string $post_title): void {
+    try {
+        $smtp_config = require('config/smtp.php');
+        $transport = new Swift_SmtpTransport($smtp_config['host'], $smtp_config['port']);
+        $transport->setUsername($smtp_config['username']);
+        $transport->setPassword($smtp_config['password']);
+
+        $message = new Swift_Message();
+        $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
+
+        $mailer = new Swift_Mailer($transport);
+
+        foreach ($recipients as $recipient) {
+            $message->setTo([$recipient['email'] => $recipient['login']]);
+            $body = include_template('templates/post-notice.php', [
+                'recipient' => $recipient,
+                'post_title' => $post_title
+            ]);
+            $message->setBody($body);
+            $message->setFrom('keks@phpdemo.ru', 'Readme');
+
+            $mailer->send($message);
+        }
+
+    } catch (Swift_TransportException $ex) {}
+}
+
+function get_post_value(string $name): string {
+    return filter_input(INPUT_POST, $name) ?? '';
+}
+
+function esc(string $str): string {
+    return htmlspecialchars($str);
+}
+
+function add_prefix(&$item, $key, $prefix) {
+    $item = $prefix . $item;
+}
+
+function cut_out_extra_spaces(string $text): string {
+    $text = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $text);
+    return preg_replace('/\040\040+/', ' ', $text);
+}
+
+function get_password_hash(string $password): string {
+    return password_hash($password, PASSWORD_DEFAULT);
 }

@@ -61,18 +61,18 @@
                         </svg>
                         <label class="visually-hidden">Логин</label>
                     </div>
-                    <span class="form__error-label form__error-label--login"><?= $errors['email'] ?? '' ?></span>
+                    <span class="form__error-label form__error-label--login"><?= $errors['email'][0] ?? '' ?></span>
                 </div>
                 <div class="authorization__input-wrapper form__input-wrapper">
-                    <?php $classname = isset($errors['password']) ? ' form__input-section--error' : ''; ?>
+                    <?php $classname = isset($errors['passwd']) ? ' form__input-section--error' : ''; ?>
                     <div class="form__input-section<?= $classname ?>">
-                        <input class="authorization__input authorization__input--password form__input" type="password" name="password" value="<?= esc(get_post_value('password')) ?>" placeholder="Пароль">
+                        <input class="authorization__input authorization__input--password form__input" type="password" name="passwd" value="<?= esc(get_post_value('passwd')) ?>" placeholder="Пароль">
                         <svg class="form__input-icon" width="16" height="20">
                             <use xlink:href="#icon-input-password"></use>
                         </svg>
                         <label class="visually-hidden">Пароль</label>
                     </div>
-                    <span class="form__error-label"><?= $errors['password'] ?? '' ?></span>
+                    <span class="form__error-label"><?= $errors['passwd'][0] ?? '' ?></span>
                 </div>
                 <a class="authorization__recovery" href="#">Восстановить пароль</a>
                 <button class="authorization__submit button button--main" type="submit">Войти</button>

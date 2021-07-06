@@ -7,74 +7,18 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
-$form_inputs = get_form_inputs($con, 'registration');
+$form_inputs = Database::getInstance()->getFormInputs('registration');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input('registration');
-    $mime_types = ['image/jpeg', 'image/png', 'image/gif'];
 
-    $required_fields = get_required_fields($con, 'registration');
-    foreach ($required_fields as $field) {
-        if (mb_strlen($input[$field]) === 0) {
-            $errors[$field][0] = 'Это поле должно быть заполнено';
-            $errors[$field][1] = $form_inputs[$field]['label'];
-        }
-    }
-
-    if (!filter_var($input['email'], FILTER_VALIDATE_EMAIL)) {
-        $errors['email'][0] = 'E-mail введён некорректно';
-        $errors['email'][1] = 'Электронная почта';
-    } else {
-        $email = mysqli_real_escape_string($con, $input['email']);
-        $sql = "SELECT id FROM user WHERE email = '$email';";
-        $result = mysqli_query($con, $sql);
-        if (mysqli_num_rows($result) > 0) {
-            $errors['email'][0] = 'Пользователь с этим email уже зарегистрирован';
-            $errors['email'][1] = 'Электронная почта';
-        }
-    }
-
-    if (mb_strlen($input['password']) > 0 && mb_strlen($input['password-repeat']) > 0) {
-        if ($input['password'] !== $input['password-repeat']) {
-            $errors['password-repeat'][0] = 'Пароли не совпадают';
-            $errors['password-repeat'][1] = 'Повтор пароля';
-        } else {
-            $password = password_hash($input['password'], PASSWORD_DEFAULT);
-        }
-    }
-
-    if (!empty($_FILES['avatar']['name'])) {
-        $file_path = $_FILES['avatar']['tmp_name'];
-        $file_size = $_FILES['avatar']['size'];
-        $file_type = mime_content_type($file_path);
-
-        if (!in_array($file_type, $mime_types)) {
-            $errors['avatar'][0] = 'Неверный MIME-тип файла';
-            $errors['avatar'][1] = 'Изображение';
-        } elseif ($file_size > 1000000) {
-            $errors['avatar'][0] = 'Максимальный размер файла: 1Мб';
-            $errors['avatar'][1] = 'Изображение';
-        } else {
-            $file_name = uniqid();
-            $file_extension = explode('/', $file_type);
-            $file_name .= ".{$file_extension[1]}";
-            $input['avatar'] = $file_name;
-        }
-    }
-
-    if (empty($errors)) {
-        $login = mysqli_real_escape_string($con, $input['login']);
-        $avatar = $input['avatar'] ? "'{$input['avatar']}'" : 'null';
-
-        $sql = 'INSERT INTO user (email, login, password, avatar_path) VALUES '
-             . "('$email', '$login', '$password', $avatar)";
-        get_mysqli_result($con, $sql, false);
-
-        if ($input['avatar']) {
-            move_uploaded_file($file_path, 'uploads/' . $file_name);
-        }
+    if (!$errors = validate_form('registration', $input)) {
+        $input['passwd'] = get_password_hash($input['passwd']);
+        $input['avatar-path'] = upload_avatar_file();
+        $stmt_data = get_stmt_data($input, 'registration');
+        Database::getInstance()->insertUser($stmt_data);
 
         header('Location: /index.php');
         exit;

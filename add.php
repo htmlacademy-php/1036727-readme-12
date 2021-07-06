@@ -12,127 +12,50 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$user_id = intval($_SESSION['user']['id']);
+$user_id = $_SESSION['user']['id'];
 
-$content_types = get_content_types($con);
-$class_names = array_column($content_types, 'class_name');
-$content_types = array_combine($class_names, $content_types);
+$ctypes = Database::getInstance()->getContentTypes();
+$class_names = array_column($ctypes, 'class_name');
+$ctypes = array_combine($class_names, $ctypes);
 
-$tab = filter_input(INPUT_GET, 'tab') ?? 'photo';
-$tab = in_array($tab, $class_names) ? $tab : 'photo';
-
-$form_inputs = get_form_inputs($con, 'adding-post');
+$form_inputs = Database::getInstance()->getFormInputs('adding-post');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input('adding-post');
 
-    if (!is_content_type_valid($con, $input['content-type'])) {
-        http_response_code(500);
-        exit;
-    }
+    if (Database::getInstance()->isContentTypeValid($input['content-type'] ?? '')) {
 
-    list($input['text-content'], $input['image-path']) = [null, null];
+        $form_name = "adding-post__{$input['content-type']}";
+        if (!$errors = validate_form($form_name, $input)) {
+            if ($input['content-type'] === 'text') {
+                $input['text-content'] = cut_out_extra_spaces($input['post-text']);
+            } elseif ($input['content-type'] === 'quote') {
+                $input['text-content'] = cut_out_extra_spaces($input['cite-text']);
+            } elseif ($input['content-type'] === 'link') {
+                validate_input_post_link($input);
+            }
 
-    $required_fields = get_required_fields($con, 'adding-post', $tab);
-    foreach ($required_fields as $field) {
-        if (mb_strlen($input[$field]) === 0) {
-            $errors[$field][0] = 'Это поле должно быть заполнено';
-            $errors[$field][1] = $form_inputs[$field]['label'];
-        }
-    }
-
-    if ($input['content-type'] === 'photo') {
-        if (!empty($_FILES['file-photo']['name'])) {
-            validate_input_file_photo($errors, $input);
-        } elseif (filter_var($input['image-url'], FILTER_VALIDATE_URL)) {
-            validate_input_image_url($errors, $input);
-        } else {
-            $errors['file-photo'][0] = 'Вы не загрузили файл';
-            $errors['file-photo'][1] = 'Изображение';
-        }
-
-    } elseif ($input['content-type'] === 'video') {
-        if (filter_var($input['video-url'], FILTER_VALIDATE_URL)) {
-            validate_input_video_url($errors, $input);
-        } else {
-            $errors['video-url'][0] = 'Некорректный url-адрес';
-            $errors['video-url'][1] = 'Ссылка youtube';
-        }
-
-    } elseif ($input['content-type'] === 'text') {
-        $content = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['post-text']);
-        $input['text-content'] = preg_replace('/\040\040+/', ' ', $content);
-
-    } elseif ($input['content-type'] === 'quote') {
-        $content = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $input['cite-text']);
-        $input['text-content'] = preg_replace('/\040\040+/', ' ', $content);
-
-    } elseif ($input['content-type'] === 'link') {
-        if (filter_var($input['post-link'], FILTER_VALIDATE_URL)) {
-            validate_input_post_link($input);
-        } else {
-            $errors['post-link'][0] = 'Некорректный url-адрес';
-            $errors['post-link'][1] = 'Ссылка';
-        }
-    }
-
-    if (empty($errors)) {
-        $post_fields = get_post_fields('', 'insert');
-        $content_type = $content_types[$input['content-type']];
-        $sql = "INSERT INTO post ($post_fields) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        $stmt_data = get_stmt_data($input, 'adding-post');
-        $stmt_data += [$user_id, 0, null, $content_type['id']];
-        $stmt = db_get_prepare_stmt($con, $sql, $stmt_data);
-
-        if (mysqli_stmt_execute($stmt)) {
-            $post_id = mysqli_insert_id($con);
+            $input['image-path'] = upload_image_file($input, $errors);
+            $ctype_id = $ctypes[$input['content-type']]['id'];
+            $stmt_data = get_stmt_data($input, 'adding-post');
+            $stmt_data += [$user_id, 0, null, $ctype_id];
+            $post_id = Database::getInstance()->insertPost($stmt_data);
 
             if ($tags = array_filter(explode(' ', $input['tags']))) {
                 foreach ($tags as $tag_name) {
-                    validate_hashtag($con, $tag_name, $post_id);
+                    Database::getInstance()->validateHashtag($tag_name, $post_id);
                 }
             }
 
-            if ($subscribers = get_subscribers($con)) {
-
-                try {
-                    $transport = new Swift_SmtpTransport('phpdemo.ru', 25);
-                    $transport->setUsername('keks@phpdemo.ru');
-                    $transport->setPassword('htmlacademy');
-
-                    $message = new Swift_Message();
-                    $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
-
-                    $mailer = new Swift_Mailer($transport);
-
-                    foreach ($subscribers as $subscriber) {
-                        $message->setTo([$subscriber['email'] => $subscriber['login']]);
-
-                        $body = "Здравствуйте, {$subscriber['login']}. "
-                              . "Пользователь {$_SESSION['user']['login']} только что опубликовал новую запись «{$input['heading']}». "
-                              . "Посмотрите её на странице пользователя: http://readme.net/profile.php?id={$_SESSION['user']['id']}";
-                        $message->setBody($body);
-                        $message->setFrom('keks@phpdemo.ru', 'Readme');
-
-                        $mailer->send($message);
-                    }
-
-                } catch (Swift_TransportException $ex) {}
-
+            if ($subscribers = Database::getInstance()->getSubscribers()) {
+                send_post_notifications($subscribers, $input['heading']);
             }
 
             header("Location: /post.php?id={$post_id}");
             exit;
         }
-
-        http_response_code(500);
-        exit;
-
-    } elseif (isset($input['image-path'])) {
-        delete_file($input['image-path']);
     }
 }
 
@@ -141,18 +64,19 @@ if (parse_url($url, PHP_URL_PATH) !== '/add.php') {
     setcookie('add_ref', $url, strtotime('+30 days'));
 }
 
+$message_count = Database::getInstance()->getMessageCount();
+
 $page_content = include_template('add.php', [
-    'content_types' => $content_types,
+    'content_types' => $ctypes,
     'errors' => $errors,
     'inputs' => $form_inputs
 ]);
 
-$messages_count = get_messages_count($con);
 $layout_content = include_template('layout.php', [
     'title' => 'readme: добавление публикации',
     'main_modifier' => 'adding-post',
     'page_content' => $page_content,
-    'messages_count' => $messages_count
+    'messages_count' => $message_count
 ]);
 
 print($layout_content);
