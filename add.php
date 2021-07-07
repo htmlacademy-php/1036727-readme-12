@@ -72,11 +72,11 @@ $page_content = include_template('add.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layout.php', [
+$layout_content = include_template('layouts/base.php', [
     'title' => 'readme: добавление публикации',
     'main_modifier' => 'adding-post',
     'page_content' => $page_content,
-    'messages_count' => $message_count
+    'message_count' => $message_count
 ]);
 
 print($layout_content);

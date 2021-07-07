@@ -30,7 +30,7 @@ $page_content = include_template('register.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layout.php', [
+$layout_content = include_template('layouts/base.php', [
     'title' => 'readme: регистрация',
     'main_modifier' => 'registration',
     'page_content' => $page_content

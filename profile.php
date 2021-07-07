@@ -51,11 +51,11 @@ $page_content = include_template('profile.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layout.php', [
+$layout_content = include_template('layouts/base.php', [
     'title' => 'readme: профиль',
     'main_modifier' => 'profile',
     'page_content' => $page_content,
-    'messages_count' => $message_count
+    'message_count' => $message_count
 ]);
 
 print($layout_content);

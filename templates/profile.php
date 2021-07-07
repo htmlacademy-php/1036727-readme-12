@@ -90,20 +90,20 @@
                             <div style="<?= $style ?>" class="post__main">
                                 <?php $post['display_mode'] = 'feed'; ?>
                                 <?php if ($post['class_name'] === 'quote'): ?>
-                                    <?= include_template('inc/post-quote.php', ['post' => $post]) ?>
+                                    <?= include_template('_partials/post-quote.php', ['post' => $post]) ?>
 
                                 <?php elseif ($post['class_name'] === 'link'): ?>
-                                    <?= include_template('inc/post-link.php', ['post' => $post]) ?>
+                                    <?= include_template('_partials/post-link.php', ['post' => $post]) ?>
 
                                 <?php elseif ($post['class_name'] === 'photo'): ?>
-                                    <?= include_template('inc/post-photo.php', ['post' => $post]) ?>
+                                    <?= include_template('_partials/post-photo.php', ['post' => $post]) ?>
 
                                 <?php elseif ($post['class_name'] === 'video'): ?>
-                                    <?= include_template('inc/post-video.php', ['post' => $post]) ?>
+                                    <?= include_template('_partials/post-video.php', ['post' => $post]) ?>
 
                                 <?php elseif ($post['class_name'] === 'text'): ?>
                                     <?php $post['style'] = 'margin-top: 0;'; ?>
-                                    <?= include_template('inc/post-text.php', ['post' => $post]) ?>
+                                    <?= include_template('_partials/post-text.php', ['post' => $post]) ?>
                                 <?php endif; ?>
                             </div>
                             <footer class="post__footer">

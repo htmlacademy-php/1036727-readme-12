@@ -66,11 +66,11 @@ $page_content = include_template('messages.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layout.php', [
+$layout_content = include_template('layouts/base.php', [
     'title' => 'readme: личные сообщения',
     'main_modifier' => 'messages',
     'page_content' => $page_content,
-    'messages_count' => $message_count
+    'message_count' => $message_count
 ]);
 
 print($layout_content);

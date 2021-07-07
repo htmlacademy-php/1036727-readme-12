@@ -37,7 +37,7 @@ $page_content = include_template('login.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layout.php', [
+$layout_content = include_template('layouts/base.php', [
     'title' => 'readme: авторизация',
     'main_modifier' => 'login',
     'page_content' => $page_content

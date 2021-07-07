@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$layout_content = include_template('anonym.php', [
+$layout_content = include_template('layouts/anonym.php', [
     'title' => 'readme: блог, каким он должен быть',
     'errors' => $errors
 ]);

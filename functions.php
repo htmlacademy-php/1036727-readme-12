@@ -401,7 +401,7 @@ function send_post_notifications(array $recipients, string $post_title): void {
 
         foreach ($recipients as $recipient) {
             $message->setTo([$recipient['email'] => $recipient['login']]);
-            $body = include_template('templates/post-notice.php', [
+            $body = include_template('notifications/post.php', [
                 'recipient' => $recipient,
                 'post_title' => $post_title
             ]);
