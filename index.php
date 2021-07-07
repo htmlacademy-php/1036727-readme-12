@@ -11,8 +11,9 @@ $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = get_post_input('login');
+    $errors = validate_form('login', $input);
 
-    if (!$errors = validate_form('login', $input)) {
+    if (!is_null($errors) && empty($errors)) {
         $user = Database::getInstance()->getUserByEmail($input['email']);
 
         if ($user && password_verify($input['passwd'], $user['password'])) {

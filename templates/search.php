@@ -11,15 +11,24 @@
         <div class="search__results-wrapper">
             <div class="container">
                 <div class="search__content">
+
                     <?php foreach ($posts as $post): ?>
                         <article class="search__post post post-<?= esc($post['class_name']) ?>">
                             <header class="post__header post__author">
                                 <a class="post__author-link" href="/profile.php?id=<?= $post['author_id'] ?>&tab=posts" title="Автор">
                                     <div class="post__avatar-wrapper">
+
                                         <?php if (!empty($post['avatar_path'])): ?>
-                                            <img style="width: 60px; height: 60px; object-fit: cover;"
-                                                class="post__author-avatar" src="uploads/<?= esc($post['avatar_path']) ?>" alt="Аватар пользователя" width="60" height="60">
+                                            <img
+                                                style="width: 60px; height: 60px; object-fit: cover;"
+                                                class="post__author-avatar"
+                                                src="uploads/<?= esc($post['avatar_path']) ?>"
+                                                width="60"
+                                                height="60"
+                                                alt="Аватар пользователя"
+                                            >
                                         <?php endif; ?>
+
                                     </div>
                                     <div class="post__info">
                                         <b class="post__author-name"><?= esc($post['author']) ?></b>
@@ -28,6 +37,7 @@
                                 </a>
                             </header>
                             <div style="min-height: 141px;" class="post__main">
+
                                 <?php if (in_array($post['class_name'], ['photo', 'text'])): ?>
                                     <h2><a href="/post.php?id=<?= esc($post['id']) ?>&comments=2"><?= esc($post['title']) ?></a></h2>
                                 <?php endif; ?>
@@ -77,16 +87,21 @@
                                         <span class="visually-hidden">количество репостов</span>
                                     </a>
                                 </div>
+
                                 <?php if (!empty($post['hashtags'])): ?>
                                     <ul style="margin: 0 0 0 -3px; padding: 23px 0 0 0;" class="post__tags">
+
                                         <?php foreach ($post['hashtags'] as $hashtag): ?>
                                             <li><a href="/search.php?q=%23<?= esc($hashtag['name']) ?>">#<?= esc($hashtag['name']) ?></a></li>
                                         <?php endforeach; ?>
+
                                     </ul>
                                 <?php endif; ?>
+
                             </footer>
                         </article>
                     <?php endforeach; ?>
+
                 </div>
             </div>
         </div>
