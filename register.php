@@ -12,12 +12,13 @@ $form_inputs = Database::getInstance()->getFormInputs('registration');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input('registration');
+    $input = getPostInput('registration');
+    $errors = validateForm('registration', $input);
 
-    if (!$errors = validate_form('registration', $input)) {
-        $input['passwd'] = get_password_hash($input['passwd']);
-        $input['avatar-path'] = upload_avatar_file();
-        $stmt_data = get_stmt_data($input, 'registration');
+    if (!is_null($errors) && empty($errors)) {
+        $input['passwd'] = getPasswordHash($input['passwd']);
+        $input['avatar-path'] = uploadAvatarFile();
+        $stmt_data = getStmtData($input, 'registration');
         Database::getInstance()->insertUser($stmt_data);
 
         header('Location: /index.php');
@@ -30,7 +31,7 @@ $page_content = include_template('register.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layout.php', [
+$layout_content = include_template('layouts/base.php', [
     'title' => 'readme: регистрация',
     'main_modifier' => 'registration',
     'page_content' => $page_content

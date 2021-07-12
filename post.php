@@ -20,10 +20,11 @@ $form_inputs = Database::getInstance()->getFormInputs('comments');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input('comments');
+    $input = getPostInput('comments');
+    $errors = validateForm('comments', $input);
 
-    if (!$errors = validate_form('comments', $input)) {
-        $comment = cut_out_extra_spaces($input['comment']);
+    if (!is_null($errors) && empty($errors)) {
+        $comment = cutOutExtraSpaces($input['comment']);
         $stmt_data = [$comment, $user_id, $input['post-id']];
         Database::getInstance()->insertComment($stmt_data);
         $author_id = Database::getInstance()->getPostAuthorId($input['post-id']);
@@ -54,11 +55,11 @@ $page_content = include_template('post.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layout.php', [
+$layout_content = include_template('layouts/base.php', [
     'title' => 'readme: публикация',
     'main_modifier' => 'publication',
     'page_content' => $page_content,
-    'messages_count' => $message_count
+    'message_count' => $message_count
 ]);
 
 print($layout_content);

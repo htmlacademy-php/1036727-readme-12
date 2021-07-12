@@ -175,21 +175,23 @@ class Database {
     }
 
     public function insertPost(array $stmt_data): int {
-        $post_fields = get_post_fields('insert');
+        $post_fields = getPostFields('insert');
         $query = (new QueryBuilder())
             ->insert('post', $post_fields, array_fill(0, 10, '?'));
 
         return $this->getLastId($query->getQuery(), $stmt_data);
     }
 
-    public function getHashtagByName(string $name): ?array
+    public function getExistHashtags(array $hashtags): array
     {
+        $placeholders = array_fill(0, count($hashtags), '?');
+        $placeholders = implode(', ', $placeholders);
         $query = (new QueryBuilder())
-            ->select(['id'])
+            ->select(['id', 'name'])
             ->from('hashtag')
-            ->where('=', 'name', '?');
+            ->where('IN', 'name', "({$placeholders})");
 
-        return $query->one([$name]) ?? null;
+        return $query->all($hashtags);
     }
 
     public function insertHashtag(string $hashtag): int
@@ -200,29 +202,12 @@ class Database {
         return $this->getLastId($query->getQuery(), [$hashtag]);
     }
 
-    public function insertPostHashtag(array $stmt_data): void
+    public function insertPostHashtag(array $stmt_data)
     {
         $query = (new QueryBuilder())
             ->insert('post_hashtag', ['hashtag_id', 'post_id'], ['?', '?']);
 
         $this->executeQuery($query->getQuery(), $stmt_data);
-    }
-
-    public function validateHashtag(string $hashtag, int $post_id): void
-    {
-        if (!$tag_name = ltrim($hashtag, '#')) {
-            return;
-        }
-
-        $hashtag = $this->getHashtagByName($tag_name);
-
-        if (!$hashtag) {
-            $hashtag_id = $this->insertHashtag($tag_name);
-        } else {
-            $hashtag_id = $hashtag['id'];
-        }
-
-        $this->insertPostHashtag([$hashtag_id, $post_id]);
     }
 
     public function getSubscribers(): array
@@ -261,7 +246,7 @@ class Database {
 
     public function getFeedPosts(string $content_type): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $user_id = $_SESSION['user']['id'];
         $stmt_data = array_filter([$user_id, $user_id, $content_type]);
         $query = (new QueryBuilder())
@@ -337,7 +322,7 @@ class Database {
         return $query->exists($stmt_data);
     }
 
-    public function insertPostLike(array $stmt_data): void
+    public function insertPostLike(array $stmt_data)
     {
         $query = (new QueryBuilder())
             ->insert('post_like', ['post_id', 'author_id'], ['?', '?']);
@@ -345,7 +330,7 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
-    public function deletePostLike(array $stmt_data): void
+    public function deletePostLike(array $stmt_data)
     {
         $query = (new QueryBuilder())
             ->delete('post_like')
@@ -392,7 +377,7 @@ class Database {
         return $query->exists($stmt_data);
     }
 
-    public function insertMessage(array $stmt_data): void
+    public function insertMessage(array $stmt_data)
     {
         $message_fields = ['content', 'sender_id', 'recipient_id'];
         $query = (new QueryBuilder())
@@ -401,7 +386,7 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
-    public function updateMessagesStatus(int $contact_id): void
+    public function updateMessagesStatus(int $contact_id)
     {
         $stmt_data = [$contact_id, $_SESSION['user']['id']];
         $query = (new QueryBuilder())
@@ -502,7 +487,7 @@ class Database {
 
     public function getPopularPosts(array $stmt_data, string $order): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT c.id) AS comment_count',
@@ -527,7 +512,7 @@ class Database {
         }));
     }
 
-    public function insertComment(array $stmt_data): void
+    public function insertComment(array $stmt_data)
     {
         $comment_fields = ['content', 'author_id', 'post_id'];
         $query = (new QueryBuilder())
@@ -546,7 +531,7 @@ class Database {
         return intval($query->one([$post_id])['author_id']);
     }
 
-    public function updatePostShowCount(int $post_id): void
+    public function updatePostShowCount(int $post_id)
     {
         $query = (new QueryBuilder())
             ->update('post', ['show_count' => 'show_count + 1'])
@@ -558,7 +543,7 @@ class Database {
     public function getPostDetails(int $post_id): array
     {
         $stmt_data = [$_SESSION['user']['id'], $post_id];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -655,7 +640,7 @@ class Database {
     public function getProfilePosts(int $profile_id, int $limit): array
     {
         $stmt_data = [$_SESSION['user']['id'], $profile_id];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -690,7 +675,7 @@ class Database {
 
     public function getProfileLikes(int $profile_id): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select($post_fields, 'p.')
             ->addSelect(['u.id AS user_id', 'u.login AS author', 'u.avatar_path'])
@@ -737,7 +722,7 @@ class Database {
         return $query->exists([$email]);
     }
 
-    public function insertUser(array $stmt_data): void
+    public function insertUser(array $stmt_data)
     {
         $user_fields = ['email', 'login', 'password', 'avatar_path'];
         $query = (new QueryBuilder())
@@ -748,7 +733,7 @@ class Database {
 
     public function getPost(int $post_id): array
     {
-        $post_fields = get_post_fields('insert');
+        $post_fields = getPostFields('insert');
         $query = (new QueryBuilder())
             ->select($post_fields)
             ->from('post')
@@ -770,7 +755,7 @@ class Database {
     public function getPostsByHashtag(string $hashtag): array
     {
         $stmt_data = [$_SESSION['user']['id'], $hashtag];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -805,7 +790,7 @@ class Database {
     public function getPostsByQueryString(string $query): array
     {
         $stmt_data = [$query, $_SESSION['user']['id'], $query];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -847,7 +832,7 @@ class Database {
         return $query->exists($stmt_data);
     }
 
-    public function insertSubscription(array $stmt_data): void
+    public function insertSubscription(array $stmt_data)
     {
         $query = (new QueryBuilder())
             ->insert('subscription', ['author_id', 'user_id'], ['?', '?']);
@@ -855,7 +840,7 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
-    public function deleteSubscription(array $stmt_data): void
+    public function deleteSubscription(array $stmt_data)
     {
         $query = (new QueryBuilder())
             ->delete('subscription')

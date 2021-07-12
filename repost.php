@@ -27,7 +27,7 @@ if ($hashtags = Database::getInstance()->getPostHashtagIds($post_id)) {
 }
 
 if ($subscribers = Database::getInstance()->getSubscribers()) {
-    send_post_notifications($subscribers, $post['title']);
+    sendPostNotifications($subscribers, $post['title']);
 }
 
 header("Location: /profile.php?id={$user_id}&tab=posts");

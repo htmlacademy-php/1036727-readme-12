@@ -55,7 +55,7 @@
                 <div class="authorization__input-wrapper form__input-wrapper">
                     <?php $classname = isset($errors['email']) ? ' form__input-section--error' : ''; ?>
                     <div class="form__input-section<?= $classname ?>">
-                        <input class="authorization__input authorization__input--login form__input" type="text" name="email" value="<?= esc(get_post_value('email')) ?>" placeholder="Логин">
+                        <input class="authorization__input authorization__input--login form__input" type="text" name="email" value="<?= esc(getPostValue('email')) ?>" placeholder="Логин">
                         <svg class="form__input-icon" width="19" height="18">
                             <use xlink:href="#icon-input-user"></use>
                         </svg>
@@ -66,7 +66,7 @@
                 <div class="authorization__input-wrapper form__input-wrapper">
                     <?php $classname = isset($errors['passwd']) ? ' form__input-section--error' : ''; ?>
                     <div class="form__input-section<?= $classname ?>">
-                        <input class="authorization__input authorization__input--password form__input" type="password" name="passwd" value="<?= esc(get_post_value('passwd')) ?>" placeholder="Пароль">
+                        <input class="authorization__input authorization__input--password form__input" type="password" name="passwd" value="<?= esc(getPostValue('passwd')) ?>" placeholder="Пароль">
                         <svg class="form__input-icon" width="16" height="20">
                             <use xlink:href="#icon-input-password"></use>
                         </svg>

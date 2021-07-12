@@ -23,34 +23,33 @@ $form_inputs = Database::getInstance()->getFormInputs('adding-post');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input('adding-post');
+    $input = getPostInput('adding-post');
 
     if (Database::getInstance()->isContentTypeValid($input['content-type'] ?? '')) {
+        $form_name = "adding-post-{$input['content-type']}";
+        $errors = validateForm($form_name, $input);
 
-        $form_name = "adding-post__{$input['content-type']}";
-        if (!$errors = validate_form($form_name, $input)) {
+        if (!is_null($errors) && empty($errors)) {
             if ($input['content-type'] === 'text') {
-                $input['text-content'] = cut_out_extra_spaces($input['post-text']);
+                $input['text-content'] = cutOutExtraSpaces($input['post-text']);
             } elseif ($input['content-type'] === 'quote') {
-                $input['text-content'] = cut_out_extra_spaces($input['cite-text']);
+                $input['text-content'] = cutOutExtraSpaces($input['cite-text']);
             } elseif ($input['content-type'] === 'link') {
-                validate_input_post_link($input);
+                validateInputPostLink($input);
             }
 
-            $input['image-path'] = upload_image_file($input, $errors);
+            $input['image-path'] = uploadImageFile($input, $errors);
             $ctype_id = $ctypes[$input['content-type']]['id'];
-            $stmt_data = get_stmt_data($input, 'adding-post');
+            $stmt_data = getStmtData($input, 'adding-post');
             $stmt_data += [$user_id, 0, null, $ctype_id];
             $post_id = Database::getInstance()->insertPost($stmt_data);
 
-            if ($tags = array_filter(explode(' ', $input['tags']))) {
-                foreach ($tags as $tag_name) {
-                    Database::getInstance()->validateHashtag($tag_name, $post_id);
-                }
+            if ($hashtags = explode(' ', $input['tags'])) {
+                processPostHashtags($hashtags, $post_id);
             }
 
             if ($subscribers = Database::getInstance()->getSubscribers()) {
-                send_post_notifications($subscribers, $input['heading']);
+                sendPostNotifications($subscribers, $input['heading']);
             }
 
             header("Location: /post.php?id={$post_id}");
@@ -72,11 +71,11 @@ $page_content = include_template('add.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layout.php', [
+$layout_content = include_template('layouts/base.php', [
     'title' => 'readme: добавление публикации',
     'main_modifier' => 'adding-post',
     'page_content' => $page_content,
-    'messages_count' => $message_count
+    'message_count' => $message_count
 ]);
 
 print($layout_content);

@@ -6,7 +6,7 @@ class QueryBuilder {
     public function select(array $columns, string $prefix = ''): QueryBuilder
     {
         if ($prefix) {
-            array_walk($columns, 'add_prefix', $prefix);
+            array_walk($columns, 'addPrefix', $prefix);
         }
 
         $columns = implode(', ', $columns);
@@ -18,7 +18,7 @@ class QueryBuilder {
     public function addSelect(array $columns, string $prefix = ''): QueryBuilder
     {
         if ($prefix) {
-            array_walk($columns, 'add_prefix', $prefix);
+            array_walk($columns, 'addPrefix', $prefix);
         }
 
         $columns = implode(', ', $columns);
