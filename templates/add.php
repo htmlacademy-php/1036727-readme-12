@@ -62,7 +62,7 @@
 
                             <div class="adding-post__buttons">
                                 <button class="adding-post__submit button button--main" type="submit">Опубликовать</button>
-                                <?php $close_url = get_adding_post_close_url(); ?>
+                                <?php $close_url = getAddingPostCloseUrl(); ?>
                                 <a class="adding-post__close" href="<?= $close_url ?>">Закрыть</a>
                             </div>
                         </form>

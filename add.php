@@ -23,33 +23,33 @@ $form_inputs = Database::getInstance()->getFormInputs('adding-post');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input('adding-post');
+    $input = getPostInput('adding-post');
 
     if (Database::getInstance()->isContentTypeValid($input['content-type'] ?? '')) {
         $form_name = "adding-post-{$input['content-type']}";
-        $errors = validate_form($form_name, $input);
+        $errors = validateForm($form_name, $input);
 
         if (!is_null($errors) && empty($errors)) {
             if ($input['content-type'] === 'text') {
-                $input['text-content'] = cut_out_extra_spaces($input['post-text']);
+                $input['text-content'] = cutOutExtraSpaces($input['post-text']);
             } elseif ($input['content-type'] === 'quote') {
-                $input['text-content'] = cut_out_extra_spaces($input['cite-text']);
+                $input['text-content'] = cutOutExtraSpaces($input['cite-text']);
             } elseif ($input['content-type'] === 'link') {
-                validate_input_post_link($input);
+                validateInputPostLink($input);
             }
 
-            $input['image-path'] = upload_image_file($input, $errors);
+            $input['image-path'] = uploadImageFile($input, $errors);
             $ctype_id = $ctypes[$input['content-type']]['id'];
-            $stmt_data = get_stmt_data($input, 'adding-post');
+            $stmt_data = getStmtData($input, 'adding-post');
             $stmt_data += [$user_id, 0, null, $ctype_id];
             $post_id = Database::getInstance()->insertPost($stmt_data);
 
             if ($hashtags = explode(' ', $input['tags'])) {
-                process_post_hashtags($hashtags, $post_id);
+                processPostHashtags($hashtags, $post_id);
             }
 
             if ($subscribers = Database::getInstance()->getSubscribers()) {
-                send_post_notifications($subscribers, $input['heading']);
+                sendPostNotifications($subscribers, $input['heading']);
             }
 
             header("Location: /post.php?id={$post_id}");

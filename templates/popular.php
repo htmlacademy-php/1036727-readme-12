@@ -9,8 +9,8 @@
                 <li class="sorting__item sorting__item--popular">
 
                     <?php
-                    $classname = get_sorting_link_class($sort_fields[0]);
-                    $url = get_sorting_link_url($sort_fields[0], $sort_types);
+                    $classname = getSortingLinkClass($sort_fields[0]);
+                    $url = getSortingLinkUrl($sort_fields[0], $sort_types);
                     ?>
 
                     <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
@@ -23,8 +23,8 @@
                 <li class="sorting__item">
 
                     <?php
-                    $classname = get_sorting_link_class($sort_fields[1]);
-                    $url = get_sorting_link_url($sort_fields[1], $sort_types);
+                    $classname = getSortingLinkClass($sort_fields[1]);
+                    $url = getSortingLinkUrl($sort_fields[1], $sort_types);
                     ?>
 
                     <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
@@ -37,8 +37,8 @@
                 <li class="sorting__item">
 
                     <?php
-                    $classname = get_sorting_link_class($sort_fields[2]);
-                    $url = get_sorting_link_url($sort_fields[2], $sort_types);
+                    $classname = getSortingLinkClass($sort_fields[2]);
+                    $url = getSortingLinkUrl($sort_fields[2], $sort_types);
                     ?>
 
                     <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
@@ -85,21 +85,32 @@
                     </h2>
                 </header>
                 <div class="post__main">
-                    <?php if ($post['class_name'] === 'quote'): ?>
-                        <?= include_template('_partials/post-quote.php', ['post' => $post]) ?>
 
-                    <?php elseif ($post['class_name'] === 'link'): ?>
-                        <?= include_template('_partials/post-link.php', ['post' => $post]) ?>
+                <?php
+                switch ($post['class_name']):
+                    case 'quote':
+                        echo include_template('_partials/post-quote.php', ['post' => $post]);
+                        break;
 
-                    <?php elseif ($post['class_name'] === 'photo'): ?>
-                        <?= include_template('_partials/post-photo.php', ['post' => $post]) ?>
+                    case 'link':
+                        echo include_template('_partials/post-link.php', ['post' => $post]);
+                        break;
 
-                    <?php elseif ($post['class_name'] === 'video'): ?>
-                        <?= include_template('_partials/post-video.php', ['post' => $post]) ?>
+                    case 'photo':
+                        echo include_template('_partials/post-photo.php', ['post' => $post]);
+                        break;
 
-                    <?php elseif ($post['class_name'] === 'text'): ?>
-                        <?= include_template('_partials/post-text.php', ['post' => $post]) ?>
-                    <?php endif; ?>
+                    case 'video':
+                        echo include_template('_partials/post-video.php', ['post' => $post]);
+                        break;
+
+                    case 'text':
+                        echo include_template('_partials/post-text.php', ['post' => $post]);
+                        break;
+
+                endswitch;
+                ?>
+
                 </div>
                 <footer class="post__footer">
                     <div class="post__author">
@@ -122,9 +133,9 @@
                                 <b class="post__author-name"><?= esc($post['author']) ?></b>
                                 <time
                                     class="post__time"
-                                    datetime="<?= get_datetime_value($post['dt_add']) ?>"
-                                    title="<?= get_time_title($post['dt_add']) ?>"
-                                ><?= get_relative_time($post['dt_add']) ?> назад</time>
+                                    datetime="<?= getDatetimeValue($post['dt_add']) ?>"
+                                    title="<?= getTimeTitle($post['dt_add']) ?>"
+                                ><?= getRelativeTime($post['dt_add']) ?> назад</time>
                             </div>
                         </a>
                     </div>
@@ -158,9 +169,9 @@
 
     <?php if ($pages_count > 1): ?>
         <div class="popular__page-links">
-            <?php $href = $current_page > 1 ? ' href="' . get_page_link_url($current_page, false) . '"' : ''; ?>
+            <?php $href = $current_page > 1 ? ' href="' . getPageLinkUrl($current_page, false) . '"' : ''; ?>
             <a class="popular__page-link popular__page-link--prev button button--gray"<?= $href ?>>Предыдущая страница</a>
-            <?php $href = $current_page < $pages_count ? ' href="' . get_page_link_url($current_page, true) . '"' : ''; ?>
+            <?php $href = $current_page < $pages_count ? ' href="' . getPageLinkUrl($current_page, true) . '"' : ''; ?>
             <a class="popular__page-link popular__page-link--next button button--gray"<?= $href ?>>Следующая страница</a>
         </div>
     <?php endif; ?>

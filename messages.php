@@ -18,12 +18,12 @@ $form_inputs = Database::getInstance()->getFormInputs('messages');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input('messages');
-    $errors = validate_form('messages', $input);
+    $input = getPostInput('messages');
+    $errors = validateForm('messages', $input);
 
     if (!is_null($errors) && empty($errors)) {
         $contact_id = $input['contact-id'];
-        $message = cut_out_extra_spaces($input['message']);
+        $message = cutOutExtraSpaces($input['message']);
         $stmt_data = [$message, $user_id, $contact_id];
         Database::getInstance()->insertMessage($stmt_data);
 

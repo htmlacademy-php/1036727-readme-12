@@ -31,7 +31,7 @@ const FORM_TYPES = [
     ],
     'login' => [
         'email:Электронная почта' => 'email|required',
-        'passwd:Пароль' => 'required'
+        'passwd:Пароль' => 'verify|required'
     ],
     'comments' => [
         'comment:Ваш комментарий' => 'minLength:4|required',
@@ -43,7 +43,7 @@ const FORM_TYPES = [
     ]
 ];
 
-function validate_form(string $form_type, array $post_data)
+function validateForm(string $form_type, array $post_data)
 {
     if (!$validation_rules_list = FORM_TYPES[$form_type] ?? []) {
         return null;
@@ -159,6 +159,20 @@ function same(string $value, array $options)
     return $error ?? null;
 }
 
+function verify(string $value, array $options)
+{
+    $email = $options[0]['email'] ?? '';
+    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $user = Database::getInstance()->getUserByEmail($email);
+
+        if (!($user && password_verify($value, $user['password']))) {
+            $error = 'Вы ввели неверный email/пароль';
+        }
+    }
+
+    return $error ?? null;
+}
+
 function avatar(string $value, array $options, int $max_size = 1)
 {
     if (!empty($_FILES['avatar']['name'])) {
@@ -183,6 +197,12 @@ function image(string $value, array $options, int $max_size = 1)
         $file_size = $_FILES['file-photo']['size'];
         $file_type = mime_content_type($file_path);
 
+        if (!in_array($file_type, ACCEPT_MIME_TYPES)) {
+            $error = 'Неверный MIME-тип файла';
+        } elseif ($file_size > (BYTES_PER_MEGABYTE * $max_size)) {
+            $error = "Максимальный размер файла: {$max_size}Мб";
+        }
+
     } elseif (isset($post_data['image-url'])) {
         set_error_handler('exceptions_error_handler');
         try {
@@ -199,13 +219,15 @@ function image(string $value, array $options, int $max_size = 1)
         }
         restore_error_handler();
 
+        if (!in_array($file_type, ACCEPT_MIME_TYPES)) {
+            $error = 'Неверный MIME-тип файла';
+        } elseif ($file_size > (BYTES_PER_MEGABYTE * $max_size)) {
+            $error = "Максимальный размер файла: {$max_size}Мб";
+        }
+
     } else {
         return 'Вы не загрузили файл';
     }
 
-    if (!in_array($file_type, ACCEPT_MIME_TYPES)) {
-        return 'Неверный MIME-тип файла';
-    } elseif ($file_size > (BYTES_PER_MEGABYTE * $max_size)) {
-        return "Максимальный размер файла: {$max_size}Мб";
-    }
+    return $error ?? null;
 }

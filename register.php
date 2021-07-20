@@ -12,13 +12,13 @@ $form_inputs = Database::getInstance()->getFormInputs('registration');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input('registration');
-    $errors = validate_form('registration', $input);
+    $input = getPostInput('registration');
+    $errors = validateForm('registration', $input);
 
     if (!is_null($errors) && empty($errors)) {
-        $input['passwd'] = get_password_hash($input['passwd']);
-        $input['avatar-path'] = upload_avatar_file();
-        $stmt_data = get_stmt_data($input, 'registration');
+        $input['passwd'] = getPasswordHash($input['passwd']);
+        $input['avatar-path'] = uploadAvatarFile();
+        $stmt_data = getStmtData($input, 'registration');
         Database::getInstance()->insertUser($stmt_data);
 
         header('Location: /index.php');

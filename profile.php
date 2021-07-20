@@ -20,11 +20,11 @@ $form_inputs = Database::getInstance()->getFormInputs('comments');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input('comments');
-    $errors = validate_form('comments', $input);
+    $input = getPostInput('comments');
+    $errors = validateForm('comments', $input);
 
     if (!is_null($errors) && empty($errors)) {
-        $comment = cut_out_extra_spaces($input['comment']);
+        $comment = cutOutExtraSpaces($input['comment']);
         $stmt_data = [$comment, $user_id, $input['post-id']];
         Database::getInstance()->insertComment($stmt_data);
         $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';

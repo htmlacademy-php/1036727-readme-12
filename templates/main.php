@@ -28,31 +28,42 @@
                                 </div>
                                 <div class="post__info">
                                     <b class="post__author-name"><?= esc($post['author']) ?></b>
-                                    <span class="post__time"><?= get_relative_time($post['dt_add']) ?> назад</span>
+                                    <span class="post__time"><?= getRelativeTime($post['dt_add']) ?> назад</span>
                                 </div>
                             </a>
                         </header>
                         <div style="min-height: 141px;" class="post__main">
+                            <?php $post['display_mode'] = 'feed'; ?>
+
                             <?php if (in_array($post['class_name'], ['photo', 'text'])): ?>
                                 <h2><a href="/post.php?id=<?= esc($post['id']) ?>&comments=2"><?= esc($post['title']) ?></a></h2>
                             <?php endif; ?>
 
-                            <?php $post['display_mode'] = 'feed'; ?>
-                            <?php if ($post['class_name'] === 'quote'): ?>
-                                <?= include_template('_partials/post-quote.php', ['post' => $post]) ?>
+                            <?php
+                            switch ($post['class_name']):
+                                case 'quote':
+                                    echo include_template('_partials/post-quote.php', ['post' => $post]);
+                                    break;
 
-                            <?php elseif ($post['class_name'] === 'link'): ?>
-                                <?= include_template('_partials/post-link.php', ['post' => $post]) ?>
+                                case 'link':
+                                    echo include_template('_partials/post-link.php', ['post' => $post]);
+                                    break;
 
-                            <?php elseif ($post['class_name'] === 'photo'): ?>
-                                <?= include_template('_partials/post-photo.php', ['post' => $post]) ?>
+                                case 'photo':
+                                    echo include_template('_partials/post-photo.php', ['post' => $post]);
+                                    break;
 
-                            <?php elseif ($post['class_name'] === 'video'): ?>
-                                <?= include_template('_partials/post-video.php', ['post' => $post]) ?>
+                                case 'video':
+                                    echo include_template('_partials/post-video.php', ['post' => $post]);
+                                    break;
 
-                            <?php elseif ($post['class_name'] === 'text'): ?>
-                                <?= include_template('_partials/post-text.php', ['post' => $post]) ?>
-                            <?php endif; ?>
+                                case 'text':
+                                    echo include_template('_partials/post-text.php', ['post' => $post]);
+                                    break;
+
+                            endswitch;
+                            ?>
+
                         </div>
                         <footer style="flex-direction: column;" class="post__footer post__indicators">
                             <div class="post__buttons">

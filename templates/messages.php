@@ -35,7 +35,7 @@
                                     <p class="messages__preview-text"><?= $contact['preview']['text'] ?></p>
                                     <time
                                         class="messages__preview-time"
-                                        datetime="<?= get_datetime_value($contact['preview']['time']) ?>"
+                                        datetime="<?= getDatetimeValue($contact['preview']['time']) ?>"
                                     ><?= date('M j', strtotime($contact['preview']['time'])) ?></time>
                                 <?php endif; ?>
 
@@ -89,8 +89,8 @@
                                             <a class="messages__author" href="/profile.php?id=<?= esc($message['sender_id']) ?>&tab=posts"><?= esc($message['author']) ?></a>
                                             <time
                                                 class="messages__time"
-                                                datetime="<?= get_datetime_value($message['dt_add']) ?>"
-                                            ><?= get_relative_time($message['dt_add']) ?> назад</time>
+                                                datetime="<?= getDatetimeValue($message['dt_add']) ?>"
+                                            ><?= getRelativeTime($message['dt_add']) ?> назад</time>
                                         </div>
                                     </div>
                                     <p class="messages__text"><?= nl2br(esc($message['content']), false) ?></p>
@@ -128,7 +128,7 @@
                                 class="comments__textarea form__textarea form__input"
                                 name="<?= esc($input['name']) ?>"
                                 placeholder="<?= esc($input['placeholder']) ?>"
-                            ><?= esc(get_post_value($input['name'])) ?></textarea>
+                            ><?= esc(getPostValue($input['name'])) ?></textarea>
                             <label class="visually-hidden"><?= esc($input['label']) ?></label>
                             <button class="form__error-button button" type="button">!</button>
                             <div class="form__error-text">

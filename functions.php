@@ -5,7 +5,7 @@ function exceptions_error_handler($severity, $message, $filename, $lineno)
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
 }
 
-function crop_text_content(string $text, int $post_id, string $style = '', int $num_letters = 300): string
+function cropTextContent(string $text, int $post_id, string $style = '', int $num_letters = 300): string
 {
     $style = $style ? " style=\"{$style}\"" : '';
     $text_length = mb_strlen($text);
@@ -38,7 +38,7 @@ function crop_text_content(string $text, int $post_id, string $style = '', int $
     return $result;
 }
 
-function get_post_input(string $form): array
+function getPostInput(string $form): array
 {
     $input_names = [
         'adding-post' => [
@@ -79,7 +79,7 @@ function get_post_input(string $form): array
     return $input;
 }
 
-function get_post_fields(string $mode = 'select'): array
+function getPostFields(string $mode = 'select'): array
 {
     $post_fields = [
         'select' => [
@@ -114,7 +114,7 @@ function get_post_fields(string $mode = 'select'): array
     return $post_fields[$mode] ?? [];
 }
 
-function get_stmt_data(array $input, string $form): array
+function getStmtData(array $input, string $form): array
 {
     $input_keys = [
         'adding-post' => [
@@ -147,7 +147,7 @@ function get_stmt_data(array $input, string $form): array
     return $stmt_data;
 }
 
-function get_relative_time(string $date): string
+function getRelativeTime(string $date): string
 {
 
     if (!strtotime($date)) {
@@ -181,7 +181,7 @@ function get_relative_time(string $date): string
     return $relative_time;
 }
 
-function get_datetime_value(string $date): string
+function getDatetimeValue(string $date): string
 {
     if ($ts = strtotime($date)) {
         $datetime = date('Y-m-d H:i', $ts);
@@ -191,7 +191,7 @@ function get_datetime_value(string $date): string
     return $datetime ?? '';
 }
 
-function get_time_title(string $date): string
+function getTimeTitle(string $date): string
 {
     if ($ts = strtotime($date)) {
         $title = date('d.m.Y H:i', $ts);
@@ -200,7 +200,7 @@ function get_time_title(string $date): string
     return $title ?? '';
 }
 
-function get_sorting_link_class(string $field): string
+function getSortingLinkClass(string $field): string
 {
     if (isset($_GET['sort']) && $_GET['sort'] === $field) {
         $classname = ' sorting__link--active';
@@ -212,7 +212,7 @@ function get_sorting_link_class(string $field): string
     return $classname ?? '';
 }
 
-function get_sorting_link_url(string $field, array $types): string
+function getSortingLinkUrl(string $field, array $types): string
 {
     if ($filter = filter_input(INPUT_GET, 'filter')) {
         $parameters['filter'] = $filter;
@@ -228,7 +228,7 @@ function get_sorting_link_url(string $field, array $types): string
     return $url;
 }
 
-function get_page_link_url(int $current_page, bool $next): string
+function getPageLinkUrl(int $current_page, bool $next): string
 {
     $parameters['filter'] = filter_input(INPUT_GET, 'filter');
     $parameters['sort'] = filter_input(INPUT_GET, 'sort');
@@ -246,7 +246,7 @@ function get_page_link_url(int $current_page, bool $next): string
     return $url;
 }
 
-function get_adding_post_close_url(): string
+function getAddingPostCloseUrl(): string
 {
     $url = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
     if (parse_url($url, PHP_URL_PATH) === '/add.php') {
@@ -256,7 +256,7 @@ function get_adding_post_close_url(): string
     return $url;
 }
 
-function validate_link_info(array &$input)
+function validateLinkInfo(array &$input)
 {
     set_error_handler('exceptions_error_handler');
 
@@ -302,7 +302,7 @@ function cmp(array $a, array $b): int
     return ($a > $b) ? -1 : 1;
 }
 
-function get_icon_url(string $url): string
+function getIconUrl(string $url): string
 {
     $url = parse_url($url, PHP_URL_HOST);
     $url = "https://favicongrabber.com/api/grab/{$url}?pretty=true";
@@ -331,9 +331,9 @@ function get_icon_url(string $url): string
     return $response[0]['src'] ?? '';
 }
 
-function validate_icon_file(array &$input)
+function validateIconFile(array &$input)
 {
-    $icon_url = get_icon_url($input['post-link']);
+    $icon_url = getIconUrl($input['post-link']);
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $file_name = uniqid();
@@ -354,13 +354,13 @@ function validate_icon_file(array &$input)
     restore_error_handler();
 }
 
-function validate_input_post_link(array &$input)
+function validateInputPostLink(array &$input)
 {
-    validate_link_info($input);
-    validate_icon_file($input);
+    validateLinkInfo($input);
+    validateIconFile($input);
 }
 
-function upload_avatar_file()
+function uploadAvatarFile()
 {
     if (!empty($_FILES['avatar']['name'])) {
         $file_path = $_FILES['avatar']['tmp_name'];
@@ -373,7 +373,7 @@ function upload_avatar_file()
     return $file_name ?? null;
 }
 
-function upload_image_file(array $input, array &$errors)
+function uploadImageFile(array $input, array &$errors)
 {
     if (!empty($_FILES['file-photo']['name'])) {
         $file_path = $_FILES['file-photo']['tmp_name'];
@@ -406,7 +406,7 @@ function upload_image_file(array $input, array &$errors)
     return $file_name ?? null;
 }
 
-function process_post_hashtags(array $hashtags, int $post_id)
+function processPostHashtags(array $hashtags, int $post_id)
 {
     array_walk($hashtags, function (&$val, $key) {
         $val = ltrim($val, '#');
@@ -430,7 +430,7 @@ function process_post_hashtags(array $hashtags, int $post_id)
     }
 }
 
-function send_post_notifications(array $recipients, string $post_title)
+function sendPostNotifications(array $recipients, string $post_title)
 {
     try {
         $smtp_config = require('config/smtp.php');
@@ -458,7 +458,7 @@ function send_post_notifications(array $recipients, string $post_title)
     } catch (Swift_TransportException $ex) {}
 }
 
-function get_post_value(string $name): string
+function getPostValue(string $name): string
 {
     return filter_input(INPUT_POST, $name) ?? '';
 }
@@ -468,18 +468,18 @@ function esc(string $str): string
     return htmlspecialchars($str);
 }
 
-function add_prefix(&$item, $key, $prefix)
+function addPrefix(&$item, $key, $prefix)
 {
     $item = $prefix . $item;
 }
 
-function cut_out_extra_spaces(string $text): string
+function cutOutExtraSpaces(string $text): string
 {
     $text = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $text);
     return preg_replace('/\040\040+/', ' ', $text);
 }
 
-function get_password_hash(string $password): string
+function getPasswordHash(string $password): string
 {
     return password_hash($password, PASSWORD_DEFAULT);
 }

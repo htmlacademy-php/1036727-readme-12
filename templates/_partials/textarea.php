@@ -17,7 +17,7 @@ $textarea_id = isset($_GET['tab']) && $_GET['tab'] !== 'text' ? "{$_GET['tab']}-
             id="<?= esc($textarea_id) ?>"
             name="<?= esc($input['name']) ?>"
             placeholder="<?= esc($input['placeholder']) ?>"
-        ><?= esc(get_post_value($input['name'])) ?></textarea>
+        ><?= esc(getPostValue($input['name'])) ?></textarea>
 
         <button class="form__error-button button" type="button">
             !<span class="visually-hidden">Информация об ошибке</span>

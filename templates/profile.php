@@ -21,8 +21,8 @@
                     <span class="profile__name user__name"><?= esc($user['login']) ?></span>
                     <time
                         class="profile__user-time user__time"
-                        datetime="<?= get_datetime_value($user['dt_add']) ?>"
-                    ><?= get_relative_time($user['dt_add']) ?> на сайте</time>
+                        datetime="<?= getDatetimeValue($user['dt_add']) ?>"
+                    ><?= getRelativeTime($user['dt_add']) ?> на сайте</time>
                 </div>
             </div>
             <div class="profile__rating user__rating">
@@ -122,8 +122,8 @@
                                                 <b class="post__author-name">Репост: <?= esc($post['origin']['author']) ?></b>
                                                 <time
                                                     class="post__time"
-                                                    datetime="<?= get_datetime_value($post['origin']['dt_add']) ?>"
-                                                ><?= get_relative_time($post['origin']['dt_add']) ?> назад</time>
+                                                    datetime="<?= getDatetimeValue($post['origin']['dt_add']) ?>"
+                                                ><?= getRelativeTime($post['origin']['dt_add']) ?> назад</time>
                                             </div>
                                         </a>
                                     </div>
@@ -135,22 +135,33 @@
                             <?php $style = !$post['comments'] ? ($post['hashtags'] ? 'min-height: 67px;' : 'min-height: 83px;') : ''; ?>
                             <div style="<?= $style ?>" class="post__main">
                                 <?php $post['display_mode'] = 'feed'; ?>
-                                <?php if ($post['class_name'] === 'quote'): ?>
-                                    <?= include_template('_partials/post-quote.php', ['post' => $post]) ?>
 
-                                <?php elseif ($post['class_name'] === 'link'): ?>
-                                    <?= include_template('_partials/post-link.php', ['post' => $post]) ?>
+                                <?php
+                                switch ($post['class_name']):
+                                    case 'quote':
+                                        echo include_template('_partials/post-quote.php', ['post' => $post]);
+                                        break;
 
-                                <?php elseif ($post['class_name'] === 'photo'): ?>
-                                    <?= include_template('_partials/post-photo.php', ['post' => $post]) ?>
+                                    case 'link':
+                                        echo include_template('_partials/post-link.php', ['post' => $post]);
+                                        break;
 
-                                <?php elseif ($post['class_name'] === 'video'): ?>
-                                    <?= include_template('_partials/post-video.php', ['post' => $post]) ?>
+                                    case 'photo':
+                                        echo include_template('_partials/post-photo.php', ['post' => $post]);
+                                        break;
 
-                                <?php elseif ($post['class_name'] === 'text'): ?>
-                                    <?php $post['style'] = 'margin-top: 0;'; ?>
-                                    <?= include_template('_partials/post-text.php', ['post' => $post]) ?>
-                                <?php endif; ?>
+                                    case 'video':
+                                        echo include_template('_partials/post-video.php', ['post' => $post]);
+                                        break;
+
+                                    case 'text':
+                                        $post['style'] = 'margin-top: 0;';
+                                        echo include_template('_partials/post-text.php', ['post' => $post]);
+                                        break;
+
+                                endswitch;
+                                ?>
+
                             </div>
                             <footer class="post__footer">
                                 <div class="post__indicators">
@@ -176,8 +187,8 @@
                                     </div>
                                     <time
                                         class="post__time"
-                                        datetime="<?= get_datetime_value($post['dt_add']) ?>"
-                                    ><?= get_relative_time($post['dt_add']) ?> назад</time>
+                                        datetime="<?= getDatetimeValue($post['dt_add']) ?>"
+                                    ><?= getRelativeTime($post['dt_add']) ?> назад</time>
                                 </div>
 
                                 <?php if (!empty($post['hashtags'])): ?>
@@ -225,7 +236,7 @@
                                                                 <time
                                                                     class="comments__time"
                                                                     datetime="<?= esc($comment['dt_add']) ?>"
-                                                                ><?= get_relative_time($comment['dt_add']) ?> назад</time>
+                                                                ><?= getRelativeTime($comment['dt_add']) ?> назад</time>
                                                             </div>
                                                             <p class="comments__text"><?= nl2br(esc($comment['content']), false) ?></p>
                                                         </div>
@@ -269,7 +280,7 @@
                                                     class="comments__textarea form__textarea form__input"
                                                     name="<?= esc($input['name']) ?>"
                                                     placeholder="<?= esc($input['placeholder']) ?>"
-                                                ><?= esc(get_post_value($input['name'])) ?></textarea>
+                                                ><?= esc(getPostValue($input['name'])) ?></textarea>
                                                 <label class="visually-hidden"><?= esc($input['label']) ?></label>
                                                 <button class="form__error-button button" type="button">!</button>
                                                 <div class="form__error-text">
@@ -330,8 +341,8 @@
                                             <span class="post-mini__activity user__additional"><?= $text_content ?></span>
                                             <time
                                                 class="post-mini__time user__additional"
-                                                datetime="<?= get_datetime_value($like['dt_add']) ?>"
-                                            ><?= get_relative_time($like['dt_add']) ?> назад</time>
+                                                datetime="<?= getDatetimeValue($like['dt_add']) ?>"
+                                            ><?= getRelativeTime($like['dt_add']) ?> назад</time>
                                         </div>
                                     </div>
                                 </div>
@@ -405,8 +416,8 @@
                                         </a>
                                         <time
                                             class="post-mini__time user__additional"
-                                            datetime="<?= get_datetime_value($user['dt_add']) ?>"
-                                        ><?= get_relative_time($user['dt_add']) ?> на сайте</time>
+                                            datetime="<?= getDatetimeValue($user['dt_add']) ?>"
+                                        ><?= getRelativeTime($user['dt_add']) ?> на сайте</time>
                                     </div>
                                 </div>
                                 <div class="post-mini__rating user__rating">

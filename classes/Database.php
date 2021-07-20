@@ -175,7 +175,7 @@ class Database {
     }
 
     public function insertPost(array $stmt_data): int {
-        $post_fields = get_post_fields('insert');
+        $post_fields = getPostFields('insert');
         $query = (new QueryBuilder())
             ->insert('post', $post_fields, array_fill(0, 10, '?'));
 
@@ -246,7 +246,7 @@ class Database {
 
     public function getFeedPosts(string $content_type): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $user_id = $_SESSION['user']['id'];
         $stmt_data = array_filter([$user_id, $user_id, $content_type]);
         $query = (new QueryBuilder())
@@ -487,7 +487,7 @@ class Database {
 
     public function getPopularPosts(array $stmt_data, string $order): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT c.id) AS comment_count',
@@ -543,7 +543,7 @@ class Database {
     public function getPostDetails(int $post_id): array
     {
         $stmt_data = [$_SESSION['user']['id'], $post_id];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -640,7 +640,7 @@ class Database {
     public function getProfilePosts(int $profile_id, int $limit): array
     {
         $stmt_data = [$_SESSION['user']['id'], $profile_id];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -675,7 +675,7 @@ class Database {
 
     public function getProfileLikes(int $profile_id): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select($post_fields, 'p.')
             ->addSelect(['u.id AS user_id', 'u.login AS author', 'u.avatar_path'])
@@ -733,7 +733,7 @@ class Database {
 
     public function getPost(int $post_id): array
     {
-        $post_fields = get_post_fields('insert');
+        $post_fields = getPostFields('insert');
         $query = (new QueryBuilder())
             ->select($post_fields)
             ->from('post')
@@ -755,7 +755,7 @@ class Database {
     public function getPostsByHashtag(string $hashtag): array
     {
         $stmt_data = [$_SESSION['user']['id'], $hashtag];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -790,7 +790,7 @@ class Database {
     public function getPostsByQueryString(string $query): array
     {
         $stmt_data = [$query, $_SESSION['user']['id'], $query];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',

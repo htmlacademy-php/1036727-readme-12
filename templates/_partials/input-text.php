@@ -17,7 +17,7 @@ $input_id = $input['form'] === 'adding-post' ? ($_GET['tab'] ?? '') . "-{$input[
             id="<?= esc($input_id) ?>"
             type="<?= esc($input['type']) ?>"
             name="<?= esc($input['name']) ?>"
-            value="<?= esc(get_post_value($input['name'])) ?>"
+            value="<?= esc(getPostValue($input['name'])) ?>"
             placeholder="<?= esc($input['placeholder']) ?>"
         >
 

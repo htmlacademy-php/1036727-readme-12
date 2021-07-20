@@ -7,21 +7,32 @@
             <div style="border-top-right-radius: 0;<?= $style ?>" class="post-details__main-block post post--details">
                 <?php $style = $post['class_name'] === 'text' ? 'border-bottom: 1px solid #dee5fc;' : ''; ?>
                 <div style="<?= $style ?>" class="post__main">
-                    <?php if ($post['class_name'] === 'quote'): ?>
-                        <?= include_template('_partials/post-quote.php', ['post' => $post]) ?>
 
-                    <?php elseif ($post['class_name'] === 'link'): ?>
-                        <?= include_template('_partials/post-link.php', ['post' => $post]) ?>
+                <?php
+                switch ($post['class_name']):
+                    case 'quote':
+                        echo include_template('_partials/post-quote.php', ['post' => $post]);
+                        break;
 
-                    <?php elseif ($post['class_name'] === 'photo'): ?>
-                        <?= include_template('_partials/post-photo.php', ['post' => $post]) ?>
+                    case 'link':
+                        echo include_template('_partials/post-link.php', ['post' => $post]);
+                        break;
 
-                    <?php elseif ($post['class_name'] === 'video'): ?>
-                        <?= include_template('_partials/post-video.php', ['post' => $post]) ?>
+                    case 'photo':
+                        echo include_template('_partials/post-photo.php', ['post' => $post]);
+                        break;
 
-                    <?php elseif ($post['class_name'] === 'text'): ?>
-                        <?= include_template('_partials/post-text.php', ['post' => $post]) ?>
-                    <?php endif; ?>
+                    case 'video':
+                        echo include_template('_partials/post-video.php', ['post' => $post]);
+                        break;
+
+                    case 'text':
+                        echo include_template('_partials/post-text.php', ['post' => $post]);
+                        break;
+
+                endswitch;
+                ?>
+
                 </div>
                 <div class="post__indicators">
                     <div class="post__buttons">
@@ -90,7 +101,7 @@
                                     class="comments__textarea form__textarea form__input"
                                     name="<?= esc($input['name']) ?>"
                                     placeholder="<?= esc($input['placeholder']) ?>"
-                                ><?= esc(get_post_value($input['name'])) ?></textarea>
+                                ><?= esc(getPostValue($input['name'])) ?></textarea>
                                 <label class="visually-hidden"><?= esc($input['label']) ?></label>
                                 <button class="form__error-button button" type="button">!</button>
                                 <div class="form__error-text">
@@ -132,8 +143,8 @@
                                                 </a>
                                                 <time
                                                     class="comments__time"
-                                                    datetime="<?= get_datetime_value($comment['dt_add']) ?>"
-                                                ><?= get_relative_time($comment['dt_add']) ?> назад</time>
+                                                    datetime="<?= getDatetimeValue($comment['dt_add']) ?>"
+                                                ><?= getRelativeTime($comment['dt_add']) ?> назад</time>
                                             </div>
                                             <p class="comments__text"><?= nl2br(esc($comment['content']), false) ?></p>
                                         </div>
@@ -178,8 +189,8 @@
                         </a>
                         <time
                             class="post-details__time user__time"
-                            datetime="<?= get_datetime_value($post['author']['dt_add']) ?>"
-                        ><?= get_relative_time($post['author']['dt_add']) ?> на сайте</time>
+                            datetime="<?= getDatetimeValue($post['author']['dt_add']) ?>"
+                        ><?= getRelativeTime($post['author']['dt_add']) ?> на сайте</time>
                     </div>
                 </div>
                 <?php $style = $post['author_id'] === $_SESSION['user']['id'] ? 'margin-bottom: 0;' : ''; ?>
