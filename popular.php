@@ -11,9 +11,11 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+$db = Database::getInstance();
+
 $user_id = $_SESSION['user']['id'];
 
-$content_types = Database::getInstance()->getContentTypes();
+$content_types = $db->getContentTypes();
 
 $sort_fields = ['popular', 'likes', 'date'];
 $sort_types = array_fill_keys($sort_fields, 'desc');
@@ -50,9 +52,6 @@ $order = 'p.show_count DESC';
 if (isset($_GET['sort'], $_GET['dir'])) {
 
     switch ($_GET['sort']) {
-        case 'popular':
-            $order = 'p.show_count ';
-            break;
         case 'likes':
             $order = 'COUNT(pl.id) ';
             break;
@@ -71,7 +70,7 @@ $current_page = intval(filter_input(INPUT_GET, 'page') ?? 1);
 $page_items = 6;
 
 $content_type = filter_input(INPUT_GET, 'filter') ?? '';
-$items_count = Database::getInstance()->getItemsCount($content_type);
+$items_count = $db->getItemsCount($content_type);
 $pages_count = ceil($items_count / $page_items) ?: 1;
 
 if ($current_page <= 0) {
@@ -83,11 +82,13 @@ if ($current_page <= 0) {
 $offset = ($current_page - 1) * $page_items;
 
 $stmt_data = [$user_id, $content_type, $page_items, $offset];
-$posts = Database::getInstance()->getPopularPosts($stmt_data, $order);
+$posts = $db->getPopularPosts($stmt_data, $order);
 
-$message_count = Database::getInstance()->getMessageCount();
+$message_count = $db->getMessageCount();
 
-$page_content = include_template('popular.php', [
+setcookie('search_ref', '', time() - 3600);
+
+$page_content = includeTemplate('popular.php', [
     'sort_fields' => $sort_fields,
     'sort_types' => $sort_types,
     'content_types' => $content_types,
@@ -96,7 +97,7 @@ $page_content = include_template('popular.php', [
     'pages_count' => $pages_count
 ]);
 
-$layout_content = include_template('layouts/base.php', [
+$layout_content = includeTemplate('layouts/base.php', [
     'title' => 'readme: популярное',
     'main_modifier' => 'popular',
     'page_content' => $page_content,

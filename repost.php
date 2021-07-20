@@ -8,26 +8,28 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+$db = Database::getInstance();
+
 $user_id = $_SESSION['user']['id'];
 $post_id = intval(filter_input(INPUT_GET, 'id'));
-$post_id = Database::getInstance()->validatePost($post_id);
+$post_id = $db->validatePost($post_id);
 
-$stmt_data = Database::getInstance()->getPost($post_id);
+$stmt_data = $db->getPost($post_id);
 $stmt_data['author_id'] = $user_id;
 $stmt_data['is_repost'] = true;
 $stmt_data['origin_post_id'] = $post_id;
 
-$post_id2 = Database::getInstance()->insertPost($stmt_data);
+$post_id2 = $db->insertPost($stmt_data);
 
-if ($hashtags = Database::getInstance()->getPostHashtagIds($post_id)) {
+if ($hashtags = $db->getPostHashtagIds($post_id)) {
     foreach ($hashtags as $hashtag) {
         $stmt_data = [$hashtag['id'], $post_id2];
-        Database::getInstance()->insertPostHashtag($stmt_data);
+        $db->insertPostHashtag($stmt_data);
     }
 }
 
-if ($subscribers = Database::getInstance()->getSubscribers()) {
-    send_post_notifications($subscribers, $post['title']);
+if ($subscribers = $db->getSubscribers()) {
+    sendPostNotifications($subscribers, $stmt_data['title']);
 }
 
 header("Location: /profile.php?id={$user_id}&tab=posts");

@@ -18,11 +18,13 @@ if (!$search = trim(filter_input(INPUT_GET, 'q'))) {
     exit;
 }
 
+$db = Database::getInstance();
+
 $posts = [];
 
 if (substr($search, 0, 1) === '#') {
     if ($hashtag = substr($search, 1)) {
-        $posts = Database::getInstance()->getPostsByHashtag($hashtag);
+        $posts = $db->getPostsByHashtag($hashtag);
     }
 
 } else {
@@ -37,7 +39,7 @@ if (substr($search, 0, 1) === '#') {
     }
 
     if ($query = implode(' ', $search_words)) {
-        $posts = Database::getInstance()->getPostsByQueryString($query);
+        $posts = $db->getPostsByQueryString($query);
     }
 }
 
@@ -50,13 +52,13 @@ if (empty($posts) && is_null($search_ref)) {
     setcookie('search_ref', '', time() - 3600);
 }
 
-$message_count = Database::getInstance()->getMessageCount();
+$message_count = $db->getMessageCount();
 
-$page_content = include_template('search.php', [
+$page_content = includeTemplate('search.php', [
     'posts' => $posts
 ]);
 
-$layout_content = include_template('layouts/base.php', [
+$layout_content = includeTemplate('layouts/base.php', [
     'title' => 'readme: страница результатов поиска',
     'main_modifier' => 'search-results',
     'page_content' => $page_content,

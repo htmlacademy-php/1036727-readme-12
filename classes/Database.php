@@ -159,29 +159,59 @@ class Database {
         return $query->exists([$content_type]);
     }
 
-    public function getRequiredFields(string $form, string $tab = ''): array
+    /**
+     * Возвращает данные для отрисовки табов
+     * (templates/add.php)
+     *
+     * @return array
+     */
+    public function getTabsContentData(): array
     {
-        $stmt_data = array_filter([$form, $tab]);
         $query = (new QueryBuilder())
-            ->select(['i.name'])
-            ->from('input i')
-            ->join('LEFT', 'form_input fi', 'fi.input_id = i.id')
-            ->join('LEFT', 'form f', 'f.id = fi.form_id')
-            ->where('=', 'f.name', '?')
-            ->andWhere('=', 'i.required', '1')
-            ->andFilterWhere($tab, 'f.modifier = ?');
+            ->select(['class_name'])
+            ->from('content_type');
 
-        return array_column($query->all($stmt_data), 'name');
+        $content_types = $query->all();
+        $tabs_content = [];
+
+        for ($i = 0; $i < count($content_types); $i++) {
+            $ctype = $content_types[$i]['class_name'];
+            $query = (new QueryBuilder())
+                ->select(['i.name'])
+                ->from('input i')
+                ->join('LEFT', 'form_input fi', 'fi.input_id = i.id')
+                ->join('LEFT', 'form f', 'f.id = fi.form_id')
+                ->where('=', 'f.modifier', '?');
+
+            $input_names = array_column($query->all([$ctype]), 'name');
+            $tabs_content[$ctype] = array_filter($input_names, function ($val) {
+                return !in_array($val, ['content-type', 'file-photo']);
+            });
+        }
+
+        return $tabs_content;
     }
 
+    /**
+     * Добавляет новую публикацию в БД и возвращает её id
+     * @param array $stmt_data Данные для новой публикации
+     *
+     * @return int id добавленной публикации
+     */
     public function insertPost(array $stmt_data): int {
-        $post_fields = get_post_fields('insert');
+        $post_fields = getPostFields('insert');
         $query = (new QueryBuilder())
             ->insert('post', $post_fields, array_fill(0, 10, '?'));
 
         return $this->getLastId($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Проверяет хэштеги на наличие в БД и возвращает существующие
+     * @param array $hashtags Хэштеги для проверки
+     *
+     * @return array Существующие хэштеги
+     */
     public function getExistHashtags(array $hashtags): array
     {
         $placeholders = array_fill(0, count($hashtags), '?');
@@ -194,6 +224,12 @@ class Database {
         return $query->all($hashtags);
     }
 
+    /**
+     * Добавляет новый хэштег в БД и возвращает его id
+     * @param string $hashtag Хэштег
+     *
+     * @return int id добавленного хэштега
+     */
     public function insertHashtag(string $hashtag): int
     {
         $query = (new QueryBuilder())
@@ -246,7 +282,7 @@ class Database {
 
     public function getFeedPosts(string $content_type): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $user_id = $_SESSION['user']['id'];
         $stmt_data = array_filter([$user_id, $user_id, $content_type]);
         $query = (new QueryBuilder())
@@ -291,7 +327,7 @@ class Database {
         return $query->one([$email]) ?? null;
     }
 
-    public function isPostValid(int $post_id): bool
+    public function isPostExist(int $post_id): bool
     {
         $query = (new QueryBuilder())
             ->select(['id'])
@@ -303,7 +339,7 @@ class Database {
 
     public function validatePost(int $post_id): int
     {
-        if (!$this->isPostValid($post_id)) {
+        if (!$this->isPostExist($post_id)) {
             http_response_code(404);
             exit;
         }
@@ -340,7 +376,7 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
-    public function isUserValid(int $user_id): bool
+    public function isUserExist(int $user_id): bool
     {
         $query = (new QueryBuilder())
             ->select(['id'])
@@ -352,7 +388,7 @@ class Database {
 
     public function validateUser(int $user_id): int
     {
-        if (!$this->isUserValid($user_id)) {
+        if (!$this->isUserExist($user_id)) {
             http_response_code(404);
             exit;
         }
@@ -487,7 +523,7 @@ class Database {
 
     public function getPopularPosts(array $stmt_data, string $order): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT c.id) AS comment_count',
@@ -543,7 +579,7 @@ class Database {
     public function getPostDetails(int $post_id): array
     {
         $stmt_data = [$_SESSION['user']['id'], $post_id];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -640,7 +676,7 @@ class Database {
     public function getProfilePosts(int $profile_id, int $limit): array
     {
         $stmt_data = [$_SESSION['user']['id'], $profile_id];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -675,11 +711,12 @@ class Database {
 
     public function getProfileLikes(int $profile_id): array
     {
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select($post_fields, 'p.')
             ->addSelect(['u.id AS user_id', 'u.login AS author', 'u.avatar_path'])
-            ->addSelect(['ct.type_name', 'ct.class_name', 'pl.dt_add'])
+            ->addSelect(['ct.type_name', 'ct.class_name', 'ct.icon_width', 'ct.icon_height'])
+            ->addSelect(['pl.dt_add'])
             ->from('post p')
             ->join('LEFT', 'content_type ct', 'ct.id = p.content_type_id')
             ->join('LEFT', 'post_like pl', 'pl.post_id = p.id')
@@ -733,7 +770,7 @@ class Database {
 
     public function getPost(int $post_id): array
     {
-        $post_fields = get_post_fields('insert');
+        $post_fields = getPostFields('insert');
         $query = (new QueryBuilder())
             ->select($post_fields)
             ->from('post')
@@ -755,7 +792,7 @@ class Database {
     public function getPostsByHashtag(string $hashtag): array
     {
         $stmt_data = [$_SESSION['user']['id'], $hashtag];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',
@@ -790,7 +827,7 @@ class Database {
     public function getPostsByQueryString(string $query): array
     {
         $stmt_data = [$query, $_SESSION['user']['id'], $query];
-        $post_fields = get_post_fields();
+        $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select([
                 'COUNT(DISTINCT p2.id) AS repost_count',

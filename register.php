@@ -7,31 +7,33 @@ if (isset($_SESSION['user'])) {
     exit;
 }
 
-$form_inputs = Database::getInstance()->getFormInputs('registration');
+$db = Database::getInstance();
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = get_post_input('registration');
-    $errors = validate_form('registration', $input);
+    $input = getPostInput('registration');
+    $errors = validateForm('registration', $input);
 
     if (!is_null($errors) && empty($errors)) {
-        $input['passwd'] = get_password_hash($input['passwd']);
-        $input['avatar-path'] = upload_avatar_file();
-        $stmt_data = get_stmt_data($input, 'registration');
-        Database::getInstance()->insertUser($stmt_data);
+        $input['passwd'] = getPasswordHash($input['passwd']);
+        $input['avatar-path'] = uploadLocalFile('avatar');
+        $stmt_data = getStmtData($input, 'registration');
+        $db->insertUser($stmt_data);
 
         header('Location: /index.php');
         exit;
     }
 }
 
-$page_content = include_template('register.php', [
+$form_inputs = $db->getFormInputs('registration');
+
+$page_content = includeTemplate('register.php', [
     'errors' => $errors,
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layouts/base.php', [
+$layout_content = includeTemplate('layouts/base.php', [
     'title' => 'readme: регистрация',
     'main_modifier' => 'registration',
     'page_content' => $page_content

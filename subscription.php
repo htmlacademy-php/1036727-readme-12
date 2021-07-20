@@ -8,18 +8,20 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+$db = Database::getInstance();
+
 $user_id = intval($_SESSION['user']['id']);
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
-$profile_id = Database::getInstance()->validateUser($profile_id);
+$profile_id = $db->validateUser($profile_id);
 
 if ($profile_id === $user_id) {
     http_response_code(500);
     exit;
 }
 
-if (!Database::getInstance()->isSubscription([$user_id, $profile_id])) {
-    Database::getInstance()->insertSubscription([$user_id, $profile_id]);
-    $subscriber = Database::getInstance()->getSubscription($profile_id);
+if (!$db->isSubscription([$user_id, $profile_id])) {
+    $db->insertSubscription([$user_id, $profile_id]);
+    $subscriber = $db->getSubscription($profile_id);
 
     try {
         $smtp_config = require_once('config/smtp.php');
@@ -29,7 +31,7 @@ if (!Database::getInstance()->isSubscription([$user_id, $profile_id])) {
 
         $message = new Swift_Message('У вас новый подписчик');
         $message->setTo([$subscriber['email'] => $subscriber['login']]);
-        $body = include_template('notifications/subscriber.php', [
+        $body = includeTemplate('notifications/subscriber.php', [
             'recipient' => $subscriber
         ]);
         $message->setBody($body);
@@ -41,7 +43,7 @@ if (!Database::getInstance()->isSubscription([$user_id, $profile_id])) {
     } catch (Swift_TransportException $ex) {}
 
 } else {
-    Database::getInstance()->deleteSubscription([$user_id, $profile_id]);
+    $db->deleteSubscription([$user_id, $profile_id]);
 }
 
 $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';

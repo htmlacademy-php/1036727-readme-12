@@ -1,60 +1,27 @@
 <?php
 
 /**
- * Создает подготовленное выражение на основе готового SQL запроса и переданных данных
- *
- * @param $link mysqli Ресурс соединения
- * @param $sql string SQL запрос с плейсхолдерами вместо значений
- * @param array $data Данные для вставки на место плейсхолдеров
- *
- * @return mysqli_stmt Подготовленное выражение
+ * Подключает шаблон, передает туда данные и возвращает итоговый HTML контент
+ * @param string $name Путь к файлу шаблона относительно папки templates
+ * @param array $data Ассоциативный массив с данными для шаблона
+ * @return string Итоговый HTML
  */
-function db_get_prepare_stmt($link, $sql, $data = [])
+function includeTemplate($name, array $data = [])
 {
-    $stmt = mysqli_prepare($link, $sql);
+    $name = 'templates/' . $name;
+    $result = '';
 
-    if ($stmt === false) {
-        $errorMsg = 'Не удалось инициализировать подготовленное выражение: ' . mysqli_error($link);
-        die($errorMsg);
+    if (!is_readable($name)) {
+        return $result;
     }
 
-    if ($data) {
-        $types = '';
-        $stmt_data = [];
+    ob_start();
+    extract($data);
+    require $name;
 
-        foreach ($data as $value) {
-            $type = 's';
+    $result = ob_get_clean();
 
-            if (is_int($value)) {
-                $type = 'i';
-            } else {
-                if (is_string($value)) {
-                    $type = 's';
-                } else {
-                    if (is_double($value)) {
-                        $type = 'd';
-                    }
-                }
-            }
-
-            if ($type) {
-                $types .= $type;
-                $stmt_data[] = $value;
-            }
-        }
-
-        $values = array_merge([$stmt, $types], $stmt_data);
-
-        $func = 'mysqli_stmt_bind_param';
-        $func(...$values);
-
-        if (mysqli_errno($link) > 0) {
-            $errorMsg = 'Не удалось связать подготовленное выражение с параметрами: ' . mysqli_error($link);
-            die($errorMsg);
-        }
-    }
-
-    return $stmt;
+    return $result;
 }
 
 /**
@@ -64,7 +31,7 @@ function db_get_prepare_stmt($link, $sql, $data = [])
  * Пример использования:
  * $remaining_minutes = 5;
  * echo "Я поставил таймер на {$remaining_minutes} " .
- *     get_noun_plural_form(
+ *     getNounPluralForm(
  *         $remaining_minutes,
  *         'минута',
  *         'минуты',
@@ -79,7 +46,7 @@ function db_get_prepare_stmt($link, $sql, $data = [])
  *
  * @return string Рассчитанная форма множественнго числа
  */
-function get_noun_plural_form(int $number, string $one, string $two, string $many): string
+function getNounPluralForm(int $number, string $one, string $two, string $many): string
 {
     $number = (int)$number;
     $mod10 = $number % 10;
@@ -104,73 +71,11 @@ function get_noun_plural_form(int $number, string $one, string $two, string $man
 }
 
 /**
- * Подключает шаблон, передает туда данные и возвращает итоговый HTML контент
- * @param string $name Путь к файлу шаблона относительно папки templates
- * @param array $data Ассоциативный массив с данными для шаблона
- * @return string Итоговый HTML
- */
-function include_template($name, array $data = [])
-{
-    $name = 'templates/' . $name;
-    $result = '';
-
-    if (!is_readable($name)) {
-        return $result;
-    }
-
-    ob_start();
-    extract($data);
-    require $name;
-
-    $result = ob_get_clean();
-
-    return $result;
-}
-
-/**
- * Возвращает код iframe для вставки youtube видео на страницу
- * @param string $youtube_url Ссылка на youtube видео
- * @return string
- */
-function embed_youtube_video($youtube_url)
-{
-    $res = "";
-    $id = extract_youtube_id($youtube_url);
-
-    if ($id) {
-        $src = "https://www.youtube.com/embed/" . $id;
-        $res = '<iframe width="760" height="400" src="' . $src . '" frameborder="0"></iframe>';
-    }
-
-    return $res;
-}
-
-/**
- * Возвращает img-тег с обложкой видео для вставки на страницу
- * @param string $youtube_url Ссылка на youtube видео
- * @return string
- */
-function embed_youtube_cover($youtube_url, bool $style = false)
-{
-    $res = "";
-    $id = extract_youtube_id($youtube_url);
-
-    if ($id) {
-        $src = sprintf("https://img.youtube.com/vi/%s/mqdefault.jpg", $id);
-        $style = $style ? 'width: 109px; height: 109px; object-fit: cover; '
-               . 'border-top-right-radius: 30px; border-bottom-right-radius: 30px;' : '';
-        $res = '<img style="' . $style . '"alt="youtube cover" width="320" height="120" src="' . $src . '" />';
-    }
-
-    return $res;
-}
-
-/**
  * Извлекает из ссылки на youtube видео его уникальный ID
  * @param string $youtube_url Ссылка на youtube видео
  * @return array
  */
-function extract_youtube_id($youtube_url)
+function extractYoutubeId($youtube_url)
 {
     $id = false;
 
@@ -188,4 +93,40 @@ function extract_youtube_id($youtube_url)
     }
 
     return $id;
+}
+
+/**
+ * Возвращает код iframe для вставки youtube видео на страницу
+ * @param string $youtube_url Ссылка на youtube видео
+ * @return string
+ */
+function embedYoutubeVideo($youtube_url)
+{
+    $res = "";
+    $id = extractYoutubeId($youtube_url);
+
+    if ($id) {
+        $src = "https://www.youtube.com/embed/" . $id;
+        $res = '<iframe src="' . $src . '" width="760" height="400" frameborder="0"></iframe>';
+    }
+
+    return $res;
+}
+
+/**
+ * Возвращает img-тег с обложкой видео для вставки на страницу
+ * @param string $youtube_url Ссылка на youtube видео
+ * @return string
+ */
+function embedYoutubeCover($youtube_url, string $style = '')
+{
+    $res = "";
+    $id = extractYoutubeId($youtube_url);
+
+    if ($id) {
+        $src = sprintf("https://img.youtube.com/vi/%s/mqdefault.jpg", $id);
+        $res = '<img style="' . $style . '" src="' . $src . '" width="320" height="120" alt="youtube cover"/>';
+    }
+
+    return $res;
 }
