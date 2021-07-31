@@ -52,7 +52,7 @@ if (empty($posts) && is_null($search_ref)) {
     setcookie('search_ref', '', time() - 3600);
 }
 
-$message_count = $db->getMessageCount();
+$message_count = $db->getUnreadMessageCount();
 
 $page_content = includeTemplate('search.php', [
     'posts' => $posts

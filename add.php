@@ -25,7 +25,7 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = getPostInput('adding-post');
 
-    if ($db->isContentTypeValid($input['content-type'] ?? '')) {
+    if ($db->isContentTypeExist($input['content-type'] ?? '')) {
         $form_name = "adding-post-{$input['content-type']}";
         $errors = validateForm($form_name, $input);
 
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($input['content-type'] === 'quote') {
                 $input['text-content'] = cutOutExtraSpaces($input['cite-text']);
             } elseif ($input['content-type'] === 'link') {
-                validateInputPostLink($input);
+                processInputPostLink($input);
             }
 
             $input['image-path'] = uploadImageFile($input, $errors);
@@ -65,7 +65,7 @@ if (parse_url($url, PHP_URL_PATH) !== '/add.php') {
     setcookie('add_ref', $url, strtotime('+30 days'));
 }
 
-$message_count = $db->getMessageCount();
+$message_count = $db->getUnreadMessageCount();
 $tabs_content = $db->getTabsContentData();
 $form_inputs = $db->getFormInputs('adding-post');
 

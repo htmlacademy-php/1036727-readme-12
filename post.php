@@ -49,7 +49,7 @@ $post['author'] = $db->getPostAuthor($post_id);
 $post['hashtags'] = $db->getPostHashtags($post_id);
 $post['comments'] = $db->getPostComments($post_id, $limit);
 
-$message_count = $db->getMessageCount();
+$message_count = $db->getUnreadMessageCount();
 $form_inputs = $db->getFormInputs('comments');
 
 $page_content = includeTemplate('post.php', [

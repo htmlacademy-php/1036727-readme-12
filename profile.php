@@ -43,7 +43,7 @@ $posts = $db->getProfilePosts($profile_id, $limit);
 $likes = $db->getProfileLikes($profile_id);
 $subscriptions = $db->getProfileSubscriptions($profile_id);
 
-$message_count = $db->getMessageCount();
+$message_count = $db->getUnreadMessageCount();
 $form_inputs = $db->getFormInputs('comments');
 
 $page_content = includeTemplate('profile.php', [

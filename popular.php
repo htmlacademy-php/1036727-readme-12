@@ -15,8 +15,6 @@ $db = Database::getInstance();
 
 $user_id = $_SESSION['user']['id'];
 
-$content_types = $db->getContentTypes();
-
 $sort_fields = ['popular', 'likes', 'date'];
 $sort_types = array_fill_keys($sort_fields, 'desc');
 
@@ -66,11 +64,11 @@ if (isset($_GET['sort'], $_GET['dir'])) {
     $order .= $_GET['dir'] === 'asc' ? 'ASC' : 'DESC';
 }
 
-$current_page = intval(filter_input(INPUT_GET, 'page') ?? 1);
 $page_items = 6;
 
-$content_type = filter_input(INPUT_GET, 'filter') ?? '';
-$items_count = $db->getItemsCount($content_type);
+$ctype = filter_input(INPUT_GET, 'filter') ?? '';
+$current_page = intval(filter_input(INPUT_GET, 'page') ?? 1);
+$items_count = $db->getItemsCount($ctype);
 $pages_count = ceil($items_count / $page_items) ?: 1;
 
 if ($current_page <= 0) {
@@ -81,10 +79,11 @@ if ($current_page <= 0) {
 
 $offset = ($current_page - 1) * $page_items;
 
-$stmt_data = [$user_id, $content_type, $page_items, $offset];
+$stmt_data = [$user_id, $ctype, $page_items, $offset];
 $posts = $db->getPopularPosts($stmt_data, $order);
 
-$message_count = $db->getMessageCount();
+$content_types = $db->getContentTypes();
+$message_count = $db->getUnreadMessageCount();
 
 setcookie('search_ref', '', time() - 3600);
 
