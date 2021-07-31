@@ -7,13 +7,10 @@
             <b class="popular__sorting-caption sorting__caption">Сортировка:</b>
             <ul class="popular__sorting-list sorting__list">
                 <li class="sorting__item sorting__item--popular">
-
-                    <?php
-                    $classname = getSortingLinkClass($sort_fields[0]);
-                    $url = getSortingLinkUrl($sort_fields[0], $sort_types);
-                    ?>
-
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
+                    <a
+                        class="sorting__link<?= getSortingLinkClass($sort_fields[0]) ?>"
+                        href="<?= getSortingLinkUrl($sort_fields[0], $sort_types) ?>"
+                    >
                         <span>Популярность</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -21,13 +18,10 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-
-                    <?php
-                    $classname = getSortingLinkClass($sort_fields[1]);
-                    $url = getSortingLinkUrl($sort_fields[1], $sort_types);
-                    ?>
-
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
+                    <a
+                        class="sorting__link<?= getSortingLinkClass($sort_fields[1]) ?>"
+                        href="<?= getSortingLinkUrl($sort_fields[1], $sort_types) ?>"
+                    >
                         <span>Лайки</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -35,13 +29,10 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-
-                    <?php
-                    $classname = getSortingLinkClass($sort_fields[2]);
-                    $url = getSortingLinkUrl($sort_fields[2], $sort_types);
-                    ?>
-
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
+                    <a
+                        class="sorting__link<?= getSortingLinkClass($sort_fields[2]) ?>"
+                        href="<?= getSortingLinkUrl($sort_fields[2], $sort_types) ?>"
+                    >
                         <span>Дата</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>

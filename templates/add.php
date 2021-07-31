@@ -27,8 +27,8 @@
 
                 <?php foreach ($tabs_content as $ctype => $input_keys): ?>
                     <?php $classname = isset($_GET['tab']) && $_GET['tab'] === $ctype ? ' tabs__content--active' : ''; ?>
-                    <section class="adding-post__photo tabs__content<?= $classname ?>">
-                        <h2 class="visually-hidden"><?= getTabContentTitle($ctype) ?></h2>
+                    <section class="adding-post__<?= $ctype ?> tabs__content<?= $classname ?>">
+                        <h2 class="visually-hidden">Форма добавления <?= getTabContentModifier($ctype) ?></h2>
 
                         <?php $inputs_exists = !array_diff_key(array_flip($input_keys), $inputs); ?>
 

@@ -61,7 +61,7 @@ if (isset($_GET['contact'])) {
     $db->addNewContact($contacts, $contact_id);
 }
 
-$message_count = $db->getMessageCount();
+$message_count = $db->getUnreadMessageCount();
 $form_inputs = $db->getFormInputs('messages');
 
 $page_content = includeTemplate('messages.php', [

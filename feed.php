@@ -13,7 +13,7 @@ $content_type = filter_input(INPUT_GET, 'filter') ?? '';
 
 $content_types = $db->getContentTypes();
 $posts = $db->getFeedPosts($content_type);
-$message_count = $db->getMessageCount();
+$message_count = $db->getUnreadMessageCount();
 
 setcookie('search_ref', '', time() - 3600);
 
