@@ -14,13 +14,13 @@
 </div>
 
 <?php $header_data = ['message_count' => $message_count ?? []]; ?>
-<?= include_template('layouts/header.php', $header_data) ?>
+<?= includeTemplate('layouts/header.php', $header_data) ?>
 
 <main style="flex-grow: 1;" class="page__main page__main--<?= $main_modifier ?>">
     <?= $page_content ?>
 </main>
 
-<?= include_template('layouts/footer.php') ?>
+<?= includeTemplate('layouts/footer.php') ?>
 
 <script src="js/main.js"></script>
 <?php if (in_array($_SERVER['PHP_SELF'], ['/register.php', '/add.php'])): ?>

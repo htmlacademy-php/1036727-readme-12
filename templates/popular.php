@@ -7,13 +7,10 @@
             <b class="popular__sorting-caption sorting__caption">Сортировка:</b>
             <ul class="popular__sorting-list sorting__list">
                 <li class="sorting__item sorting__item--popular">
-
-                    <?php
-                    $classname = getSortingLinkClass($sort_fields[0]);
-                    $url = getSortingLinkUrl($sort_fields[0], $sort_types);
-                    ?>
-
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
+                    <a
+                        class="sorting__link<?= getSortingLinkClass($sort_fields[0]) ?>"
+                        href="<?= getSortingLinkUrl($sort_fields[0], $sort_types) ?>"
+                    >
                         <span>Популярность</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -21,13 +18,10 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-
-                    <?php
-                    $classname = getSortingLinkClass($sort_fields[1]);
-                    $url = getSortingLinkUrl($sort_fields[1], $sort_types);
-                    ?>
-
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
+                    <a
+                        class="sorting__link<?= getSortingLinkClass($sort_fields[1]) ?>"
+                        href="<?= getSortingLinkUrl($sort_fields[1], $sort_types) ?>"
+                    >
                         <span>Лайки</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -35,13 +29,10 @@
                     </a>
                 </li>
                 <li class="sorting__item">
-
-                    <?php
-                    $classname = getSortingLinkClass($sort_fields[2]);
-                    $url = getSortingLinkUrl($sort_fields[2], $sort_types);
-                    ?>
-
-                    <a class="sorting__link<?= $classname ?>" href="<?= $url ?>">
+                    <a
+                        class="sorting__link<?= getSortingLinkClass($sort_fields[2]) ?>"
+                        href="<?= getSortingLinkUrl($sort_fields[2], $sort_types) ?>"
+                    >
                         <span>Дата</span>
                         <svg class="sorting__icon" width="10" height="12">
                             <use xlink:href="#icon-sort"></use>
@@ -84,34 +75,11 @@
                         <a href="/post.php?id=<?= esc($post['id']) ?>&comments=2"><?= esc($post['title']) ?></a>
                     </h2>
                 </header>
+
                 <div class="post__main">
-
-                <?php
-                switch ($post['class_name']):
-                    case 'quote':
-                        echo include_template('_partials/post-quote.php', ['post' => $post]);
-                        break;
-
-                    case 'link':
-                        echo include_template('_partials/post-link.php', ['post' => $post]);
-                        break;
-
-                    case 'photo':
-                        echo include_template('_partials/post-photo.php', ['post' => $post]);
-                        break;
-
-                    case 'video':
-                        echo include_template('_partials/post-video.php', ['post' => $post]);
-                        break;
-
-                    case 'text':
-                        echo include_template('_partials/post-text.php', ['post' => $post]);
-                        break;
-
-                endswitch;
-                ?>
-
+                    <?= includeTemplate("_partials/post-{$post['class_name']}.php", ['post' => $post]) ?>
                 </div>
+
                 <footer class="post__footer">
                     <div class="post__author">
                         <a class="post__author-link" href="/profile.php?id=<?= $post['author_id'] ?>&tab=posts" title="Автор">
@@ -135,7 +103,9 @@
                                     class="post__time"
                                     datetime="<?= getDatetimeValue($post['dt_add']) ?>"
                                     title="<?= getTimeTitle($post['dt_add']) ?>"
-                                ><?= getRelativeTime($post['dt_add']) ?> назад</time>
+                                >
+                                    <?= getRelativeTime($post['dt_add']) ?> назад
+                                </time>
                             </div>
                         </a>
                     </div>

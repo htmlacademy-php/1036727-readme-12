@@ -11,11 +11,11 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+$db = Database::getInstance();
+
 $user_id = $_SESSION['user']['id'];
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
-$profile_id = Database::getInstance()->validateUser($profile_id);
-
-$form_inputs = Database::getInstance()->getFormInputs('comments');
+$profile_id = $db->validateUser($profile_id);
 
 $errors = [];
 
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_null($errors) && empty($errors)) {
         $comment = cutOutExtraSpaces($input['comment']);
         $stmt_data = [$comment, $user_id, $input['post-id']];
-        Database::getInstance()->insertComment($stmt_data);
+        $db->insertComment($stmt_data);
         $ref = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
 
         header("Location: $ref");
@@ -34,16 +34,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+setcookie('search_ref', '', time() - 3600);
+
 $limit = intval(filter_input(INPUT_GET, 'comments'));
 
-$user = Database::getInstance()->getUserProfile($profile_id);
-$posts = Database::getInstance()->getProfilePosts($profile_id, $limit);
-$likes = Database::getInstance()->getProfileLikes($profile_id);
-$subscriptions = Database::getInstance()->getProfileSubscriptions($profile_id);
+$user = $db->getUserProfile($profile_id);
+$posts = $db->getProfilePosts($profile_id, $limit);
+$likes = $db->getProfileLikes($profile_id);
+$subscriptions = $db->getProfileSubscriptions($profile_id);
 
-$message_count = Database::getInstance()->getMessageCount();
+$message_count = $db->getUnreadMessageCount();
+$form_inputs = $db->getFormInputs('comments');
 
-$page_content = include_template('profile.php', [
+$page_content = includeTemplate('profile.php', [
     'user' => $user,
     'posts' => $posts,
     'likes' => $likes,
@@ -52,7 +55,7 @@ $page_content = include_template('profile.php', [
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layouts/base.php', [
+$layout_content = includeTemplate('layouts/base.php', [
     'title' => 'readme: профиль',
     'main_modifier' => 'profile',
     'page_content' => $page_content,

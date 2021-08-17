@@ -22,17 +22,19 @@
                     <time
                         class="profile__user-time user__time"
                         datetime="<?= getDatetimeValue($user['dt_add']) ?>"
-                    ><?= getRelativeTime($user['dt_add']) ?> на сайте</time>
+                    >
+                        <?= getRelativeTime($user['dt_add']) ?> на сайте
+                    </time>
                 </div>
             </div>
             <div class="profile__rating user__rating">
                 <p class="profile__rating-item user__rating-item user__rating-item--publications">
-                    <?php $publications = get_noun_plural_form($user['publication_count'], ' публикация', ' публикации', ' публикаций'); ?>
+                    <?php $publications = getNounPluralForm($user['publication_count'], ' публикация', ' публикации', ' публикаций'); ?>
                     <span class="user__rating-amount"><?= esc($user['publication_count']) ?></span>
                     <span class="profile__rating-text user__rating-text"><?= $publications ?></span>
                 </p>
                 <p class="profile__rating-item user__rating-item user__rating-item--subscribers">
-                    <?php $subscribers = get_noun_plural_form($user['subscriber_count'], ' подписчик', ' подписчика', ' подписчиков'); ?>
+                    <?php $subscribers = getNounPluralForm($user['subscriber_count'], ' подписчик', ' подписчика', ' подписчиков'); ?>
                     <span class="user__rating-amount"><?= esc($user['subscriber_count']) ?></span>
                     <span class="profile__rating-text user__rating-text"><?= $subscribers ?></span>
                 </p>
@@ -123,7 +125,9 @@
                                                 <time
                                                     class="post__time"
                                                     datetime="<?= getDatetimeValue($post['origin']['dt_add']) ?>"
-                                                ><?= getRelativeTime($post['origin']['dt_add']) ?> назад</time>
+                                                >
+                                                    <?= getRelativeTime($post['origin']['dt_add']) ?> назад
+                                                </time>
                                             </div>
                                         </a>
                                     </div>
@@ -132,37 +136,17 @@
                                 <?php $style = $post['class_name'] === 'text' ? 'padding: 29px 40px 26px;' : ''; ?>
                                 <h2 style="<?= $style . ($post['is_repost'] ? ' padding-top: 4px;' : '') ?>"><a href="/post.php?id=<?= esc($post['id']) ?>&comments=2"><?= esc($post['title']) ?></a></h2>
                             </header>
-                            <?php $style = !$post['comments'] ? ($post['hashtags'] ? 'min-height: 67px;' : 'min-height: 83px;') : ''; ?>
+
+                            <?php
+                            $post['display_mode'] = 'feed';
+                            $post['class_name'] === 'text' && $post['style'] = 'margin-top: 0;';
+                            $style = !$post['comments'] ? ($post['hashtags'] ? 'min-height: 67px;' : 'min-height: 83px;') : '';
+                            ?>
+
                             <div style="<?= $style ?>" class="post__main">
-                                <?php $post['display_mode'] = 'feed'; ?>
-
-                                <?php
-                                switch ($post['class_name']):
-                                    case 'quote':
-                                        echo include_template('_partials/post-quote.php', ['post' => $post]);
-                                        break;
-
-                                    case 'link':
-                                        echo include_template('_partials/post-link.php', ['post' => $post]);
-                                        break;
-
-                                    case 'photo':
-                                        echo include_template('_partials/post-photo.php', ['post' => $post]);
-                                        break;
-
-                                    case 'video':
-                                        echo include_template('_partials/post-video.php', ['post' => $post]);
-                                        break;
-
-                                    case 'text':
-                                        $post['style'] = 'margin-top: 0;';
-                                        echo include_template('_partials/post-text.php', ['post' => $post]);
-                                        break;
-
-                                endswitch;
-                                ?>
-
+                                <?= includeTemplate("_partials/post-{$post['class_name']}.php", ['post' => $post]) ?>
                             </div>
+
                             <footer class="post__footer">
                                 <div class="post__indicators">
                                     <div class="post__buttons">
@@ -188,7 +172,9 @@
                                     <time
                                         class="post__time"
                                         datetime="<?= getDatetimeValue($post['dt_add']) ?>"
-                                    ><?= getRelativeTime($post['dt_add']) ?> назад</time>
+                                    >
+                                        <?= getRelativeTime($post['dt_add']) ?> назад
+                                    </time>
                                 </div>
 
                                 <?php if (!empty($post['hashtags'])): ?>
@@ -236,7 +222,9 @@
                                                                 <time
                                                                     class="comments__time"
                                                                     datetime="<?= esc($comment['dt_add']) ?>"
-                                                                ><?= getRelativeTime($comment['dt_add']) ?> назад</time>
+                                                                >
+                                                                    <?= getRelativeTime($comment['dt_add']) ?> назад
+                                                                </time>
                                                             </div>
                                                             <p class="comments__text"><?= nl2br(esc($comment['content']), false) ?></p>
                                                         </div>
@@ -280,7 +268,9 @@
                                                     class="comments__textarea form__textarea form__input"
                                                     name="<?= esc($input['name']) ?>"
                                                     placeholder="<?= esc($input['placeholder']) ?>"
-                                                ><?= esc(getPostValue($input['name'])) ?></textarea>
+                                                >
+                                                    <?= esc(getPostValue($input['name'])) ?>
+                                                </textarea>
                                                 <label class="visually-hidden"><?= esc($input['label']) ?></label>
                                                 <button class="form__error-button button" type="button">!</button>
                                                 <div class="form__error-text">
@@ -342,40 +332,57 @@
                                             <time
                                                 class="post-mini__time user__additional"
                                                 datetime="<?= getDatetimeValue($like['dt_add']) ?>"
-                                            ><?= getRelativeTime($like['dt_add']) ?> назад</time>
+                                            >
+                                                <?= getRelativeTime($like['dt_add']) ?> назад
+                                            </time>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="post-mini__preview">
                                     <a class="post-mini__link" href="/post.php?id=<?= esc($like['id']) ?>" title="Перейти на публикацию">
 
-                                        <?php if ($like['class_name'] === 'quote'): ?>
-                                            <svg class="post-mini__preview-icon" width="21" height="20">
-                                                <use xlink:href="#icon-filter-quote"></use>
-                                            </svg>
-                                        <?php elseif ($like['class_name'] === 'link'): ?>
-                                            <svg class="post-mini__preview-icon" width="21" height="18">
-                                                <use xlink:href="#icon-filter-link"></use>
-                                            </svg>
-                                        <?php elseif ($like['class_name'] === 'photo'): ?>
-                                            <div class="post-mini__image-wrapper">
-                                                <img style="width: 109px; height: 109px; object-fit: cover;"
-                                                    class="post-mini__image" src="uploads/<?= $like['image_path'] ?>" width="109" height="109" alt="Превью публикации">
-                                            </div>
-                                        <?php elseif ($like['class_name'] === 'video'): ?>
-                                            <div style="height: 109px;" class="post-mini__image-wrapper">
-                                                <?= embed_youtube_cover($like['video_path'], true); ?>
-                                                <span class="post-mini__play-big">
-                                                    <svg class="post-mini__play-big-icon" width="12" height="13">
-                                                        <use xlink:href="#icon-video-play-big"></use>
-                                                    </svg>
-                                                </span>
-                                            </div>
-                                        <?php elseif ($like['class_name'] === 'text'): ?>
-                                            <svg class="post-mini__preview-icon" width="20" height="21">
-                                                <use xlink:href="#icon-filter-text"></use>
-                                            </svg>
-                                        <?php endif; ?>
+                                        <?php switch ($like['class_name']):
+                                            case 'quote': ?>
+                                            <?php case 'link': ?>
+                                            <?php case 'text': ?>
+                                                <svg
+                                                    class="post-mini__preview-icon"
+                                                    width="<?= $like['icon_width'] ?>"
+                                                    height="<?= $like['icon_height'] ?>"
+                                                >
+                                                    <use xlink:href="#icon-filter-<?= $like['class_name'] ?>"></use>
+                                                </svg>
+                                                <?php break; ?>
+
+                                            <?php case 'photo': ?>
+                                                <div class="post-mini__image-wrapper">
+                                                    <img
+                                                        style="width: 109px; height: 109px; object-fit: cover;"
+                                                        class="post-mini__image"
+                                                        src="uploads/<?= $like['image_path'] ?>"
+                                                        width="109"
+                                                        height="109"
+                                                        alt="Превью публикации"
+                                                    >
+                                                </div>
+                                                <?php break; ?>
+
+                                            <?php case 'video': ?>
+                                                <div style="height: 109px;" class="post-mini__image-wrapper">
+                                                    <?php
+                                                    $style = 'width: 109px; height: 109px; object-fit: cover;
+                                                        border-top-right-radius: 30px; border-bottom-right-radius: 30px;'
+                                                    ?>
+                                                    <?= embedYoutubeCover($like['video_path'], $style); ?>
+                                                    <span class="post-mini__play-big">
+                                                        <svg class="post-mini__play-big-icon" width="12" height="13">
+                                                            <use xlink:href="#icon-video-play-big"></use>
+                                                        </svg>
+                                                    </span>
+                                                </div>
+                                                <?php break; ?>
+
+                                        <?php endswitch; ?>
 
                                         <span class="visually-hidden"><?= esc($like['type_name']) ?></span>
                                     </a>
@@ -417,17 +424,19 @@
                                         <time
                                             class="post-mini__time user__additional"
                                             datetime="<?= getDatetimeValue($user['dt_add']) ?>"
-                                        ><?= getRelativeTime($user['dt_add']) ?> на сайте</time>
+                                        >
+                                            <?= getRelativeTime($user['dt_add']) ?> на сайте
+                                        </time>
                                     </div>
                                 </div>
                                 <div class="post-mini__rating user__rating">
                                     <p class="post-mini__rating-item user__rating-item user__rating-item--publications">
-                                        <?php $publications = get_noun_plural_form($user['publication_count'], ' публикация', ' публикации', ' публикаций'); ?>
+                                        <?php $publications = getNounPluralForm($user['publication_count'], ' публикация', ' публикации', ' публикаций'); ?>
                                         <span class="post-mini__rating-amount user__rating-amount"><?= esc($user['publication_count']) ?></span>
                                         <span class="post-mini__rating-text user__rating-text"><?= $publications ?></span>
                                     </p>
                                     <p class="post-mini__rating-item user__rating-item user__rating-item--subscribers">
-                                        <?php $subscribers = get_noun_plural_form($user['subscriber_count'], ' подписчик', ' подписчика', ' подписчиков'); ?>
+                                        <?php $subscribers = getNounPluralForm($user['subscriber_count'], ' подписчик', ' подписчика', ' подписчиков'); ?>
                                         <span class="post-mini__rating-amount user__rating-amount"><?= esc($user['subscriber_count']) ?></span>
                                         <span class="post-mini__rating-text user__rating-text"><?= $subscribers ?></span>
                                     </p>

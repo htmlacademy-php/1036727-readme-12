@@ -10,21 +10,10 @@ if (isset($_SESSION['user'])) {
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = getPostInput('login');
-    $errors = validateForm('login', $input);
-
-    if (!is_null($errors) && empty($errors)) {
-        $user = Database::getInstance()->getUserByEmail($input['email']);
-        $_SESSION['user'] = $user;
-        $url = $_COOKIE['login_ref'] ?? '/feed.php';
-        setcookie('login_ref', '', time() - 3600);
-
-        header("Location: $url");
-        exit;
-    }
+    $errors = authenticate();
 }
 
-$layout_content = include_template('layouts/anonym.php', [
+$layout_content = includeTemplate('layouts/anonym.php', [
     'title' => 'readme: блог, каким он должен быть',
     'errors' => $errors
 ]);

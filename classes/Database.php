@@ -4,6 +4,10 @@ class Database {
     private $mysqli;
     private static $db;
 
+    /**
+     * Возвращает ээкземпляр класса Database
+     * @return Database
+     */
     public static function getInstance(): Database
     {
         if (self::$db === null) {
@@ -30,6 +34,15 @@ class Database {
     private function __clone() {}
     private function __wakeup() {}
 
+    /**
+     * Выполняет sql-запрос и возвращает массив содержащий ассоциативные массивы
+     * с данными результирующей таблицы
+     *
+     * @param string $sql SQL-запрос с плейсхолдерами вместо значений
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     *
+     * @return array
+     */
     public function select(string $sql, array $stmt_data = []): array
     {
         $stmt = $this->executeQuery($sql, $stmt_data);
@@ -41,6 +54,17 @@ class Database {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+    /**
+     * Выполняет sql-запрос и возвращает ассоциативный массив значений,
+     * соответствующий результирующей выборке, где каждый ключ в массиве
+     * соответствует имени одного из столбцов выборки или null,
+     * если других строк не существует
+     *
+     * @param string $sql SQL-запрос с плейсхолдерами вместо значений
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     *
+     * @return array
+     */
     public function selectOne(string $sql, array $stmt_data = [])
     {
         $stmt = $this->executeQuery($sql, $stmt_data);
@@ -52,7 +76,19 @@ class Database {
         return $result->fetch_assoc();
     }
 
-    public function getNumRows(string $sql, array $stmt_data = []): int
+    /**
+     * Выполняет sql-запрос и возвращает число рядов в результирующей выборке
+     *
+     * Замечание:
+     * Если число рядов больше чем PHP_INT_MAX,
+     * то число будет возвращено в виде строки
+     *
+     * @param string $sql SQL-запрос с плейсхолдерами вместо значений
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     *
+     * @return int|string
+     */
+    public function getNumRows(string $sql, array $stmt_data = [])
     {
         $stmt = $this->executeQuery($sql, $stmt_data);
         if (!$result = $stmt->get_result()) {
@@ -63,6 +99,17 @@ class Database {
         return $result->num_rows;
     }
 
+    /**
+     * Выполняет sql-запрос и возвращает значение поля AUTO_INCREMENT,
+     * которое было затронуто предыдущим запросом.
+     * Возвращает ноль, если предыдущий запрос не затронул таблицы,
+     * содержащие поле AUTO_INCREMENT
+     *
+     * @param string $sql SQL-запрос с плейсхолдерами вместо значений
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     *
+     * @return int
+     */
     public function getLastId(string $sql, array $stmt_data = []): int
     {
         $stmt = $this->getPrepareStmt($sql, $stmt_data);
@@ -74,6 +121,16 @@ class Database {
         return $stmt->insert_id;
     }
 
+    /**
+     * Создаёт и выполняет подготовленное выражение.
+     * Возвращает экземпляр класса mysqli_stmt в случае успешного завершения
+     * или завершает скрипт с 500 кодом ответа HTTP в случае возникновения ошибки
+     *
+     * @param string $sql SQL-запрос с плейсхолдерами вместо значений
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     *
+     * @return mysqli_stmt
+     */
     public function executeQuery(string $sql, array $stmt_data = []): mysqli_stmt
     {
         $stmt = $this->getPrepareStmt($sql, $stmt_data);
@@ -85,6 +142,16 @@ class Database {
         return $stmt;
     }
 
+    /**
+     * Создаёт подготовленное выражение на основе готового SQL запроса и переданных данных.
+     * Возвращает экземпляр класса mysqli_stmt в случае успешного завершения
+     * или завершает скрипт с 500 кодом ответа HTTP в случае возникновения ошибки
+     *
+     * @param string $sql SQL-запрос с плейсхолдерами вместо значений
+     * @param array $data Данные для вставки на место плейсхолдеров
+     *
+     * @return mysqli_stmt Подготовленное выражение
+     */
     private function getPrepareStmt(string $sql, array $data): mysqli_stmt
     {
         if (!$stmt = $this->mysqli->prepare($sql)) {
@@ -124,6 +191,10 @@ class Database {
         return $stmt;
     }
 
+    /**
+     * Возвращает типы контента
+     * @return array
+     */
     public function getContentTypes(): array
     {
         $query = (new QueryBuilder())
@@ -133,6 +204,13 @@ class Database {
         return $query->all();
     }
 
+    /**
+     * Возвращает инпуты (readme.input) связанные с формой,
+     * в качестве ключей для каждого инпута используется input.name
+     * @param string $form Название формы (form.name)
+     *
+     * @return array
+     */
     public function getFormInputs(string $form): array
     {
         $query = (new QueryBuilder())
@@ -149,7 +227,14 @@ class Database {
         return array_combine($input_names, $form_inputs);
     }
 
-    public function isContentTypeValid(string $content_type): bool
+    /**
+     * Проверяет наличие типа контента в БД,
+     * возвращает true при наличии или false в случае отсутствия
+     * @param string $content_type Тип контента
+     *
+     * @return bool
+     */
+    public function isContentTypeExist(string $content_type): bool
     {
         $query = (new QueryBuilder())
             ->select(['class_name'])
@@ -159,21 +244,45 @@ class Database {
         return $query->exists([$content_type]);
     }
 
-    public function getRequiredFields(string $form, string $tab = ''): array
+    /**
+     * Возвращает данные для отрисовки табов
+     * (templates/add.php)
+     *
+     * @return array
+     */
+    public function getTabsContentData(): array
     {
-        $stmt_data = array_filter([$form, $tab]);
         $query = (new QueryBuilder())
-            ->select(['i.name'])
-            ->from('input i')
-            ->join('LEFT', 'form_input fi', 'fi.input_id = i.id')
-            ->join('LEFT', 'form f', 'f.id = fi.form_id')
-            ->where('=', 'f.name', '?')
-            ->andWhere('=', 'i.required', '1')
-            ->andFilterWhere($tab, 'f.modifier = ?');
+            ->select(['class_name'])
+            ->from('content_type');
 
-        return array_column($query->all($stmt_data), 'name');
+        $content_types = $query->all();
+        $tabs_content = [];
+
+        for ($i = 0; $i < count($content_types); $i++) {
+            $ctype = $content_types[$i]['class_name'];
+            $query = (new QueryBuilder())
+                ->select(['i.name'])
+                ->from('input i')
+                ->join('LEFT', 'form_input fi', 'fi.input_id = i.id')
+                ->join('LEFT', 'form f', 'f.id = fi.form_id')
+                ->where('=', 'f.modifier', '?');
+
+            $input_names = array_column($query->all([$ctype]), 'name');
+            $tabs_content[$ctype] = array_filter($input_names, function ($val) {
+                return !in_array($val, ['content-type', 'file-photo']);
+            });
+        }
+
+        return $tabs_content;
     }
 
+    /**
+     * Добавляет публикацию в БД и возвращает её идентификатор
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     *
+     * @return int Идентификатор добавленной публикации
+     */
     public function insertPost(array $stmt_data): int {
         $post_fields = getPostFields('insert');
         $query = (new QueryBuilder())
@@ -182,6 +291,12 @@ class Database {
         return $this->getLastId($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Проверяет хэштеги на наличие в БД и возвращает существующие
+     * @param array $hashtags Хэштеги для проверки
+     *
+     * @return array Существующие хэштеги
+     */
     public function getExistHashtags(array $hashtags): array
     {
         $placeholders = array_fill(0, count($hashtags), '?');
@@ -194,6 +309,12 @@ class Database {
         return $query->all($hashtags);
     }
 
+    /**
+     * Добавляет хэштег в БД и возвращает его идентификатор
+     * @param string $hashtag Хэштег
+     *
+     * @return int Идентификатор добавленного хэштега
+     */
     public function insertHashtag(string $hashtag): int
     {
         $query = (new QueryBuilder())
@@ -202,6 +323,10 @@ class Database {
         return $this->getLastId($query->getQuery(), [$hashtag]);
     }
 
+    /**
+     * Добавляет связь публикация-хэштег в БД
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     */
     public function insertPostHashtag(array $stmt_data)
     {
         $query = (new QueryBuilder())
@@ -210,6 +335,10 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Возвращает подписчиков аутентифицированного пользователя
+     * @return array
+     */
     public function getSubscribers(): array
     {
         $query = (new QueryBuilder())
@@ -221,7 +350,12 @@ class Database {
         return $query->all([$_SESSION['user']['id']]);
     }
 
-    public function getMessageCount(): string
+    /**
+     * Возвращает количество непрочитанных сообщений
+     * аутентифицированного пользователя
+     * @return string
+     */
+    public function getUnreadMessageCount(): string
     {
         $query = (new QueryBuilder())
             ->select(['COUNT(id)'])
@@ -232,6 +366,12 @@ class Database {
         return $query->one([$_SESSION['user']['id']])['COUNT(id)'];
     }
 
+    /**
+     * Возвращает хэштеги связанные с публикацией
+     * @param int $post_id Идентификатор публикации
+     *
+     * @return array
+     */
     public function getPostHashtags(int $post_id): array
     {
         $query = (new QueryBuilder())
@@ -244,6 +384,14 @@ class Database {
         return $query->all([$post_id]);
     }
 
+    /**
+     * Возвращает публикации выбранного типа контента для сценария feed.php
+     *
+     * 1. Ключ 'hashtags' содержит хэштеги публикации (array)
+     *
+     * @param string $content_type Тип контента
+     * @return array
+     */
     public function getFeedPosts(string $content_type): array
     {
         $post_fields = getPostFields();
@@ -281,6 +429,13 @@ class Database {
         return $posts;
     }
 
+    /**
+     * Возвращает пользователя по электронной почте
+     * или null в случае отсутствия
+     * @param string $email Электронная почта
+     *
+     * @return array|null
+     */
     public function getUserByEmail(string $email)
     {
         $query = (new QueryBuilder())
@@ -291,7 +446,14 @@ class Database {
         return $query->one([$email]) ?? null;
     }
 
-    public function isPostValid(int $post_id): bool
+    /**
+     * Проверяет наличие публикации в БД по идентификатору,
+     * возвращает true при наличии или false в случае отсутствия
+     * @param int $post_id Идентификтор публикации
+     *
+     * @return bool
+     */
+    public function isPostExist(int $post_id): bool
     {
         $query = (new QueryBuilder())
             ->select(['id'])
@@ -301,9 +463,17 @@ class Database {
         return $query->exists([$post_id]);
     }
 
+    /**
+     * Проверяет наличие публикации в БД по идентификатору,
+     * возвращает идентификатор публикации при наличии
+     * или завершает скрипт с 404 кодом ответа HTTP при отсутствии
+     * @param int $post_id Идентификатор публикации
+     *
+     * @return int $post_id
+     */
     public function validatePost(int $post_id): int
     {
-        if (!$this->isPostValid($post_id)) {
+        if (!$this->isPostExist($post_id)) {
             http_response_code(404);
             exit;
         }
@@ -311,6 +481,14 @@ class Database {
         return $post_id;
     }
 
+    /**
+     * Проверяет наличие связи публикация-лайк в БД,
+     * возвращает true при наличии или false в случае отсутствия
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [id публикации, id автора]
+     *
+     * @return bool
+     */
     public function isPostLike(array $stmt_data): bool
     {
         $query = (new QueryBuilder())
@@ -322,6 +500,11 @@ class Database {
         return $query->exists($stmt_data);
     }
 
+    /**
+     * Добавляет связь публикация-лайк в БД
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [id публикации, id автора]
+     */
     public function insertPostLike(array $stmt_data)
     {
         $query = (new QueryBuilder())
@@ -330,6 +513,11 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Удаляет связь публикация-лайк из БД
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [id публикации, id автора]
+     */
     public function deletePostLike(array $stmt_data)
     {
         $query = (new QueryBuilder())
@@ -340,7 +528,14 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
-    public function isUserValid(int $user_id): bool
+    /**
+     * Проверяет наличие пользователя в БД по идентификатору,
+     * возвращает true при наличии или false в случае отсутствия
+     * @param int $user_id Идентификтор пользователя
+     *
+     * @return bool
+     */
+    public function isUserExist(int $user_id): bool
     {
         $query = (new QueryBuilder())
             ->select(['id'])
@@ -350,9 +545,17 @@ class Database {
         return $query->exists([$user_id]);
     }
 
+    /**
+     * Проверяет наличие пользователя в БД по идентификатору,
+     * возвращает идентификатор пользователя при наличии
+     * или завершает скрипт с 404 кодом ответа HTTP при отсутствии
+     * @param int $user_id Идентификатор пользователя
+     *
+     * @return int $user_id
+     */
     public function validateUser(int $user_id): int
     {
-        if (!$this->isUserValid($user_id)) {
+        if (!$this->isUserExist($user_id)) {
             http_response_code(404);
             exit;
         }
@@ -360,6 +563,19 @@ class Database {
         return $user_id;
     }
 
+    /**
+     * Проверяет контакт (пользователя) на соответствие условиям:
+     *
+     * 1. На пользователя должна быть подписка
+     * 2. С пользователем должна быть переписка
+     *
+     * возвращает true если выполняется как минимум одно условие
+     * или false если не выполняются оба условия
+     *
+     * @param int $contact_id Идентификатор пользователя
+     *
+     * @return bool
+     */
     public function isContactValid(int $contact_id): bool
     {
         $user_id = $_SESSION['user']['id'];
@@ -377,6 +593,10 @@ class Database {
         return $query->exists($stmt_data);
     }
 
+    /**
+     * Добавляет сообщение в БД
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     */
     public function insertMessage(array $stmt_data)
     {
         $message_fields = ['content', 'sender_id', 'recipient_id'];
@@ -386,6 +606,15 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Обновляет статус всех сообщений от выбранного пользователя
+     * на "прочитано" (message.status)
+     *
+     * 0 - не прочитано
+     * 1 - прочитано
+     *
+     * @param int $contact_id Идентификатор пользователя
+     */
     public function updateMessagesStatus(int $contact_id)
     {
         $stmt_data = [$contact_id, $_SESSION['user']['id']];
@@ -397,7 +626,23 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
-    public function getMessagePreview(int $contact_id): array
+    /**
+     * Возвращает preview последнего отправленного сообщения
+     * из переписки с выбранным пользователем
+     *
+     * 1. Текст сообщения обрезается до максимальной длинны
+     * 2. Если отправителем является аутентифицированный пользователь
+     * перед сообщением добавляется: 'Вы: '
+     *
+     * ['text' => текст preview, 'time' => время сообщения]
+     *
+     * @param int $contact_id Идентификатор пользователя
+     * @param int $max_length Максимальная длина preview
+     *
+     * @return array Preview сообщения
+     */
+
+    public function getMessagePreview(int $contact_id, int $max_length = 30): array
     {
         $user_id = $_SESSION['user']['id'];
         $stmt_data = [$user_id, $contact_id, $contact_id, $user_id];
@@ -408,12 +653,17 @@ class Database {
                 '(recipient_id = ? AND sender_id = ?)')
             ->orderBy('dt_add DESC')->limit('1');
         $message = $query->one($stmt_data);
-        $preview = mb_substr($message['content'], 0, 30);
+        $preview = mb_substr($message['content'], 0, $max_length);
         $preview = $message['sender_id'] === $user_id ? "Вы: $preview" : $preview;
 
         return ['text' => $preview, 'time' => $message['dt_add']];
     }
 
+    /**
+     * Возвращает сообщения из переписки с выбранным пользователем
+     * @param int $contact_id Идентификатор пользователя
+     * @return array
+     */
     public function getContactMessages(int $contact_id): array
     {
         $user_id = $_SESSION['user']['id'];
@@ -425,11 +675,20 @@ class Database {
             ->join('LEFT', 'user u', 'u.id = m.sender_id')
             ->where('OR', '(m.recipient_id = ? AND m.sender_id = ?)',
                 '(m.recipient_id = ? AND m.sender_id = ?)')
-            ->orderBy('m.dt_add');
+            ->orderBy('m.dt_add ASC');
 
         return $query->all($stmt_data);
     }
 
+    /**
+     * Возвращает контакты (пользователей с которыми была переписка)
+     * аутентифицированного пользователя
+     *
+     * 1. Ключ 'preview' содержит preview последнего сообщения (array)
+     * 2. Ключ 'messages' содержит переписку (array)
+     *
+     * @return array
+     */
     public function getContacts(): array
     {
         $stmt_data = array_fill(0, 4, $_SESSION['user']['id']);
@@ -453,6 +712,17 @@ class Database {
         return $contacts;
     }
 
+    /**
+     * Добавляет пользователя в начало переданного массива контактов
+     * при условии, что аутентифицированный пользователь подписан на выбранного,
+     * +устанавливает cookie с идентификатором добавленного пользователя.
+     * Возвращает true в случае успешного завершения или false
+     *
+     * @param array &$contacts Массив контактов (по ссылке)
+     * @param int $contact_id Идентификатор пользователя
+     *
+     * @return bool
+     */
     public function addNewContact(array &$contacts, int $contact_id): bool
     {
         $stmt_data = [$_SESSION['user']['id'], $contact_id];
@@ -473,6 +743,11 @@ class Database {
         return false;
     }
 
+    /**
+     * Возвращает количество публикаций выбранного типа контента
+     * @param string $content_type Тип контента
+     * @return int
+     */
     public function getItemsCount(string $content_type): int
     {
         $stmt_data = array_filter([$content_type]);
@@ -482,9 +757,24 @@ class Database {
             ->join('LEFT', 'content_type ct', 'ct.id = p.content_type_id')
             ->filterWhere($content_type, 'ct.class_name = ?');
 
-        return $query->one($stmt_data)['COUNT(p.id)'];
+        return intval($query->one($stmt_data)['COUNT(p.id)']);
     }
 
+    /**
+     * Возвращает публикации для сценария popular.php,
+     * используя следующие параметры:
+     *
+     * 1. Выбранный тип контента
+     * 2. Сортировка
+     * 3. Направление сортировки
+     * 4. offset и максимальное количество публикаций
+     *
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [id аутентифицированного пользователя, тип контента, offset, лимит публикаций]
+     * @param string Сортировка +направление для sql-запроса
+     *
+     * @return array
+     */
     public function getPopularPosts(array $stmt_data, string $order): array
     {
         $post_fields = getPostFields();
@@ -512,6 +802,11 @@ class Database {
         }));
     }
 
+    /**
+     * Добавляет комментарий в БД
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [текст комментария, id автора, id публикации]
+     */
     public function insertComment(array $stmt_data)
     {
         $comment_fields = ['content', 'author_id', 'post_id'];
@@ -521,6 +816,11 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Возвращает идентификатор автора публикации
+     * @param int $post_id Идентификатор публикации
+     * @return int
+     */
     public function getPostAuthorId(int $post_id): int
     {
         $query = (new QueryBuilder())
@@ -531,6 +831,10 @@ class Database {
         return intval($query->one([$post_id])['author_id']);
     }
 
+    /**
+     * Увеличивает количество просмотров публикации (post.show_count) на 1
+     * @param int $post_id Идентификатор публикации
+     */
     public function updatePostShowCount(int $post_id)
     {
         $query = (new QueryBuilder())
@@ -540,6 +844,13 @@ class Database {
         $this->executeQuery($query->getQuery(), [$post_id]);
     }
 
+    /**
+     * Возвращает публикацию для сценария post.php,
+     * устанавливает ключ 'display_mode' в значение 'details'
+     * @param int $post_id Идентификатор публикации
+     *
+     * @return array
+     */
     public function getPostDetails(int $post_id): array
     {
         $stmt_data = [$_SESSION['user']['id'], $post_id];
@@ -568,6 +879,11 @@ class Database {
         return $post;
     }
 
+    /**
+     * Возвращает автора публикации (пользователя)
+     * @param int $post_id Идентификатор публикации
+     * @return array
+     */
     public function getPostAuthor(int $post_id): array
     {
         $stmt_data = [$_SESSION['user']['id'], $post_id];
@@ -589,6 +905,14 @@ class Database {
         return $query->one($stmt_data);
     }
 
+    /**
+     * Возвращает комментарии связанные с публикацией,
+     * ограничивая их максимальное количество
+     * @param int $post_id Идентификатор публикации
+     * @param int $limit Максимальное количество комментариев
+     *
+     * @return array
+     */
     public function getPostComments(int $post_id, int $limit): array
     {
         $stmt_data = array_filter([$post_id, $limit], function ($val) {
@@ -606,6 +930,11 @@ class Database {
         return $query->all($stmt_data);
     }
 
+    /**
+     * Возвращает пользователя для сценария profile.php
+     * @param int $profile_id Идентификатор пользователя
+     * @return array
+     */
     public function getUserProfile(int $profile_id): array
     {
         $stmt_data = [$_SESSION['user']['id'], $profile_id];
@@ -626,6 +955,11 @@ class Database {
         return $query->one($stmt_data);
     }
 
+    /**
+     * Возвращает публикацию для метода $this->getProfilePosts
+     * @param int $post_id Идентификатор публикации
+     * @return array
+     */
     public function getRepost(int $post_id): array
     {
         $query = (new QueryBuilder())
@@ -637,6 +971,20 @@ class Database {
         return $query->one([$post_id]);
     }
 
+    /**
+     * Возвращает публикации выбранного автора для сценария profile.php,
+     * ограничивая максимальное количество комментариев для каждой публикации
+     *
+     * 1. Ключ 'hashtags' содержит хэштеги публикации (array)
+     * 2. Ключ 'comments' содержит комментарии публикации (array)
+     * 3. Ключ 'origin' содержит оригинальную публикацию при условии,
+     * что ключ 'is_repost' установлен в true (array)
+     *
+     * @param int $profile_id Идентификатор пользователя
+     * @param int $limit Максимальное количество комментариев
+     *
+     * @return array
+     */
     public function getProfilePosts(int $profile_id, int $limit): array
     {
         $stmt_data = [$_SESSION['user']['id'], $profile_id];
@@ -673,13 +1021,20 @@ class Database {
         return $posts;
     }
 
+    /**
+     * Возвращает публикации выбранного пользователя для сценария profile.php,
+     * с минимальным количеством лайков - 1
+     * @param int $profile_id Идентификатор пользователя
+     * @return array
+     */
     public function getProfileLikes(int $profile_id): array
     {
         $post_fields = getPostFields();
         $query = (new QueryBuilder())
             ->select($post_fields, 'p.')
             ->addSelect(['u.id AS user_id', 'u.login AS author', 'u.avatar_path'])
-            ->addSelect(['ct.type_name', 'ct.class_name', 'pl.dt_add'])
+            ->addSelect(['ct.type_name', 'ct.class_name', 'ct.icon_width', 'ct.icon_height'])
+            ->addSelect(['pl.dt_add'])
             ->from('post p')
             ->join('LEFT', 'content_type ct', 'ct.id = p.content_type_id')
             ->join('LEFT', 'post_like pl', 'pl.post_id = p.id')
@@ -692,6 +1047,11 @@ class Database {
         return $query->all([$profile_id]);
     }
 
+    /**
+     * Возвращает подписки выбранного пользователя
+     * @param int $profile_id Идентификатор пользователя
+     * @return array
+     */
     public function getProfileSubscriptions(int $profile_id): array
     {
         $stmt_data = [$_SESSION['user']['id'], $profile_id];
@@ -713,6 +1073,13 @@ class Database {
         return $query->all($stmt_data);
     }
 
+     /**
+     * Проверяет наличие пользователя в БД по электронной почте,
+     * возвращает true при наличии или false в случае отсутствия
+     * @param string $email Электронная почта
+     *
+     * @return bool
+     */
     public function isEmailExist(string $email): bool {
         $query = (new QueryBuilder())
             ->select(['id'])
@@ -722,6 +1089,11 @@ class Database {
         return $query->exists([$email]);
     }
 
+    /**
+     * Добавляет пользователя в БД
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [электронная почта, логин, хэш пароля, путь до аватарки]
+     */
     public function insertUser(array $stmt_data)
     {
         $user_fields = ['email', 'login', 'password', 'avatar_path'];
@@ -731,6 +1103,11 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Возвращает публикацию для сценария repost.php
+     * @param int $post_id Идентификатор публикации
+     * @return array
+     */
     public function getPost(int $post_id): array
     {
         $post_fields = getPostFields('insert');
@@ -742,6 +1119,11 @@ class Database {
         return $query->one([$post_id]);
     }
 
+    /**
+     * Возвращает идентификаторы хэштегов связанных с публикацией
+     * @param int $post_id Идентификатор публикации
+     * @return array
+     */
     public function getPostHashtagIds(int $post_id): array
     {
         $query = (new QueryBuilder())
@@ -752,6 +1134,14 @@ class Database {
         return $query->all([$post_id]);
     }
 
+    /**
+     * Возвращает публикации связанные с хэштегом
+     *
+     * 1. Ключ 'hashtags' содержит хэштеги публикации (array)
+     *
+     * @param string $hashtag Хэштег
+     * @return array
+     */
     public function getPostsByHashtag(string $hashtag): array
     {
         $stmt_data = [$_SESSION['user']['id'], $hashtag];
@@ -787,6 +1177,15 @@ class Database {
         return $posts;
     }
 
+    /**
+     * Возвращает публикации, используя полнотекстовый поиск по следующим полям:
+     * (post.title и post.text_content)
+     *
+     * 1. Ключ 'hashtags' содержит хэштеги публикации (array)
+     *
+     * @param string $query Строка запроса
+     * @return array
+     */
     public function getPostsByQueryString(string $query): array
     {
         $stmt_data = [$query, $_SESSION['user']['id'], $query];
@@ -821,6 +1220,14 @@ class Database {
         return $posts;
     }
 
+    /**
+     * Проверяет наличие подписки в БД,
+     * возвращает true при наличии или false в случае отсутствия
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [автор подписки, %пользователь, на которого подписался автор%]
+     *
+     * @return bool
+     */
     public function isSubscription(array $stmt_data): bool
     {
         $query = (new QueryBuilder())
@@ -832,6 +1239,11 @@ class Database {
         return $query->exists($stmt_data);
     }
 
+    /**
+     * Добавляет подписку в БД
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [автор подписки, %пользователь, на которого подписался автор%]
+     */
     public function insertSubscription(array $stmt_data)
     {
         $query = (new QueryBuilder())
@@ -840,6 +1252,11 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Удаляет подписку из БД
+     * @param array $stmt_data Данные для вставки на место плейсхолдеров
+     * [автор подписки, %пользователь, на которого подписался автор%]
+     */
     public function deleteSubscription(array $stmt_data)
     {
         $query = (new QueryBuilder())
@@ -850,6 +1267,11 @@ class Database {
         $this->executeQuery($query->getQuery(), $stmt_data);
     }
 
+    /**
+     * Возвращает пользователя для сценария subscription.php
+     * @param int $profile_id Идентификатор пользователя
+     * @return array
+     */
     public function getSubscription(int $profile_id): array
     {
         $query = (new QueryBuilder())

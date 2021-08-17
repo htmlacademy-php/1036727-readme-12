@@ -2,43 +2,43 @@
 
 const FORM_TYPES = [
     'adding-post-photo' => [
-        'heading:Заголовок' => 'required',
-        'file-photo:Изображение' => 'image'
+        'heading:Заголовок' => 'maxLength:128|required',
+        'image-url:Изображение' => 'maxLength:128|image:file-photo'
     ],
     'adding-post-video' => [
-        'heading:Заголовок' => 'required',
-        'video-url:Ссылка youtube' => 'youtube|url|required'
+        'heading:Заголовок' => 'maxLength:128|required',
+        'video-url:Ссылка youtube' => 'maxLength:128|youtube|url|required'
     ],
     'adding-post-text' => [
-        'heading:Заголовок' => 'required',
-        'post-text:Текст поста' => 'required'
+        'heading:Заголовок' => 'maxLength:128|required',
+        'post-text:Текст поста' => 'maxLength:1024|required'
     ],
     'adding-post-quote' => [
-        'heading:Заголовок' => 'required',
-        'cite-text:Текст цитаты' => 'required',
-        'quote-author:Автор' => 'required'
+        'heading:Заголовок' => 'maxLength:128|required',
+        'cite-text:Текст цитаты' => 'maxLength:1024|required',
+        'quote-author:Автор' => 'maxLength:128|required'
     ],
     'adding-post-link' => [
-        'heading:Заголовок' => 'required',
-        'post-link:Ссылка' => 'url|required'
+        'heading:Заголовок' => 'maxLength:128|required',
+        'post-link:Ссылка' => 'maxLength:128|url|required'
     ],
     'registration' => [
-        'email:Электронная почта' => 'unique|email|required',
-        'login:Логин' => 'required',
+        'email:Электронная почта' => 'maxLength:128|unique:email|email|required',
+        'login:Логин' => 'maxLength:128|required',
         'passwd:Пароль' => 'required',
         'passwd-repeat:Повтор пароля' => 'same:passwd|required',
-        'avatar:Изображение' => 'avatar'
+        'avatar:Изображение' => 'localFile:avatar'
     ],
     'login' => [
         'email:Электронная почта' => 'email|required',
         'passwd:Пароль' => 'verify|required'
     ],
     'comments' => [
-        'comment:Ваш комментарий' => 'minLength:4|required',
+        'comment:Ваш комментарий' => 'maxLength:128|minLength:4|required',
         'post-id:' => 'exists:post'
     ],
     'messages' => [
-        'message:Ваше сообщение' => 'required',
+        'message:Ваше сообщение' => 'maxLength:1024|required',
         'contact-id:' => 'contact|exists:user'
     ]
 ];
@@ -89,7 +89,7 @@ function email(string $value, array $options)
 
 function url(string $value, array $options)
 {
-    if (filter_var($value, FILTER_VALIDATE_URL)) {
+    if (!filter_var($value, FILTER_VALIDATE_URL)) {
         $error = 'Некорректный url-адрес';
     }
 
@@ -99,7 +99,7 @@ function url(string $value, array $options)
 function youtube(string $value, array $options)
 {
     if (strpos($value, 'youtube.com/watch?v=') === false) {
-        $error = 'Некорректный url-адрес';
+        $error = 'Некорректный youtube-адрес';
     }
 
     return $error ?? null;
@@ -114,10 +114,21 @@ function minLength(string $value, array $options)
     return $error ?? null;
 }
 
+function maxLength(string $value, array $options)
+{
+    if (isset($options[1]) && (mb_strlen($value) > intval($options[1]))) {
+        $error = "Значение должно быть до {$options[1]} символов";
+    }
+
+    return $error ?? null;
+}
+
 function exists(string $value, array $options)
 {
-    if (isset($options[1]) && in_array($options[1], ['post', 'user'])) {
-        $method = 'is' . ucfirst($options[1]) . 'Valid';
+    define('ACCEPT_ENTITIES', ['post', 'user', 'email']);
+
+    if (isset($options[1]) && in_array($options[1], ACCEPT_ENTITIES)) {
+        $method = 'is' . ucfirst($options[1]) . 'Exist';
         $method_exist = method_exists('Database', $method);
 
         if ($method_exist && !Database::getInstance()->$method($value)) {
@@ -139,8 +150,12 @@ function contact(string $value, array $options)
 
 function unique(string $value, array $options)
 {
-    if (Database::getInstance()->isEmailExist($value)) {
-        $error = 'Пользователь с этим email уже зарегистрирован';
+    $error_messages = [
+        'email' => 'Пользователь с этим email уже зарегистрирован'
+    ];
+
+    if (isset($options[1]) && !exists($value, $options)) {
+        $error = $error_messages[$options[1]] ?? '';
     }
 
     return $error ?? null;
@@ -148,11 +163,15 @@ function unique(string $value, array $options)
 
 function same(string $value, array $options)
 {
+    $error_messages = [
+        'passwd' => 'Пароли не совпадают'
+    ];
+
     if (isset($options[0], $options[1])) {
         list($post_data, $key) = $options;
 
         if ($value !== ($post_data[$key] ?? '')) {
-            $error = 'Пароли не совпадают';
+            $error = $error_messages[$options[1]] ?? '';
         }
     }
 
@@ -173,11 +192,11 @@ function verify(string $value, array $options)
     return $error ?? null;
 }
 
-function avatar(string $value, array $options, int $max_size = 1)
+function localFile(string $value, array $options, int $max_size = 1)
 {
-    if (!empty($_FILES['avatar']['name'])) {
-        $file_path = $_FILES['avatar']['tmp_name'];
-        $file_size = $_FILES['avatar']['size'];
+    if (isset($options[1]) && !empty($_FILES[$options[1]]['tmp_name'])) {
+        $file_path = $_FILES[$options[1]]['tmp_name'];
+        $file_size = $_FILES[$options[1]]['size'];
         $file_type = mime_content_type($file_path);
 
         if (!in_array($file_type, ACCEPT_MIME_TYPES)) {
@@ -190,43 +209,42 @@ function avatar(string $value, array $options, int $max_size = 1)
     return $error ?? null;
 }
 
-function image(string $value, array $options, int $max_size = 1)
+function remoteFile(string $value, array $options, int $max_size = 1)
 {
-    if (!empty($_FILES['file-photo']['name'])) {
-        $file_path = $_FILES['file-photo']['tmp_name'];
-        $file_size = $_FILES['file-photo']['size'];
+    set_error_handler('exceptionsErrorHandler');
+    try {
+        $temp_file = tmpfile();
+        $content = file_get_contents($value);
+        fwrite($temp_file, $content);
+        $file_path = stream_get_meta_data($temp_file)['uri'];
+        $file_size = fstat($temp_file)['size'];
         $file_type = mime_content_type($file_path);
+        fclose($temp_file);
 
-        if (!in_array($file_type, ACCEPT_MIME_TYPES)) {
-            $error = 'Неверный MIME-тип файла';
-        } elseif ($file_size > (BYTES_PER_MEGABYTE * $max_size)) {
-            $error = "Максимальный размер файла: {$max_size}Мб";
-        }
+    } catch (ErrorException $ex) {
+        return 'Вы не загрузили файл';
+    }
+    restore_error_handler();
 
-    } elseif (isset($post_data['image-url'])) {
-        set_error_handler('exceptions_error_handler');
-        try {
-            $temp_file = tmpfile();
-            $content = file_get_contents($post_data['image-url']);
-            fwrite($temp_file, $content);
-            $file_path = stream_get_meta_data($temp_file)['uri'];
-            $file_size = fstat($temp_file)['size'];
-            $file_type = mime_content_type($file_path);
-            fclose($temp_file);
+    if (!in_array($file_type, ACCEPT_MIME_TYPES)) {
+        $error = 'Неверный MIME-тип файла';
+    } elseif ($file_size > (BYTES_PER_MEGABYTE * $max_size)) {
+        $error = "Максимальный размер файла: {$max_size}Мб";
+    }
 
-        } catch (ErrorException $ex) {
-            return 'Вы не загрузили файл';
-        }
-        restore_error_handler();
+    return $error ?? null;
+}
 
-        if (!in_array($file_type, ACCEPT_MIME_TYPES)) {
-            $error = 'Неверный MIME-тип файла';
-        } elseif ($file_size > (BYTES_PER_MEGABYTE * $max_size)) {
-            $error = "Максимальный размер файла: {$max_size}Мб";
-        }
+function image(string $value, array $options)
+{
+    if (!empty($_FILES[$options[1] ?? '']['tmp_name'])) {
+        $error = localFile($value, $options);
+
+    } elseif (filter_var($value, FILTER_VALIDATE_URL)) {
+        $error = remoteFile($value, $options);
 
     } else {
-        return 'Вы не загрузили файл';
+        $error = 'Вы не загрузили файл';
     }
 
     return $error ?? null;

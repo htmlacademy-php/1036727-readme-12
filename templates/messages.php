@@ -36,7 +36,9 @@
                                     <time
                                         class="messages__preview-time"
                                         datetime="<?= getDatetimeValue($contact['preview']['time']) ?>"
-                                    ><?= date('M j', strtotime($contact['preview']['time'])) ?></time>
+                                    >
+                                        <?= date('M j', strtotime($contact['preview']['time'])) ?>
+                                    </time>
                                 <?php endif; ?>
 
                             </div>
@@ -90,7 +92,9 @@
                                             <time
                                                 class="messages__time"
                                                 datetime="<?= getDatetimeValue($message['dt_add']) ?>"
-                                            ><?= getRelativeTime($message['dt_add']) ?> назад</time>
+                                            >
+                                                <?= getRelativeTime($message['dt_add']) ?> назад
+                                            </time>
                                         </div>
                                     </div>
                                     <p class="messages__text"><?= nl2br(esc($message['content']), false) ?></p>

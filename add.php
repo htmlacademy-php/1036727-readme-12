@@ -12,20 +12,20 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+$db = Database::getInstance();
+
 $user_id = $_SESSION['user']['id'];
 
-$ctypes = Database::getInstance()->getContentTypes();
+$ctypes = $db->getContentTypes();
 $class_names = array_column($ctypes, 'class_name');
 $ctypes = array_combine($class_names, $ctypes);
-
-$form_inputs = Database::getInstance()->getFormInputs('adding-post');
 
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = getPostInput('adding-post');
 
-    if (Database::getInstance()->isContentTypeValid($input['content-type'] ?? '')) {
+    if ($db->isContentTypeExist($input['content-type'] ?? '')) {
         $form_name = "adding-post-{$input['content-type']}";
         $errors = validateForm($form_name, $input);
 
@@ -35,20 +35,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($input['content-type'] === 'quote') {
                 $input['text-content'] = cutOutExtraSpaces($input['cite-text']);
             } elseif ($input['content-type'] === 'link') {
-                validateInputPostLink($input);
+                processInputPostLink($input);
             }
 
             $input['image-path'] = uploadImageFile($input, $errors);
             $ctype_id = $ctypes[$input['content-type']]['id'];
             $stmt_data = getStmtData($input, 'adding-post');
             $stmt_data += [$user_id, 0, null, $ctype_id];
-            $post_id = Database::getInstance()->insertPost($stmt_data);
+            $post_id = $db->insertPost($stmt_data);
 
             if ($hashtags = explode(' ', $input['tags'])) {
                 processPostHashtags($hashtags, $post_id);
             }
 
-            if ($subscribers = Database::getInstance()->getSubscribers()) {
+            if ($subscribers = $db->getSubscribers()) {
                 sendPostNotifications($subscribers, $input['heading']);
             }
 
@@ -58,20 +58,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+setcookie('search_ref', '', time() - 3600);
+
 $url = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
 if (parse_url($url, PHP_URL_PATH) !== '/add.php') {
     setcookie('add_ref', $url, strtotime('+30 days'));
 }
 
-$message_count = Database::getInstance()->getMessageCount();
+$message_count = $db->getUnreadMessageCount();
+$tabs_content = $db->getTabsContentData();
+$form_inputs = $db->getFormInputs('adding-post');
 
-$page_content = include_template('add.php', [
+$page_content = includeTemplate('add.php', [
     'content_types' => $ctypes,
+    'tabs_content' => $tabs_content,
     'errors' => $errors,
     'inputs' => $form_inputs
 ]);
 
-$layout_content = include_template('layouts/base.php', [
+$layout_content = includeTemplate('layouts/base.php', [
     'title' => 'readme: добавление публикации',
     'main_modifier' => 'adding-post',
     'page_content' => $page_content,

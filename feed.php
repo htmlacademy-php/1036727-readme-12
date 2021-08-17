@@ -7,18 +7,22 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+$db = Database::getInstance();
+
 $content_type = filter_input(INPUT_GET, 'filter') ?? '';
 
-$content_types = Database::getInstance()->getContentTypes();
-$posts = Database::getInstance()->getFeedPosts($content_type);
-$message_count = Database::getInstance()->getMessageCount();
+$content_types = $db->getContentTypes();
+$posts = $db->getFeedPosts($content_type);
+$message_count = $db->getUnreadMessageCount();
 
-$page_content = include_template('main.php', [
+setcookie('search_ref', '', time() - 3600);
+
+$page_content = includeTemplate('main.php', [
     'content_types' => $content_types,
     'posts' => $posts
 ]);
 
-$layout_content = include_template('layouts/base.php', [
+$layout_content = includeTemplate('layouts/base.php', [
     'title' => 'readme: моя лента',
     'main_modifier' => 'feed',
     'page_content' => $page_content,

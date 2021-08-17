@@ -6,6 +6,7 @@
             </a>
             <p class="header__topic">micro blogging</p>
         </div>
+
         <?php if (isset($_SESSION['user'])): ?>
             <form class="header__search-form form" action="/search.php" method="get">
                 <div class="header__search">
@@ -20,8 +21,10 @@
                 </div>
             </form>
         <?php endif; ?>
+
         <div class="header__nav-wrapper">
             <nav class="header__nav">
+
                 <?php if (isset($_SESSION['user'])): ?>
                     <ul class="header__my-nav">
                         <li class="header__my-page header__my-page--popular">
@@ -48,10 +51,12 @@
                             <?php $profile_url = "/profile.php?id={$_SESSION['user']['id']}&tab=posts"; ?>
                             <a class="header__profile-link" href="<?= esc($profile_url) ?>">
                                 <div class="header__avatar-wrapper">
+
                                     <?php if (!empty($_SESSION['user']['avatar_path'])): ?>
                                         <img style="width: 40px; height: 40px; object-fit: cover;"
                                             class="header__profile-avatar" src="uploads/<?= esc($_SESSION['user']['avatar_path']) ?>" alt="Аватар профиля">
                                     <?php endif; ?>
+
                                 </div>
                                 <div class="header__profile-name">
                                     <span><?= esc($_SESSION['user']['login']) ?></span>
@@ -71,9 +76,11 @@
                                         <li class="header__profile-nav-item">
                                             <a class="header__profile-nav-link" href="/messages.php">
                                                 <span class="header__profile-nav-text">Сообщения
+
                                                     <?php if ($message_count): ?>
                                                         <i class="header__profile-indicator"><?= $message_count ?></i>
                                                     <?php endif; ?>
+
                                                 </span>
                                             </a>
                                         </li>
@@ -104,6 +111,7 @@
                         </li>
                     </ul>
                 <?php endif; ?>
+
             </nav>
         </div>
     </div>

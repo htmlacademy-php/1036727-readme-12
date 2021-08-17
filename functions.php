@@ -1,16 +1,29 @@
 <?php
 
-function exceptions_error_handler($severity, $message, $filename, $lineno)
+function exceptionsErrorHandler($severity, $message, $filename, $lineno)
 {
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
 }
 
-function cropTextContent(string $text, int $post_id, string $style = '', int $num_letters = 300): string
+/**
+ * Обрезает текст до указанной длины.
+ * Добавляет в конце знак троеточия и ссылку на публикацию
+ * (если длина текста > указанной длины).
+ * Возвращает итоговый HTML
+ * <p style="...">текст</p> (<a href="...">Читать далее</a>)
+ *
+ * @param string $text Строка для обрезания
+ * @param int $post_id Идентификатор публикации
+ * @param string $style Стили для элемента p
+ * @param int $length Длина строки
+ *
+ * @return string
+ */
+function cropTextContent(string $text, int $post_id, string $style = '', int $length = 300): string
 {
-    $style = $style ? " style=\"{$style}\"" : '';
     $text_length = mb_strlen($text);
 
-    if ($text_length > $num_letters) {
+    if ($text_length > $length) {
         $words = explode(' ', $text);
         $result_words_length = 0;
         $result_words = [];
@@ -18,7 +31,7 @@ function cropTextContent(string $text, int $post_id, string $style = '', int $nu
         foreach ($words as $word) {
             $result_words_length += mb_strlen($word);
 
-            if ($result_words_length > $num_letters) {
+            if ($result_words_length > $length) {
                 break;
             }
 
@@ -29,15 +42,27 @@ function cropTextContent(string $text, int $post_id, string $style = '', int $nu
         $result = implode(' ', $result_words);
 
         $result .= '...';
-        $result = "<p{$style}>" . $result . '</p>';
+        $result = '<p style"' . $style . '">' . $result . '</p>';
         $result .= '<a class="post-text__more-link" href="post.php?id=' . $post_id . '">Читать далее</a>';
     } else {
-        $result = "<p{$style}>" . $text . '</p>';
+        $result = '<p style"' . $style . '">' . $text . '</p>';
     }
 
     return $result;
 }
 
+/**
+ * Если указанная форма существует - формирует массив из данных,
+ * которые были отправлены методом POST для выбранной html-формы
+ *
+ * ['input_name' => trim('input_value') | null]
+ *
+ * Возвращает данные или пустой массив
+ * (если указанная форма не существует).
+ *
+ * @param string $form
+ * @return array
+ */
 function getPostInput(string $form): array
 {
     $input_names = [
@@ -79,6 +104,15 @@ function getPostInput(string $form): array
     return $input;
 }
 
+/**
+ * Возвращает поля таблицы post в двух вариантах:
+ *
+ * 1. Для выборки (select)
+ * 2. Для вставки (insert)
+ *
+ * @param string $mode
+ * @return array
+ */
 function getPostFields(string $mode = 'select'): array
 {
     $post_fields = [
@@ -114,6 +148,20 @@ function getPostFields(string $mode = 'select'): array
     return $post_fields[$mode] ?? [];
 }
 
+/**
+ * Если указанная форма существует - формирует массив из данных,
+ * которые были переданы через аргумент $input
+ *
+ * ['input_key' => $input['input_key']]
+ *
+ * Возвращает данные или пустой массив
+ * (если указанная форма / инпут не существует).
+ *
+ * @param array $input
+ * @param string $form
+ *
+ * @return array
+ */
 function getStmtData(array $input, string $form): array
 {
     $input_keys = [
@@ -147,6 +195,12 @@ function getStmtData(array $input, string $form): array
     return $stmt_data;
 }
 
+/**
+ * Возвращает дату в относительном формате
+ *
+ * @param string $date Строка даты / времени
+ * @return string
+ */
 function getRelativeTime(string $date): string
 {
 
@@ -169,7 +223,7 @@ function getRelativeTime(string $date): string
     $i = 0;
     do {
         $time = floor($ts_diff / $array[$i][1]);
-        $relative_time = "$time " . get_noun_plural_form($time, $array[$i][2], $array[$i][3], $array[$i][4]);
+        $relative_time = "$time " . getNounPluralForm($time, $array[$i][2], $array[$i][3], $array[$i][4]);
         $i++;
 
         if ($ts_diff < $array[$i - 1][0]) {
@@ -181,6 +235,12 @@ function getRelativeTime(string $date): string
     return $relative_time;
 }
 
+/**
+ * Возвращает значение для атрибута datetime
+ *
+ * @param string $date Строка даты / времени
+ * @return string
+ */
 function getDatetimeValue(string $date): string
 {
     if ($ts = strtotime($date)) {
@@ -191,6 +251,12 @@ function getDatetimeValue(string $date): string
     return $datetime ?? '';
 }
 
+/**
+ * Возвращает значение для атрибута title
+ *
+ * @param string $date Строка даты / времени
+ * @return string
+ */
 function getTimeTitle(string $date): string
 {
     if ($ts = strtotime($date)) {
@@ -200,6 +266,33 @@ function getTimeTitle(string $date): string
     return $title ?? '';
 }
 
+/**
+ * Возвращает модификатор для текстового содержимого
+ * (.adding-post__tab-content h2)
+ *
+ * @param string $ctype
+ * @return string
+ */
+function getTabContentModifier(string $ctype): string
+{
+    $content_types = [
+        'photo' => 'фото',
+        'video' => 'видео',
+        'text' => 'текста',
+        'quote' => 'цитаты',
+        'link' => 'ссылки'
+    ];
+
+    return $content_types[$ctype] ?? '';
+}
+
+/**
+ * Возвращает значение для атрибута class
+ * (a.sorting__link)
+ *
+ * @param string $field Поле для сортировки
+ * @return string
+ */
 function getSortingLinkClass(string $field): string
 {
     if (isset($_GET['sort']) && $_GET['sort'] === $field) {
@@ -212,6 +305,15 @@ function getSortingLinkClass(string $field): string
     return $classname ?? '';
 }
 
+/**
+ * Возвращает значение для атрибута href
+ * (a.sorting__link)
+ *
+ * @param string $field Поле для сортировки
+ * @param array $types Направления сортировки
+ *
+ * @return string
+ */
 function getSortingLinkUrl(string $field, array $types): string
 {
     if ($filter = filter_input(INPUT_GET, 'filter')) {
@@ -228,6 +330,15 @@ function getSortingLinkUrl(string $field, array $types): string
     return $url;
 }
 
+/**
+ * Возвращает значение для атрибута href
+ * (a.popular__page-link)
+ *
+ * @param int $current_page Текущая страница
+ * @param bool $next (href для следующей страницы?)
+ *
+ * @return string
+ */
 function getPageLinkUrl(int $current_page, bool $next): string
 {
     $parameters['filter'] = filter_input(INPUT_GET, 'filter');
@@ -246,6 +357,12 @@ function getPageLinkUrl(int $current_page, bool $next): string
     return $url;
 }
 
+/**
+ * Возвращает значение для атрибута href
+ * (a.adding-post__close)
+ *
+ * @return string
+ */
 function getAddingPostCloseUrl(): string
 {
     $url = $_SERVER['HTTP_REFERER'] ?? '/feed.php';
@@ -256,12 +373,19 @@ function getAddingPostCloseUrl(): string
     return $url;
 }
 
-function validateLinkInfo(array &$input)
+/**
+ * Обрабатывает веб-страницу на предмет наличия h1 или title
+ * Возвращает текстовое содержимое элемента h1 или title
+ *
+ * @param string $url URL веб-страницы
+ * @return string
+ */
+function getLinkInfo(string $url)
 {
-    set_error_handler('exceptions_error_handler');
+    set_error_handler('exceptionsErrorHandler');
 
     try {
-        $html = file_get_contents($input['post-link']);
+        $html = file_get_contents($url);
     } catch (ErrorException $ex) {
         return;
     }
@@ -288,8 +412,18 @@ function validateLinkInfo(array &$input)
     $title = $doc->getElementsByTagName('title')->item(0);
     $title = !is_null($title) ? trim($title->nodeValue) : '';
 
-    $input['text-content'] = $h1 ?? $title;
+    return $h1 ?? $title;
 }
+
+/**
+ * Callback для встроенной функции usort
+ * Сортирует элементы многомерного массива по ключу 'sizes'
+ *
+ * @param array $a
+ * @param array $b
+ *
+ * @return int
+ */
 
 function cmp(array $a, array $b): int
 {
@@ -302,7 +436,13 @@ function cmp(array $a, array $b): int
     return ($a > $b) ? -1 : 1;
 }
 
-function getIconUrl(string $url): string
+/**
+ * Возвращает URL фавиконки максимального качества
+ *
+ * @param string $url URL веб-страницы
+ * @return string
+ */
+function getFaviconUrl(string $url): string
 {
     $url = parse_url($url, PHP_URL_HOST);
     $url = "https://favicongrabber.com/api/grab/{$url}?pretty=true";
@@ -311,7 +451,7 @@ function getIconUrl(string $url): string
     curl_setopt($curl_handle, CURLOPT_URL, $url);
     curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, 2);
     curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($curl_handle, CURLOPT_USERAGENT, 'Application');
+    curl_setopt($curl_handle, CURLOPT_USERAGENT, 'Readme');
 
     do {
         $response = curl_exec($curl_handle);
@@ -331,39 +471,56 @@ function getIconUrl(string $url): string
     return $response[0]['src'] ?? '';
 }
 
-function validateIconFile(array &$input)
+/**
+ * Загружает фавиконку и возвращает её адрес
+ *
+ * @param string $url URL веб-страницы
+ * @return string
+ */
+function uploadFavicon(string $url): string
 {
-    $icon_url = getIconUrl($input['post-link']);
+    $icon_url = getFaviconUrl($url);
 
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $file_name = uniqid();
     $file_path = "uploads/{$file_name}.jpeg";
 
-    set_error_handler('exceptions_error_handler');
+    set_error_handler('exceptionsErrorHandler');
     try {
         $content = file_get_contents($icon_url);
         file_put_contents($file_path, $content);
-        $file_type = finfo_file($finfo, $file_path);
+        $file_type = mime_content_type($file_path);
 
         $file_extension = explode('/', $file_type);
         $file_name .= ".{$file_extension[1]}";
         rename($file_path, 'uploads/' . $file_name);
-        $input['image-path'] = $file_name;
 
     } catch (ErrorException $ex) {}
     restore_error_handler();
+
+    return $file_name ?? '';
 }
 
-function validateInputPostLink(array &$input)
+/**
+ * Обрабатывает публикацию типа "Ссылка"
+ *
+ * @param array &$input Данные из массива $_POST (по ссылке)
+ */
+function processInputPostLink(array &$input)
 {
-    validateLinkInfo($input);
-    validateIconFile($input);
+    $input['text-content'] = getLinkInfo($input['post-link']);
+    $input['image-path'] = uploadFavicon($input['post-link']);
 }
 
-function uploadAvatarFile()
+/**
+ * Загружает локальный файл и возвращает его адрес
+ *
+ * @param string $file_key Ключ файла ($_FILES)
+ * @return string|null
+ */
+function uploadLocalFile(string $file_key)
 {
-    if (!empty($_FILES['avatar']['name'])) {
-        $file_path = $_FILES['avatar']['tmp_name'];
+    if (!empty($_FILES[$file_key]['tmp_name'])) {
+        $file_path = $_FILES[$file_key]['tmp_name'];
         $file_type = mime_content_type($file_path);
         $file_extension = explode('/', $file_type);
         $file_name = uniqid() . ".{$file_extension[1]}";
@@ -373,20 +530,21 @@ function uploadAvatarFile()
     return $file_name ?? null;
 }
 
-function uploadImageFile(array $input, array &$errors)
+/**
+ * Загружает удалённый файл и возвращает его адрес
+ *
+ * @param string $file_url URL удалённого файла
+ * @param array &$errors Ошибки валидации (по ссылке)
+ *
+ * @return string|null
+ */
+function uploadRemoteFile(string $file_url, array &$errors)
 {
-    if (!empty($_FILES['file-photo']['name'])) {
-        $file_path = $_FILES['file-photo']['tmp_name'];
-        $file_type = mime_content_type($file_path);
-        $file_extension = explode('/', $file_type);
-        $file_name = uniqid() . ".{$file_extension[1]}";
-        move_uploaded_file($file_path, "uploads/$file_name");
-
-    } elseif (isset($input['image-url'])) {
-        set_error_handler('exceptions_error_handler');
+    if (filter_var($file_url, FILTER_VALIDATE_URL)) {
+        set_error_handler('exceptionsErrorHandler');
         try {
             $temp_file = tmpfile();
-            $content = file_get_contents($input['image-url']);
+            $content = file_get_contents($file_url);
             fwrite($temp_file, $content);
             $file_path = stream_get_meta_data($temp_file)['uri'];
             $file_type = mime_content_type($file_path);
@@ -406,6 +564,35 @@ function uploadImageFile(array $input, array &$errors)
     return $file_name ?? null;
 }
 
+/**
+ * Загружает файл для публикации типа "Картинка"
+ *
+ * @param array $input Данные из массива POST
+ * @param array &$errors Ошибки валидации (по ссылке)
+ *
+ * @return string|null
+ */
+function uploadImageFile(array $input, array &$errors)
+{
+    if (!empty($_FILES['file-photo']['name'])) {
+        $file_name = uploadLocalFile('file-photo');
+
+    } elseif ($url = $input['image-url'] ?? '') {
+        $file_name = uploadRemoteFile($url, $errors);
+    }
+
+    return $file_name ?? null;
+}
+
+/**
+ * Обрабатывает хэштеги следующим образом:
+ *
+ * 1. Добавляет хэштеги, которые отсутствуют в БД (readme.hashtag)
+ * 2. Добавляет связи с указанной публикацией в БД (readme.post_hashtag)
+ *
+ * @param array $hashtags Хэштеги
+ * @param int $post_id Идентификатор публикации
+ */
 function processPostHashtags(array $hashtags, int $post_id)
 {
     array_walk($hashtags, function (&$val, $key) {
@@ -430,6 +617,13 @@ function processPostHashtags(array $hashtags, int $post_id)
     }
 }
 
+/**
+ * Отправляет email-уведомления о новой публикации
+ * подписчикам аутентифицированного пользователя
+ *
+ * @param array $recipients Подписчики
+ * @param string $post_title Заголовок публикации
+ */
 function sendPostNotifications(array $recipients, string $post_title)
 {
     try {
@@ -445,7 +639,7 @@ function sendPostNotifications(array $recipients, string $post_title)
 
         foreach ($recipients as $recipient) {
             $message->setTo([$recipient['email'] => $recipient['login']]);
-            $body = include_template('notifications/post.php', [
+            $body = includeTemplate('notifications/post.php', [
                 'recipient' => $recipient,
                 'post_title' => $post_title
             ]);
@@ -458,27 +652,95 @@ function sendPostNotifications(array $recipients, string $post_title)
     } catch (Swift_TransportException $ex) {}
 }
 
+/**
+ * Аутентифицирует пользователя
+ * Записывает в сессию ассоциативный массив с данными пользователя
+ * (если передано корректное сочетание email / пароль)
+ *
+ * $_SESSION['user'] = ['key' => 'value']
+ *
+ * После успешного входа переадресует пользователя на feed.php
+ * или возвращает массив с ошибками валидации формы
+ *
+ * @return array
+ */
+function authenticate(): array
+{
+    $input = getPostInput('login');
+    $errors = validateForm('login', $input);
+
+    if (!is_null($errors) && empty($errors)) {
+        $db = Database::getInstance();
+        $_SESSION['user'] = $db->getUserByEmail($input['email']);
+        $url = $_COOKIE['login_ref'] ?? '/feed.php';
+        setcookie('login_ref', '', time() - 3600);
+
+        header("Location: $url");
+        exit;
+    }
+
+    return $errors;
+}
+
+/**
+ * Возвращает значение из массива POST
+ * по указанному ключу или пустую строку
+ *
+ * @param string $name Ключ инпута ($_POST)
+ * @return string
+ */
 function getPostValue(string $name): string
 {
     return filter_input(INPUT_POST, $name) ?? '';
 }
 
+/**
+ * Преобразует специальные символы в HTML-сущности
+ * https://php.net/manual/ru/function.htmlspecialchars.php
+ *
+ * @param string $str Конвертируемая строка
+ * @return string Преобразованная строка
+ */
 function esc(string $str): string
 {
     return htmlspecialchars($str);
 }
 
-function addPrefix(&$item, $key, $prefix)
+/**
+ * Callback для встроенной функции array_walk
+ * Добавляет префикс для каждого элемента массива
+ *
+ * @param &$item Значение элемента массива (по ссылке)
+ * @param $key Ключ элемента массива
+ * @param string $prefix Префикс
+ */
+function addPrefix(&$item, $key, string $prefix)
 {
     $item = $prefix . $item;
 }
 
+/**
+ * Вырезает множественные пробелы и переносы строк:
+ *
+ * 1. 2 и более пробела (превращает в 1)
+ * 2. 3 и более переноса строки (превращает в 2)
+ *
+ * @param string $text Конвертируемая строка
+ * @return string Преобразованная строка
+ */
 function cutOutExtraSpaces(string $text): string
 {
     $text = preg_replace('/(\r\n){3,}|(\n){3,}/', "\n\n", $text);
     return preg_replace('/\040\040+/', ' ', $text);
 }
 
+/**
+ * Создаёт хеш пароля
+ * https://php.net/manual/ru/function.password-hash
+ *
+ * @param string Пользовательский пароль
+ * @return string Хешированный пароль
+ */
 function getPasswordHash(string $password): string
 {
     return password_hash($password, PASSWORD_DEFAULT);

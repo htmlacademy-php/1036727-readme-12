@@ -32,39 +32,18 @@
                                 </div>
                             </a>
                         </header>
-                        <div style="min-height: 141px;" class="post__main">
+                        <?php $style = empty($post['hashtags']) ? 'min-height: 141px' : ''; ?>
+
+                        <div style="<?= $style ?>" class="post__main">
                             <?php $post['display_mode'] = 'feed'; ?>
 
                             <?php if (in_array($post['class_name'], ['photo', 'text'])): ?>
                                 <h2><a href="/post.php?id=<?= esc($post['id']) ?>&comments=2"><?= esc($post['title']) ?></a></h2>
                             <?php endif; ?>
 
-                            <?php
-                            switch ($post['class_name']):
-                                case 'quote':
-                                    echo include_template('_partials/post-quote.php', ['post' => $post]);
-                                    break;
-
-                                case 'link':
-                                    echo include_template('_partials/post-link.php', ['post' => $post]);
-                                    break;
-
-                                case 'photo':
-                                    echo include_template('_partials/post-photo.php', ['post' => $post]);
-                                    break;
-
-                                case 'video':
-                                    echo include_template('_partials/post-video.php', ['post' => $post]);
-                                    break;
-
-                                case 'text':
-                                    echo include_template('_partials/post-text.php', ['post' => $post]);
-                                    break;
-
-                            endswitch;
-                            ?>
-
+                            <?= includeTemplate("_partials/post-{$post['class_name']}.php", ['post' => $post]) ?>
                         </div>
+
                         <footer style="flex-direction: column;" class="post__footer post__indicators">
                             <div class="post__buttons">
                                 <?php $classname = $post['is_like'] ? ' post__indicator--likes-active' : ''; ?>

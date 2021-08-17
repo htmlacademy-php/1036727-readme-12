@@ -6,34 +6,11 @@
             <?php $style = in_array($post['class_name'], ['quote', 'photo', 'video']) ? ' border-top: none;' : ''; ?>
             <div style="border-top-right-radius: 0;<?= $style ?>" class="post-details__main-block post post--details">
                 <?php $style = $post['class_name'] === 'text' ? 'border-bottom: 1px solid #dee5fc;' : ''; ?>
+
                 <div style="<?= $style ?>" class="post__main">
-
-                <?php
-                switch ($post['class_name']):
-                    case 'quote':
-                        echo include_template('_partials/post-quote.php', ['post' => $post]);
-                        break;
-
-                    case 'link':
-                        echo include_template('_partials/post-link.php', ['post' => $post]);
-                        break;
-
-                    case 'photo':
-                        echo include_template('_partials/post-photo.php', ['post' => $post]);
-                        break;
-
-                    case 'video':
-                        echo include_template('_partials/post-video.php', ['post' => $post]);
-                        break;
-
-                    case 'text':
-                        echo include_template('_partials/post-text.php', ['post' => $post]);
-                        break;
-
-                endswitch;
-                ?>
-
+                    <?= includeTemplate("_partials/post-{$post['class_name']}.php", ['post' => $post]) ?>
                 </div>
+
                 <div class="post__indicators">
                     <div class="post__buttons">
                         <?php $classname = $post['is_like'] ? ' post__indicator--likes-active' : ''; ?>
@@ -62,7 +39,7 @@
                             <span class="visually-hidden">количество репостов</span>
                         </a>
                     </div>
-                    <span class="post__view"><?= $post['show_count'] . get_noun_plural_form($post['show_count'], ' просмотр', ' просмотра', ' просмотров') ?></span>
+                    <span class="post__view"><?= $post['show_count'] . getNounPluralForm($post['show_count'], ' просмотр', ' просмотра', ' просмотров') ?></span>
                 </div>
 
                 <?php if (!empty($post['hashtags'])): ?>
@@ -144,7 +121,9 @@
                                                 <time
                                                     class="comments__time"
                                                     datetime="<?= getDatetimeValue($comment['dt_add']) ?>"
-                                                ><?= getRelativeTime($comment['dt_add']) ?> назад</time>
+                                                >
+                                                    <?= getRelativeTime($comment['dt_add']) ?> назад
+                                                </time>
                                             </div>
                                             <p class="comments__text"><?= nl2br(esc($comment['content']), false) ?></p>
                                         </div>
@@ -190,18 +169,20 @@
                         <time
                             class="post-details__time user__time"
                             datetime="<?= getDatetimeValue($post['author']['dt_add']) ?>"
-                        ><?= getRelativeTime($post['author']['dt_add']) ?> на сайте</time>
+                        >
+                            <?= getRelativeTime($post['author']['dt_add']) ?> на сайте
+                        </time>
                     </div>
                 </div>
                 <?php $style = $post['author_id'] === $_SESSION['user']['id'] ? 'margin-bottom: 0;' : ''; ?>
                 <div style="<?= $style ?>" class="post-details__rating user__rating">
                     <p class="post-details__rating-item user__rating-item user__rating-item--subscribers">
-                        <?php $subscribers = get_noun_plural_form($post['author']['subscriber_count'], ' подписчик', ' подписчика', ' подписчиков'); ?>
+                        <?php $subscribers = getNounPluralForm($post['author']['subscriber_count'], ' подписчик', ' подписчика', ' подписчиков'); ?>
                         <span class="post-details__rating-amount user__rating-amount"><?= esc($post['author']['subscriber_count']) ?></span>
                         <span class="post-details__rating-text user__rating-text"><?= $subscribers ?></span>
                     </p>
                     <p class="post-details__rating-item user__rating-item user__rating-item--publications">
-                        <?php $publications = get_noun_plural_form($post['author']['publication_count'], ' публикация', ' публикации', ' публикаций'); ?>
+                        <?php $publications = getNounPluralForm($post['author']['publication_count'], ' публикация', ' публикации', ' публикаций'); ?>
                         <span class="post-details__rating-amount user__rating-amount"><?= esc($post['author']['publication_count']) ?></span>
                         <span class="post-details__rating-text user__rating-text"><?= $publications ?></span>
                     </p>

@@ -16,16 +16,16 @@
 
                 <div class="form__text-inputs">
                     <?php $data = ['errors' => $errors, 'input' => $inputs['email']]; ?>
-                    <?= include_template('_partials/input-text.php', $data) ?>
+                    <?= includeTemplate('_partials/input-text.php', $data) ?>
 
                     <?php $data = ['errors' => $errors, 'input' => $inputs['passwd']]; ?>
-                    <?= include_template('_partials/input-text.php', $data) ?>
+                    <?= includeTemplate('_partials/input-text.php', $data) ?>
                 </div>
 
                 <?php if (!empty($errors)): ?>
                     <?php $style = 'margin-bottom: 22px; '; ?>
                     <?php $data = ['errors' => $errors, 'style' => $style]; ?>
-                    <?= include_template('_partials/invalid-block.php', $data) ?>
+                    <?= includeTemplate('_partials/invalid-block.php', $data) ?>
                 <?php endif; ?>
 
             </div>
