@@ -617,7 +617,7 @@ function processPostHashtags(array $hashtags, int $post_id)
             $hashtag_ids[] = Database::getInstance()->insertHashtag($hashtag);
         }
 
-        $hashtag_ids = array_merge($exist_hashtag_ids, $hashtag_ids);
+        $hashtag_ids = array_merge($exist_hashtag_ids, $hashtag_ids ?? []);
 
         foreach ($hashtag_ids as $hashtag_id) {
             Database::getInstance()->insertPostHashtag([$hashtag_id, $post_id]);
