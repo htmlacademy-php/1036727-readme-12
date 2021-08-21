@@ -30,7 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors = validateForm($form_name, $input);
 
         if (!is_null($errors) && empty($errors)) {
-            if ($input['content-type'] === 'text') {
+
+            if ($input['content-type'] === 'photo') {
+                $input['image-path'] = uploadImageFile($input, $errors);
+            } elseif ($input['content-type'] === 'text') {
                 $input['text-content'] = cutOutExtraSpaces($input['post-text']);
             } elseif ($input['content-type'] === 'quote') {
                 $input['text-content'] = cutOutExtraSpaces($input['cite-text']);
@@ -38,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 processInputPostLink($input);
             }
 
-            $input['image-path'] = uploadImageFile($input, $errors);
             $ctype_id = $ctypes[$input['content-type']]['id'];
             $stmt_data = getStmtData($input, 'adding-post');
             $stmt_data += [$user_id, 0, null, $ctype_id];
