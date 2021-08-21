@@ -31,9 +31,6 @@ class Database {
         $this->mysqli->set_charset('utf8');
     }
 
-    private function __clone() {}
-    private function __wakeup() {}
-
     /**
      * Выполняет sql-запрос и возвращает массив содержащий ассоциативные массивы
      * с данными результирующей таблицы

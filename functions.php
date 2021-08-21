@@ -438,7 +438,7 @@ function cmp(array $a, array $b): int
     $a = isset($a['sizes']) ? explode('x', $a['sizes'])[0] : '0';
     $b = isset($b['sizes']) ? explode('x', $b['sizes'])[0] : '0';
 
-    if ($a == $b) {
+    if ($a === $b) {
         return 0;
     }
     return ($a > $b) ? -1 : 1;
@@ -617,7 +617,7 @@ function processPostHashtags(array $hashtags, int $post_id)
             $hashtag_ids[] = Database::getInstance()->insertHashtag($hashtag);
         }
 
-        $hashtag_ids = array_merge($exist_hashtag_ids, $hashtag_ids);
+        $hashtag_ids = array_merge($exist_hashtag_ids, $hashtag_ids ?? []);
 
         foreach ($hashtag_ids as $hashtag_id) {
             Database::getInstance()->insertPostHashtag([$hashtag_id, $post_id]);

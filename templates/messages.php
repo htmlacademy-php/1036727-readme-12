@@ -23,7 +23,7 @@
                             <?php endif; ?>
 
                             <?php if (!empty($contact['unread_messages_count'])): ?>
-                                <i class="messages__indicator"><?= $contact['unread_messages_count'] ?></i>
+                                <i class="messages__indicator"><?= esc($contact['unread_messages_count']) ?></i>
                             <?php endif; ?>
 
                         </div>
@@ -32,7 +32,7 @@
                             <div class="messages__preview">
 
                                 <?php if (isset($contact['preview'])): ?>
-                                    <p class="messages__preview-text"><?= $contact['preview']['text'] ?></p>
+                                    <p class="messages__preview-text"><?= esc($contact['preview']['text']) ?></p>
                                     <time
                                         class="messages__preview-time"
                                         datetime="<?= getDatetimeValue($contact['preview']['time']) ?>"
