@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Callback для встроенной функции set_error_handler
+ *
+ * @param int $severity Уровень ошибки
+ * @param string $message Сообщение об ошибке
+ * @param string $filename Имя файла, в котором произошла ошибка
+ * @param int $lineno Номер строки, на которой произошла ошибка
+ */
 function exceptionsErrorHandler($severity, $message, $filename, $lineno)
 {
     throw new ErrorException($message, 0, $severity, $filename, $lineno);
