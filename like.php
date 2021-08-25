@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = Database::getInstance();
+$db = anatolev\Database::getInstance();
 
 $user_id = $_SESSION['user']['id'];
 $post_id = intval(filter_input(INPUT_GET, 'id'));

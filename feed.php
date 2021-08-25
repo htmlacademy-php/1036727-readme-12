@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = Database::getInstance();
+$db = anatolev\Database::getInstance();
 
 $content_type = filter_input(INPUT_GET, 'filter') ?? '';
 

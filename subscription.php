@@ -8,7 +8,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = Database::getInstance();
+$db = anatolev\Database::getInstance();
 
 $user_id = intval($_SESSION['user']['id']);
 $profile_id = intval(filter_input(INPUT_GET, 'id'));
@@ -39,9 +39,8 @@ if (!$db->isSubscription([$user_id, $profile_id])) {
 
         $mailer = new Swift_Mailer($transport);
         $mailer->send($message);
-
-    } catch (Swift_TransportException $ex) {}
-
+    } catch (Swift_TransportException $ex) {
+    }
 } else {
     $db->deleteSubscription([$user_id, $profile_id]);
 }

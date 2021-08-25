@@ -1,6 +1,9 @@
 <?php
 
-class Database {
+namespace anatolev;
+
+class Database
+{
     private $mysqli;
     private static $db;
 
@@ -21,7 +24,7 @@ class Database {
     {
         $db_config = require_once('config/db.php');
         $db_config = array_values($db_config);
-        $this->mysqli = new mysqli(...$db_config);
+        $this->mysqli = new \mysqli(...$db_config);
 
         if (!$this->mysqli) {
             http_response_code(500);
@@ -29,6 +32,14 @@ class Database {
         }
 
         $this->mysqli->set_charset('utf8');
+    }
+
+    private function __clone()
+    {
+    }
+
+    private function __wakeup()
+    {
     }
 
     /**
@@ -128,7 +139,7 @@ class Database {
      *
      * @return mysqli_stmt
      */
-    public function executeQuery(string $sql, array $stmt_data = []): mysqli_stmt
+    public function executeQuery(string $sql, array $stmt_data = []): \mysqli_stmt
     {
         $stmt = $this->getPrepareStmt($sql, $stmt_data);
         if (!$stmt->execute()) {
@@ -149,7 +160,7 @@ class Database {
      *
      * @return mysqli_stmt Подготовленное выражение
      */
-    private function getPrepareStmt(string $sql, array $data): mysqli_stmt
+    private function getPrepareStmt(string $sql, array $data): \mysqli_stmt
     {
         if (!$stmt = $this->mysqli->prepare($sql)) {
             http_response_code(500);
@@ -280,7 +291,8 @@ class Database {
      *
      * @return int Идентификатор добавленной публикации
      */
-    public function insertPost(array $stmt_data): int {
+    public function insertPost(array $stmt_data): int
+    {
         $post_fields = getPostFields('insert');
         $query = (new QueryBuilder())
             ->insert('post', $post_fields, array_fill(0, 10, '?'));
@@ -646,8 +658,11 @@ class Database {
         $query = (new QueryBuilder())
             ->select(['dt_add', 'content', 'sender_id'])
             ->from('message')
-            ->where('OR', '(recipient_id = ? AND sender_id = ?)',
-                '(recipient_id = ? AND sender_id = ?)')
+            ->where(
+                'OR',
+                '(recipient_id = ? AND sender_id = ?)',
+                '(recipient_id = ? AND sender_id = ?)'
+            )
             ->orderBy('dt_add DESC')->limit('1');
         $message = $query->one($stmt_data);
         $preview = mb_substr($message['content'], 0, $max_length);
@@ -670,8 +685,11 @@ class Database {
             ->addSelect(['u.login AS author', 'u.avatar_path'])
             ->from('message m')
             ->join('LEFT', 'user u', 'u.id = m.sender_id')
-            ->where('OR', '(m.recipient_id = ? AND m.sender_id = ?)',
-                '(m.recipient_id = ? AND m.sender_id = ?)')
+            ->where(
+                'OR',
+                '(m.recipient_id = ? AND m.sender_id = ?)',
+                '(m.recipient_id = ? AND m.sender_id = ?)'
+            )
             ->orderBy('m.dt_add ASC');
 
         return $query->all($stmt_data);
@@ -1077,7 +1095,8 @@ class Database {
      *
      * @return bool
      */
-    public function isEmailExist(string $email): bool {
+    public function isEmailExist(string $email): bool
+    {
         $query = (new QueryBuilder())
             ->select(['id'])
             ->from('user')

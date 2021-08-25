@@ -11,7 +11,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = Database::getInstance();
+$db = anatolev\Database::getInstance();
 
 $user_id = $_SESSION['user']['id'];
 
@@ -46,17 +46,16 @@ if (isset($_GET['contact'])) {
 $contacts = $db->getContacts();
 
 if (isset($_GET['contact'])) {
-
     if (!in_array($contact_id, array_column($contacts, 'id'))) {
-        if (!$db->addNewContact($contacts, $contact_id)
-            && $contact_id = $_COOKIE['new_contact'] ?? null) {
+        if (
+            !$db->addNewContact($contacts, $contact_id)
+            && $contact_id = $_COOKIE['new_contact'] ?? null
+        ) {
             $db->addNewContact($contacts, $contact_id);
         }
-
     } elseif ($contact_id = $_COOKIE['new_contact'] ?? null) {
         $db->addNewContact($contacts, $contact_id);
     }
-
 } elseif ($contact_id = $_COOKIE['new_contact'] ?? null) {
     $db->addNewContact($contacts, $contact_id);
 }

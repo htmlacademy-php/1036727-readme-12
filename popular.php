@@ -11,7 +11,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = Database::getInstance();
+$db = anatolev\Database::getInstance();
 
 $user_id = $_SESSION['user']['id'];
 
@@ -28,14 +28,12 @@ $request_uri = preg_replace('%&page=[0-9]+%', '', $_SERVER['REQUEST_URI']);
 setcookie('request_uri', $request_uri, $expires);
 
 if (isset($_COOKIE['sort']) && isset($_COOKIE['dir']) && $_COOKIE['request_uri'] !== $request_uri) {
-
     if (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields) && $_COOKIE['sort'] === $_GET['sort']) {
         $sort = $_GET['sort'];
 
         $value = $_COOKIE['dir'] === 'desc' ? 'asc' : 'desc';
         $sort_types[$sort] = $value;
         setcookie('dir', $value, $expires);
-
     } elseif (isset($_GET['sort']) && in_array($_GET['sort'], $sort_fields)) {
         list($sort, $value) = [$_GET['sort'], 'asc'];
 
@@ -48,7 +46,6 @@ $sort_types[$sort] = $value;
 
 $order = 'p.show_count DESC';
 if (isset($_GET['sort'], $_GET['dir'])) {
-
     switch ($_GET['sort']) {
         case 'likes':
             $order = 'COUNT(pl.id) ';
