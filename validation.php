@@ -1,5 +1,7 @@
 <?php
 
+use anatolev\Database;
+
 const FORM_TYPES = [
     'adding-post-photo' => [
         'heading:Заголовок' => 'maxLength:128|required',
@@ -220,7 +222,6 @@ function remoteFile(string $value, array $options, int $max_size = 1)
         $file_size = fstat($temp_file)['size'];
         $file_type = mime_content_type($file_path);
         fclose($temp_file);
-
     } catch (ErrorException $ex) {
         return 'Вы не загрузили файл';
     }
@@ -239,10 +240,8 @@ function image(string $value, array $options)
 {
     if (!empty($_FILES[$options[1] ?? '']['tmp_name'])) {
         $error = localFile($value, $options);
-
     } elseif (filter_var($value, FILTER_VALIDATE_URL)) {
         $error = remoteFile($value, $options);
-
     } else {
         $error = 'Вы не загрузили файл';
     }

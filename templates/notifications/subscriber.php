@@ -10,9 +10,9 @@
 
     <?php $link = "http://readme.net/profile.php?id={$_SESSION['user']['id']}"; ?>
     <p>
-        Здравствуйте, <?= $recipient['login'] ?>.
-        На вас подписался новый пользователь <?= $_SESSION['user']['login'] ?>.
-        Вот ссылка на его профиль: <a href="<?= $link ?>"><?= $link ?></a>
+        Здравствуйте, <?= esc($recipient['login']) ?>.
+        На вас подписался новый пользователь <?= esc($_SESSION['user']['login']) ?>.
+        Вот ссылка на его профиль: <a href="<?= esc($link) ?>"><?= esc($link) ?></a>
     </p>
 
 </body>

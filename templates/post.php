@@ -39,7 +39,7 @@
                             <span class="visually-hidden">количество репостов</span>
                         </a>
                     </div>
-                    <span class="post__view"><?= $post['show_count'] . getNounPluralForm($post['show_count'], ' просмотр', ' просмотра', ' просмотров') ?></span>
+                    <span class="post__view"><?= esc($post['show_count']) . getNounPluralForm($post['show_count'], ' просмотр', ' просмотра', ' просмотров') ?></span>
                 </div>
 
                 <?php if (!empty($post['hashtags'])): ?>

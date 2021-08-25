@@ -15,7 +15,7 @@
                     <?php foreach ($posts as $post): ?>
                         <article class="search__post post post-<?= esc($post['class_name']) ?>">
                             <header class="post__header post__author">
-                                <a class="post__author-link" href="/profile.php?id=<?= $post['author_id'] ?>&tab=posts" title="Автор">
+                                <a class="post__author-link" href="/profile.php?id=<?= esc($post['author_id']) ?>&tab=posts" title="Автор">
                                     <div class="post__avatar-wrapper">
 
                                         <?php if (!empty($post['avatar_path'])): ?>
@@ -51,7 +51,7 @@
                             <footer style="flex-direction: column;" class="post__footer post__indicators">
                                 <div class="post__buttons">
                                     <?php $classname = $post['is_like'] ? ' post__indicator--likes-active' : ''; ?>
-                                    <a class="post__indicator post__indicator--likes<?= $classname ?> button" href="/like.php?id=<?= $post['id'] ?>" title="Лайк">
+                                    <a class="post__indicator post__indicator--likes<?= $classname ?> button" href="/like.php?id=<?= esc($post['id']) ?>" title="Лайк">
                                         <svg class="post__indicator-icon" width="20" height="17">
                                             <use xlink:href="#icon-heart"></use>
                                         </svg>

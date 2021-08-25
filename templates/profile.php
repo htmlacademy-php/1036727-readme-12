@@ -191,7 +191,7 @@
 
                             <?php if (!empty($post['comments'])): ?>
 
-                                <?php if (isset($_GET['article']) && $_GET['article'] == $post['id']): ?>
+                                <?php if (isset($_GET['article']) && intval($_GET['article']) === $post['id']): ?>
                                     <div class="comments">
                                         <div style="padding-bottom: 11px;" class="comments__list-wrapper">
                                             <ul class="comments__list">
@@ -345,10 +345,10 @@
                                             <?php case 'text': ?>
                                                 <svg
                                                     class="post-mini__preview-icon"
-                                                    width="<?= $like['icon_width'] ?>"
-                                                    height="<?= $like['icon_height'] ?>"
+                                                    width="<?= esc($like['icon_width']) ?>"
+                                                    height="<?= esc($like['icon_height']) ?>"
                                                 >
-                                                    <use xlink:href="#icon-filter-<?= $like['class_name'] ?>"></use>
+                                                    <use xlink:href="#icon-filter-<?= esc($like['class_name']) ?>"></use>
                                                 </svg>
                                                 <?php break; ?>
 
@@ -357,7 +357,7 @@
                                                     <img
                                                         style="width: 109px; height: 109px; object-fit: cover;"
                                                         class="post-mini__image"
-                                                        src="uploads/<?= $like['image_path'] ?>"
+                                                        src="uploads/<?= esc($like['image_path']) ?>"
                                                         width="109"
                                                         height="109"
                                                         alt="Превью публикации"
