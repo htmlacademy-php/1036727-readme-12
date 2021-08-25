@@ -18,7 +18,7 @@ if (!$search = trim(filter_input(INPUT_GET, 'q'))) {
     exit;
 }
 
-$db = Database::getInstance();
+$db = anatolev\Database::getInstance();
 
 $posts = [];
 
@@ -26,7 +26,6 @@ if (substr($search, 0, 1) === '#') {
     if ($hashtag = substr($search, 1)) {
         $posts = $db->getPostsByHashtag($hashtag);
     }
-
 } else {
     $search_words = [];
 

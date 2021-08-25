@@ -268,9 +268,7 @@
                                                     class="comments__textarea form__textarea form__input"
                                                     name="<?= esc($input['name']) ?>"
                                                     placeholder="<?= esc($input['placeholder']) ?>"
-                                                >
-                                                    <?= esc(getPostValue($input['name'])) ?>
-                                                </textarea>
+                                                ><?= esc(getPostValue($input['name'])) ?></textarea>
                                                 <label class="visually-hidden"><?= esc($input['label']) ?></label>
                                                 <button class="form__error-button button" type="button">!</button>
                                                 <div class="form__error-text">

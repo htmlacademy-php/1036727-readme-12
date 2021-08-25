@@ -8,7 +8,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = Database::getInstance();
+$db = anatolev\Database::getInstance();
 
 $user_id = $_SESSION['user']['id'];
 $post_id = intval(filter_input(INPUT_GET, 'id'));
@@ -23,8 +23,8 @@ $post_id2 = $db->insertPost($stmt_data);
 
 if ($hashtags = $db->getPostHashtagIds($post_id)) {
     foreach ($hashtags as $hashtag) {
-        $stmt_data = [$hashtag['id'], $post_id2];
-        $db->insertPostHashtag($stmt_data);
+        $stmt_data2 = [$hashtag['id'], $post_id2];
+        $db->insertPostHashtag($stmt_data2);
     }
 }
 

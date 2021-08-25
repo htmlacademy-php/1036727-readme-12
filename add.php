@@ -12,7 +12,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = Database::getInstance();
+$db = anatolev\Database::getInstance();
 
 $user_id = $_SESSION['user']['id'];
 
@@ -30,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors = validateForm($form_name, $input);
 
         if (!is_null($errors) && empty($errors)) {
-
             if ($input['content-type'] === 'photo') {
                 $input['image-path'] = uploadImageFile($input, $errors);
             } elseif ($input['content-type'] === 'text') {

@@ -1,5 +1,7 @@
 <?php
 
+use anatolev\Database;
+
 /**
  * Callback для встроенной функции set_error_handler
  *
@@ -69,6 +71,7 @@ function cropTextContent(string $text, int $post_id, string $style = '', int $le
  * (если указанная форма не существует).
  *
  * @param string $form
+ *
  * @return array
  */
 function getPostInput(string $form): array
@@ -119,6 +122,7 @@ function getPostInput(string $form): array
  * 2. Для вставки (insert)
  *
  * @param string $mode
+ *
  * @return array
  */
 function getPostFields(string $mode = 'select'): array
@@ -165,7 +169,7 @@ function getPostFields(string $mode = 'select'): array
  * Возвращает данные или пустой массив
  * (если указанная форма / инпут не существует).
  *
- * @param array $input
+ * @param array $input Данные из массива $_POST
  * @param string $form
  *
  * @return array
@@ -237,7 +241,6 @@ function getRelativeTime(string $date): string
         if ($ts_diff < $array[$i - 1][0]) {
             break;
         }
-
     } while ($i < count($array));
 
     return $relative_time;
@@ -411,8 +414,10 @@ function getLinkInfo(string $url)
     if ($h1_elements->count() === 1) {
         $h1_childs = $h1_elements->item(0)->childNodes;
 
-        if ($h1_childs->count() === 1
-            && $h1_childs->item(0)->nodeName === '#text') {
+        if (
+            $h1_childs->count() === 1
+            && $h1_childs->item(0)->nodeName === '#text'
+        ) {
             $h1 = trim($h1_elements->item(0)->nodeValue);
         }
     }
@@ -432,13 +437,12 @@ function getLinkInfo(string $url)
  *
  * @return int
  */
-
 function cmp(array $a, array $b): int
 {
     $a = isset($a['sizes']) ? explode('x', $a['sizes'])[0] : '0';
     $b = isset($b['sizes']) ? explode('x', $b['sizes'])[0] : '0';
 
-    if ($a == $b) {
+    if ($a === $b) {
         return 0;
     }
     return ($a > $b) ? -1 : 1;
@@ -469,7 +473,6 @@ function getFaviconUrl(string $url): string
         if (!$response || $http_error) {
             return '';
         }
-
     } while ($http_code === 502);
 
     curl_close($curl_handle);
@@ -501,8 +504,8 @@ function uploadFavicon(string $url): string
         $file_extension = explode('/', $file_type);
         $file_name .= ".{$file_extension[1]}";
         rename($file_path, 'uploads/' . $file_name);
-
-    } catch (ErrorException $ex) {}
+    } catch (ErrorException $ex) {
+    }
     restore_error_handler();
 
     return $file_name ?? '';
@@ -561,7 +564,6 @@ function uploadRemoteFile(string $file_url, array &$errors)
             $file_extension = explode('/', $file_type);
             $file_name = uniqid() . ".{$file_extension[1]}";
             file_put_contents('uploads/' . $file_name, $content);
-
         } catch (ErrorException $ex) {
             $errors['file-photo'][0] = 'Вы не загрузили файл';
             $errors['file-photo'][1] = 'Изображение';
@@ -584,7 +586,6 @@ function uploadImageFile(array $input, array &$errors)
 {
     if (!empty($_FILES['file-photo']['name'])) {
         $file_name = uploadLocalFile('file-photo');
-
     } elseif ($url = $input['image-url'] ?? '') {
         $file_name = uploadRemoteFile($url, $errors);
     }
@@ -629,19 +630,21 @@ function processPostHashtags(array $hashtags, int $post_id)
  * Отправляет email-уведомления о новой публикации
  * подписчикам аутентифицированного пользователя
  *
- * @param array $recipients Подписчики
+ * @param array  $recipients Подписчики
  * @param string $post_title Заголовок публикации
  */
 function sendPostNotifications(array $recipients, string $post_title)
 {
     try {
-        $smtp_config = require('config/smtp.php');
+        $smtp_config = include 'config/smtp.php';
         $transport = new Swift_SmtpTransport($smtp_config['host'], $smtp_config['port']);
         $transport->setUsername($smtp_config['username']);
         $transport->setPassword($smtp_config['password']);
 
         $message = new Swift_Message();
-        $message->setSubject("Новая публикация от пользователя {$_SESSION['user']['login']}");
+        $message->setSubject(
+            "Новая публикация от пользователя {$_SESSION['user']['login']}"
+        );
 
         $mailer = new Swift_Mailer($transport);
 
@@ -651,13 +654,14 @@ function sendPostNotifications(array $recipients, string $post_title)
                 'recipient' => $recipient,
                 'post_title' => $post_title
             ]);
+
             $message->setBody($body);
             $message->setFrom('keks@phpdemo.ru', 'Readme');
 
             $mailer->send($message);
         }
-
-    } catch (Swift_TransportException $ex) {}
+    } catch (Swift_TransportException $ex) {
+    }
 }
 
 /**
@@ -746,7 +750,7 @@ function cutOutExtraSpaces(string $text): string
  * Создаёт хеш пароля
  * https://php.net/manual/ru/function.password-hash
  *
- * @param string Пользовательский пароль
+ * @param string $password Пользовательский пароль
  * @return string Хешированный пароль
  */
 function getPasswordHash(string $password): string
