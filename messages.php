@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_data = [$message, $user_id, $contact_id];
         $db->insertMessage($stmt_data);
 
-        if (($_COOKIE['new_contact'] ?? null) == $contact_id) {
+        if (($_COOKIE['new_contact'] ?? null) === $contact_id) {
             setcookie('new_contact', '', time() - 3600);
         }
 

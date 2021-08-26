@@ -11,7 +11,7 @@
                 <?php foreach ($posts as $post): ?>
                     <article class="feed__post post post-<?= esc($post['class_name']) ?>">
                         <header class="post__header post__author">
-                            <a class="post__author-link" href="/profile.php?id=<?= $post['author_id'] ?>&tab=posts" title="Автор">
+                            <a class="post__author-link" href="/profile.php?id=<?= esc($post['author_id']) ?>&tab=posts" title="Автор">
                                 <div class="post__avatar-wrapper">
 
                                     <?php if (!empty($post['avatar_path'])): ?>
