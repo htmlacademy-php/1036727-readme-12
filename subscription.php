@@ -8,7 +8,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = anatolev\Database::getInstance();
+$db = Anatolev\Database::getInstance();
 
 $user_id = intval($_SESSION['user']['id']);
 $profile_id = intval(filter_input(INPUT_GET, 'id'));

@@ -1,6 +1,6 @@
 <?php
 
-namespace anatolev;
+namespace Anatolev;
 
 class Database
 {
@@ -708,7 +708,7 @@ class Database
     {
         $stmt_data = array_fill(0, 4, $_SESSION['user']['id']);
         $query = (new QueryBuilder())
-            ->select(['COUNT(DISTINCT m2.id) AS unread_messages_count'])
+            ->select(['COUNT(DISTINCT m2.id) AS unread_message_count'])
             ->addSelect(['u.id', 'u.login', 'u.avatar_path'])
             ->from('message m')
             ->join('LEFT', 'user u', 'u.id = m.sender_id OR u.id = m.recipient_id')

@@ -82,7 +82,7 @@
 
                 <footer class="post__footer">
                     <div class="post__author">
-                        <a class="post__author-link" href="/profile.php?id=<?= $post['author_id'] ?>&tab=posts" title="Автор">
+                        <a class="post__author-link" href="/profile.php?id=<?= esc($post['author_id']) ?>&tab=posts" title="Автор">
                             <div class="post__avatar-wrapper">
 
                                 <?php if (!empty($post['avatar_path'])): ?>

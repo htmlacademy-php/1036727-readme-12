@@ -6,7 +6,7 @@
 
             <?php foreach ($contacts as $contact): ?>
                 <li class="messages__contacts-item">
-                    <?php $classname = isset($_GET['contact']) && $_GET['contact'] == $contact['id']
+                    <?php $classname = isset($_GET['contact']) && intval($_GET['contact']) === $contact['id']
                         ? ' messages__contacts-tab--active tabs__item--active' : ''; ?>
                     <a class="messages__contacts-tab tabs__item<?= $classname ?>" href="/messages.php?contact=<?= esc($contact['id']) ?>">
                         <div class="messages__avatar-wrapper">
@@ -22,8 +22,8 @@
                                 >
                             <?php endif; ?>
 
-                            <?php if (!empty($contact['unread_messages_count'])): ?>
-                                <i class="messages__indicator"><?= esc($contact['unread_messages_count']) ?></i>
+                            <?php if (!empty($contact['unread_message_count'])): ?>
+                                <i class="messages__indicator"><?= esc($contact['unread_message_count']) ?></i>
                             <?php endif; ?>
 
                         </div>
@@ -62,7 +62,7 @@
             <div class="messages__chat-wrapper">
 
                 <?php foreach ($contacts as $contact): ?>
-                    <?php $classname = $_GET['contact'] == $contact['id'] ? ' tabs__content--active' : ''; ?>
+                    <?php $classname = intval($_GET['contact']) === $contact['id'] ? ' tabs__content--active' : ''; ?>
                     <ul class="messages__list tabs__content<?= $classname ?>">
 
                         <?php if (isset($contact['messages'])): ?>

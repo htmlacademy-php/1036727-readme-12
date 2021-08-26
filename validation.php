@@ -1,6 +1,6 @@
 <?php
 
-use anatolev\Database;
+use Anatolev\Database;
 
 const FORM_TYPES = [
     'adding-post-photo' => [
