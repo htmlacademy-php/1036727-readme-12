@@ -1,8 +1,6 @@
 <?php
 
-namespace anatolev;
-
-use anatolev\Database;
+namespace Anatolev;
 
 class QueryBuilder
 {

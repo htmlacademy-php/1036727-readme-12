@@ -11,7 +11,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = anatolev\Database::getInstance();
+$db = Anatolev\Database::getInstance();
 
 $user_id = $_SESSION['user']['id'];
 

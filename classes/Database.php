@@ -1,6 +1,6 @@
 <?php
 
-namespace anatolev;
+namespace Anatolev;
 
 class Database
 {

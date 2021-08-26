@@ -1,6 +1,6 @@
 <?php
 
-use anatolev\Database;
+use Anatolev\Database;
 
 /**
  * Callback для встроенной функции set_error_handler

@@ -18,7 +18,7 @@ if (!$search = trim(filter_input(INPUT_GET, 'q'))) {
     exit;
 }
 
-$db = anatolev\Database::getInstance();
+$db = Anatolev\Database::getInstance();
 
 $posts = [];
 
